@@ -53,10 +53,12 @@ Key principles:
 - Development rules and coding conventions belong in CLAUDE.md (frequently referenced)
 
 If CLAUDE.md already exists:
+- Read the existing CLAUDE.md in its entirety first
 - Read `references/CLAUDE_TEMPLATE.md` and use it as the target structure
-- Preserve existing development rules, conventions, and project-specific content
-- Restructure to match the template, adding any missing sections
-- Ask the user to confirm before overwriting
+- **Merge, don't replace**: the goal is to reorganize existing content into the template structure, not to discard it. Every piece of information in the existing CLAUDE.md must either appear in the updated version or be explicitly flagged to the user for a decision.
+- Existing content that fits a template section (e.g., existing dev rules → Development Rules) should be moved there
+- Existing content that doesn't fit any template section should be kept in a project-specific section rather than silently dropped
+- Show the user a diff or summary of what changed, what was added, and what was reorganized. Ask the user to confirm before writing the file.
 
 #### Step 4: Integrate portman
 
