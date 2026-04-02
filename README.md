@@ -1,6 +1,6 @@
 # claude-skills
 
-Reusable [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skills for standardized project management and sprint lifecycle.
+Reusable [Claude Code](https://code.claude.com/docs/en/overview) skills for standardized project management and sprint lifecycle.
 
 ## Skills
 
@@ -37,10 +37,23 @@ These skills establish a standard documentation structure optimized for Claude C
 ```bash
 ghq get tjst-t/claude-skills
 cd $(ghq root)/github.com/tjst-t/claude-skills
+chmod +x install.sh
 ./install.sh
 ```
 
-This creates symlinks in `/mnt/skills/user/` pointing to each skill. Updates are applied by `git pull` — no reinstall needed.
+This creates symlinks in `~/.claude/skills/` pointing to each skill. Claude Code [discovers skills from this directory](https://code.claude.com/docs/en/skills#where-skills-live) automatically across all projects.
+
+After installation, restart Claude Code to pick up the new skills.
+
+### Verify installation
+
+In a Claude Code session:
+
+```
+What skills are available?
+```
+
+You should see `project-init` and `sprint-runner` in the list.
 
 ### Custom install path
 
@@ -55,7 +68,7 @@ cd $(ghq root)/github.com/tjst-t/claude-skills
 git pull
 ```
 
-Symlinks ensure all projects pick up changes immediately.
+Symlinks ensure all projects pick up changes immediately. No reinstall needed.
 
 ## Usage
 
@@ -84,9 +97,21 @@ sprint init      # Initialize or migrate roadmap (also called by project init)
 
 Sprints use permanent IDs (S001, S002, ...) assigned in creation order. Execution order is defined separately, so inserting a Sprint never requires renumbering.
 
+## Skill paths in Claude Code
+
+Claude Code discovers skills from these locations ([docs](https://code.claude.com/docs/en/skills#where-skills-live)):
+
+| Location | Path | Scope |
+|---|---|---|
+| Personal | `~/.claude/skills/` | All your projects |
+| Project | `.claude/skills/` | That project only |
+| Enterprise | Managed settings | Organization-wide |
+
+This repository installs to the **Personal** location by default.
+
 ## Requirements
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- [Claude Code](https://code.claude.com/docs/en/overview)
 - [portman](https://github.com/tjst-t/port-manager) (optional, for dev server management)
 
 ## License
