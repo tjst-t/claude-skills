@@ -51,11 +51,13 @@ Key principles:
 - Only include information Claude Code needs on EVERY task
 - Everything else goes in docs/ with a pointer from CLAUDE.md
 - Development rules and coding conventions belong in CLAUDE.md (frequently referenced)
+- The References section MUST include pointers to all Layer 2 docs that exist, including `docs/ROADMAP.md` and `docs/ARCHITECTURE.md`
 
 If CLAUDE.md already exists:
 - Preserve existing development rules and conventions
 - Update the structure to match the template
 - Add missing sections (especially References pointers)
+- Ensure the References section includes `docs/ROADMAP.md` — add it if missing
 - Ask the user to confirm before overwriting
 
 #### Step 4: Integrate portman
@@ -76,9 +78,9 @@ If the project has multiple services (e.g., API + frontend), create separate Mak
 
 #### Step 5: Initialize Roadmap
 
-Call `sprint init` from the sprint-runner skill to set up `docs/ROADMAP.md`.
-
-If the sprint-runner skill is not available, create `docs/ROADMAP.md` manually with a blank template.
+1. Call `sprint init` from the sprint-runner skill to set up `docs/ROADMAP.md`.
+2. If the sprint-runner skill is not available, create `docs/ROADMAP.md` manually with a blank template.
+3. After the roadmap is created, verify that `CLAUDE.md` contains a reference to `docs/ROADMAP.md` in its References section. If not, add it.
 
 #### Step 6: Summary
 
