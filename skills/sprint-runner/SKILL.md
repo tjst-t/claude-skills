@@ -1,11 +1,11 @@
 ---
 name: sprint-runner
-description: Agile Sprint lifecycle management for software projects. Use this skill whenever the user mentions sprint commands like "sprint plan", "sprint run", "sprint verify", "sprint done", "sprint init", or references sprint/story/task workflows, roadmap management, or agile-style development cycles. Also trigger when the user says things like "次のスプリント", "スプリント開始", "実装完了", "レビュー完了", or asks to update a roadmap. This skill manages the full sprint lifecycle from planning through completion.
+description: Agile Sprint lifecycle management for software projects. Use this skill whenever the user mentions sprint commands like "sprint plan", "sprint run", "sprint verify", "sprint done", "sprint demo", "sprint init", or references sprint/story/task workflows, roadmap management, or agile-style development cycles. Also trigger when the user says things like "次のスプリント", "スプリント開始", "実装完了", "レビュー完了", "デモ", or asks to update a roadmap. This skill manages the full sprint lifecycle from planning through completion.
 ---
 
 # Sprint Runner
 
-Manages the Agile Sprint lifecycle: plan → run → verify → done.
+Manages the Agile Sprint lifecycle: plan → run → verify → demo → done.
 
 ## Roadmap Location
 
@@ -91,6 +91,37 @@ This is a final review of the entire Sprint's changes as a whole. Story-level re
 
 8. Update `docs/ROADMAP.md` to reflect the verified state
 
+### `sprint demo`
+
+Demonstrate the Sprint's deliverables to the user. Run this after `sprint verify`.
+
+1. Read `docs/ROADMAP.md` and identify the current Sprint (the most recent `[IN PROGRESS]` or fully verified Sprint)
+2. Read the Sprint's Stories and Tasks to understand what was built
+3. Read `docs/ARCHITECTURE.md` and `CLAUDE.md` to understand the project type
+
+**Determine the demo approach based on the project:**
+
+Analyze the project and choose the most effective combination of the following demo methods:
+
+- **Web/API server projects**: Start the server with `make serve` (or the project's serve command). Demonstrate key endpoints or pages using `curl`, `httpie`, or by telling the user which URLs to visit. Show request/response examples for new or changed API endpoints.
+- **CLI tool projects**: Run the tool with representative arguments. Show before/after for changed behavior. Demonstrate new subcommands or flags.
+- **Library projects**: Write and execute a small demo script that imports the library and exercises the new functionality. Show the output.
+- **Infrastructure/config projects**: Show the relevant config diffs, run validation commands, or demonstrate that services come up correctly.
+- **UI projects**: Start the dev server and tell the user which pages/routes to check. Describe what they should see and what to interact with.
+
+**For each Story in the Sprint:**
+
+4. Briefly explain what the Story delivers (1-2 sentences)
+5. Execute the demo for that Story — actually run commands, show real output. Do not just describe what would happen.
+6. Highlight anything notable: edge cases handled, performance characteristics, important caveats
+
+**Wrap up:**
+
+7. Summarize what was demonstrated
+8. Ask the user if they want to explore anything further or see additional scenarios
+
+The demo should feel like a live walkthrough, not a written report. Run real commands with real output. If something fails during the demo, note it as a potential issue to address before `sprint done`.
+
 ### `sprint done`
 
 Finalize the Sprint and update tracking.
@@ -122,6 +153,7 @@ Finalize the Sprint and update tracking.
 - **Backlog awareness**: During `sprint plan`, if a Backlog item becomes relevant, suggest promoting it to the current Sprint.
 - **Actually invoke /review**: During `sprint run` (per-Story) and `sprint verify` (Sprint-level), you must call the `/review` skill yourself via the Skill tool. Never skip this step, never just describe what /review would do, and never ask the user to run it separately.
 - **Two-level review**: Story-level review during `sprint run` catches local issues. Sprint-level review during `sprint verify` catches cross-Story and integration issues. Both are mandatory.
+- **Demo with real output**: During `sprint demo`, always execute real commands and show actual output. Never just describe what would happen or show hypothetical output.
 - **Always commit and push on done**: `sprint done` must leave a clean working tree. If there are uncommitted changes, commit and push them. Never finish a sprint with dirty state.
 
 ## Roadmap Format Reference
