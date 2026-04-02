@@ -41,16 +41,27 @@ Prepare the next sprint. This is a collaborative phase with the user.
 
 ### `sprint run`
 
-Execute the current Sprint.
+Execute the current Sprint. Each Story goes through an implement → review → fix cycle before moving to the next.
 
 1. Read `docs/ROADMAP.md` and identify the current Sprint (same logic as `sprint plan`)
-2. Execute all Stories and Tasks in order, respecting any noted dependencies
-3. For each Task:
-   - Implement the code changes
-   - Run relevant tests and **log the output** (save test logs to `docs/sprint-logs/{SprintID}/` directory, e.g. `docs/sprint-logs/S002/`)
-   - Mark the Task as `[x]` in the roadmap upon completion
-4. Mark each Story as complete when all its Tasks are done
-5. After all Stories are complete, present a summary of what was implemented
+2. For each Story in the Sprint (in order, respecting dependencies):
+
+   **Implement the Story:**
+   - Execute all Tasks in the Story
+   - For each Task: implement the code changes, run relevant tests, and **log the output** to `docs/sprint-logs/{SprintID}/`
+   - Mark each Task as `[x]` in the roadmap upon completion
+
+   **Review the Story:**
+   - After all Tasks in the Story are complete, invoke `/review` via the Skill tool to review the changes made in this Story
+   - Fix all auto-fixable findings immediately (code style, missing error handling, naming issues, etc.)
+   - Re-run `/review` until no more auto-fixable findings remain
+   - If any findings require design decisions, present them to the user **one item at a time** and wait for the user's response before proceeding
+
+   **Complete the Story:**
+   - Mark the Story as `[x]` in the roadmap
+   - Log the review results to `docs/sprint-logs/{SprintID}/`
+
+3. After all Stories are complete, present a summary of what was implemented
 
 ### `sprint verify`
 
@@ -65,7 +76,9 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
    - Check for any Tasks that were implemented but not marked complete
 3. If gaps are found, execute the missing work immediately
 
-**Phase 2: Code review via /review**
+**Phase 2: Sprint-level code review via /review**
+
+This is a final review of the entire Sprint's changes as a whole. Story-level reviews during `sprint run` catch issues within each Story, but this Sprint-level review catches cross-Story issues: inconsistencies between Stories, integration problems, duplicated code across Stories, and overall coherence.
 
 4. After all gaps are filled, invoke the `/review` skill directly by using the Skill tool. Do NOT just mention /review or tell the user to run it — you must actually call it yourself as a slash command so that it executes and produces findings. This is a critical step; skipping it or deferring it to the user defeats the purpose of verify.
 5. Read ALL findings produced by `/review`. For each finding:
@@ -102,12 +115,13 @@ Finalize the Sprint and update tracking.
 
 ## Important Behaviors
 
-- **One item at a time**: During `sprint plan` and `sprint verify` (when discussing with the user), always present and resolve one item before moving to the next. Don't dump a list of 10 questions at once.
+- **One item at a time**: During `sprint plan` and reviews (when discussing with the user), always present and resolve one item before moving to the next. Don't dump a list of 10 questions at once.
 - **Log everything**: Test output, build output, and verification results go to `docs/sprint-logs/{SprintID}/`. This creates an audit trail.
 - **Roadmap is the source of truth**: Always read `docs/ROADMAP.md` before taking action. Never assume you know the current state from memory.
 - **Respect dependencies**: If a Sprint depends on another Sprint that isn't complete, flag it as a blocker during `sprint plan`.
 - **Backlog awareness**: During `sprint plan`, if a Backlog item becomes relevant, suggest promoting it to the current Sprint.
-- **Actually invoke /review**: During `sprint verify`, you must call the `/review` skill yourself via the Skill tool. Never skip this step, never just describe what /review would do, and never ask the user to run it separately. The verify command is not complete until /review has been executed and all findings addressed.
+- **Actually invoke /review**: During `sprint run` (per-Story) and `sprint verify` (Sprint-level), you must call the `/review` skill yourself via the Skill tool. Never skip this step, never just describe what /review would do, and never ask the user to run it separately.
+- **Two-level review**: Story-level review during `sprint run` catches local issues. Sprint-level review during `sprint verify` catches cross-Story and integration issues. Both are mandatory.
 - **Always commit and push on done**: `sprint done` must leave a clean working tree. If there are uncommitted changes, commit and push them. Never finish a sprint with dirty state.
 
 ## Roadmap Format Reference
