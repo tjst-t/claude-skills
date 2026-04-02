@@ -56,17 +56,27 @@ Execute the current Sprint.
 
 Verify the Sprint implementation is complete and correct. Run this after `sprint run`.
 
+**Phase 1: Completeness check**
+
 1. Read `docs/ROADMAP.md` and identify the current Sprint
 2. Use a subagent to perform a comprehensive review:
    - Compare every Task in the Sprint against the actual code changes and test logs in `docs/sprint-logs/{SprintID}/`
    - Check for any Tasks marked incomplete or missing implementation
    - Check for any Tasks that were implemented but not marked complete
 3. If gaps are found, execute the missing work immediately
-4. After all gaps are filled, run `/review` (the project's review skill/command) on the implementation
-5. If `/review` produces findings:
-   - Fix all findings that can be resolved without user input
-   - For findings that require design decisions, present them to the user **one item at a time** and wait for the user's response before proceeding to the next
-6. Update `docs/ROADMAP.md` to reflect the verified state
+
+**Phase 2: Code review via /review**
+
+4. After all gaps are filled, invoke the `/review` skill directly by using the Skill tool. Do NOT just mention /review or tell the user to run it — you must actually call it yourself as a slash command so that it executes and produces findings. This is a critical step; skipping it or deferring it to the user defeats the purpose of verify.
+5. Read ALL findings produced by `/review`. For each finding:
+   - If it can be fixed without user input (code style, missing error handling, naming issues, etc.), fix it immediately
+   - If it requires a design decision, note it for discussion
+6. After fixing all auto-fixable findings, re-run `/review` to confirm the fixes are clean. Repeat until no more auto-fixable findings remain.
+7. If any findings require design decisions, present them to the user **one item at a time** and wait for the user's response before proceeding to the next.
+
+**Phase 3: Finalize**
+
+8. Update `docs/ROADMAP.md` to reflect the verified state
 
 ### `sprint done`
 
@@ -90,6 +100,7 @@ Finalize the Sprint and update tracking.
 - **Roadmap is the source of truth**: Always read `docs/ROADMAP.md` before taking action. Never assume you know the current state from memory.
 - **Respect dependencies**: If a Sprint depends on another Sprint that isn't complete, flag it as a blocker during `sprint plan`.
 - **Backlog awareness**: During `sprint plan`, if a Backlog item becomes relevant, suggest promoting it to the current Sprint.
+- **Actually invoke /review**: During `sprint verify`, you must call the `/review` skill yourself via the Skill tool. Never skip this step, never just describe what /review would do, and never ask the user to run it separately. The verify command is not complete until /review has been executed and all findings addressed.
 
 ## Roadmap Format Reference
 
