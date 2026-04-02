@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-SKILL_DIR="${SKILL_DIR:-/mnt/skills/user}"
+SKILL_DIR="${SKILL_DIR:-$HOME/.claude/skills}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [ ! -d "$SKILL_DIR" ]; then
