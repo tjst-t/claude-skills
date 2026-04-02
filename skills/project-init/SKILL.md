@@ -44,20 +44,18 @@ Keep it concise. This document will be read by Claude Code on demand (Layer 2), 
 
 #### Step 3: Generate or Update `CLAUDE.md`
 
-Create a CLAUDE.md following the progressive disclosure pattern. See `references/CLAUDE_TEMPLATE.md` for the format.
+Create or update CLAUDE.md following the template in `references/CLAUDE_TEMPLATE.md`. Always read the template first — it defines the required structure including the References section with pointers to all Layer 2 docs.
 
 Key principles:
 - CLAUDE.md is always in context (Layer 1), so every line costs tokens on every interaction
 - Only include information Claude Code needs on EVERY task
 - Everything else goes in docs/ with a pointer from CLAUDE.md
 - Development rules and coding conventions belong in CLAUDE.md (frequently referenced)
-- The References section MUST include pointers to all Layer 2 docs that exist, including `docs/ROADMAP.md` and `docs/ARCHITECTURE.md`
 
 If CLAUDE.md already exists:
-- Preserve existing development rules and conventions
-- Update the structure to match the template
-- Add missing sections (especially References pointers)
-- Ensure the References section includes `docs/ROADMAP.md` — add it if missing
+- Read `references/CLAUDE_TEMPLATE.md` and use it as the target structure
+- Preserve existing development rules, conventions, and project-specific content
+- Restructure to match the template, adding any missing sections
 - Ask the user to confirm before overwriting
 
 #### Step 4: Integrate portman
@@ -80,7 +78,6 @@ If the project has multiple services (e.g., API + frontend), create separate Mak
 
 1. Call `sprint init` from the sprint-runner skill to set up `docs/ROADMAP.md`.
 2. If the sprint-runner skill is not available, create `docs/ROADMAP.md` manually with a blank template.
-3. After the roadmap is created, verify that `CLAUDE.md` contains a reference to `docs/ROADMAP.md` in its References section. If not, add it.
 
 #### Step 6: Summary
 
