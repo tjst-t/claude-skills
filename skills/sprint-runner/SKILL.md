@@ -87,10 +87,17 @@ Finalize the Sprint and update tracking.
 3. Update all Stories and Tasks to `[x]` if not already
 4. **Update the Progress section** at the top of the roadmap (counts, progress bar, current marker in Execution Order)
 5. **Check if `docs/ARCHITECTURE.md` needs updating.** Review the Sprint's changes — if new components were added, data flow changed, directory structure changed, or infrastructure was modified, update ARCHITECTURE.md accordingly. If the Sprint was only bug fixes, refactoring, or UI tweaks with no architectural impact, skip this.
-6. Present a summary to the user:
+6. **Commit and push all uncommitted changes.** Run `git status` to check for uncommitted or unstaged files. If any exist:
+   - Stage all changes: `git add -A`
+   - Commit with message: `chore: complete Sprint {SprintID} — {Sprint Title}`
+   - Push to the current branch: `git push`
+   - If the push fails (e.g., no upstream branch), set upstream and push: `git push -u origin {branch}`
+   - Report to the user what was committed (file count, branch name)
+7. Present a summary to the user:
    - Sprint goal and whether it was achieved
    - List of completed Stories and key Tasks
    - Any deviations from the original plan
+   - Git commit hash and branch pushed to
    - What the next Sprint covers (preview)
 
 ## Important Behaviors
@@ -101,6 +108,7 @@ Finalize the Sprint and update tracking.
 - **Respect dependencies**: If a Sprint depends on another Sprint that isn't complete, flag it as a blocker during `sprint plan`.
 - **Backlog awareness**: During `sprint plan`, if a Backlog item becomes relevant, suggest promoting it to the current Sprint.
 - **Actually invoke /review**: During `sprint verify`, you must call the `/review` skill yourself via the Skill tool. Never skip this step, never just describe what /review would do, and never ask the user to run it separately. The verify command is not complete until /review has been executed and all findings addressed.
+- **Always commit and push on done**: `sprint done` must leave a clean working tree. If there are uncommitted changes, commit and push them. Never finish a sprint with dirty state.
 
 ## Roadmap Format Reference
 
