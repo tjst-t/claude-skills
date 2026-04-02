@@ -1,0 +1,107 @@
+---
+name: project-init
+description: Standardize project structure, documentation, and development environment for mid-to-large projects. Use this skill when the user says "project init", asks to set up a new project's documentation structure, wants to generate or standardize CLAUDE.md, asks to integrate portman/port-manager, or mentions standardizing project structure. Also trigger for "プロジェクト初期化", "ドキュメント整備", or "CLAUDE.md作成". This is for projects large enough to use sprint-based development — not for small scripts or one-off tools.
+---
+
+# Project Init
+
+Sets up standardized project documentation and development environment.
+
+## What It Does
+
+1. Generates `CLAUDE.md` with progressive disclosure pattern (minimal tokens)
+2. Auto-generates `docs/ARCHITECTURE.md` by reading the project source
+3. Integrates portman (port-manager) for dev server startup
+4. Calls `sprint init` from the sprint-runner skill to set up `docs/ROADMAP.md`
+
+## Command
+
+### `project init`
+
+Run at the root of a project. Can be run on new or existing projects.
+
+#### Step 1: Scan the Project
+
+Read the project's source code, configs, and any existing documentation to understand:
+- Language and framework (go.mod, package.json, Cargo.toml, pyproject.toml, etc.)
+- Project structure (directory layout, entry points)
+- Existing CLAUDE.md, README, docs/ contents
+- Existing Makefile targets
+- Whether the project has a web server or API that needs portman
+
+#### Step 2: Generate `docs/ARCHITECTURE.md`
+
+Read the source code and generate an architecture document. See `references/ARCHITECTURE_TEMPLATE.md` for the format.
+
+If `docs/ARCHITECTURE.md` already exists, ask the user whether to overwrite or skip.
+
+The goal is for Claude Code to understand the system without reading every source file. Focus on:
+- What the major components are and how they relate
+- Where the entry points are
+- How data flows through the system
+
+Keep it concise. This document will be read by Claude Code on demand (Layer 2), so it should be information-dense without filler.
+
+#### Step 3: Generate or Update `CLAUDE.md`
+
+Create a CLAUDE.md following the progressive disclosure pattern. See `references/CLAUDE_TEMPLATE.md` for the format.
+
+Key principles:
+- CLAUDE.md is always in context (Layer 1), so every line costs tokens on every interaction
+- Only include information Claude Code needs on EVERY task
+- Everything else goes in docs/ with a pointer from CLAUDE.md
+- Development rules and coding conventions belong in CLAUDE.md (frequently referenced)
+
+If CLAUDE.md already exists:
+- Preserve existing development rules and conventions
+- Update the structure to match the template
+- Add missing sections (especially References pointers)
+- Ask the user to confirm before overwriting
+
+#### Step 4: Integrate portman
+
+Only if the project has a web server, API, or dev server:
+
+1. Check if a Makefile exists; create one if not
+2. Add `make serve` target using portman
+3. For the correct portman pattern, fetch and follow the guide at:
+   https://raw.githubusercontent.com/tjst-t/port-manager/main/docs/CLAUDE_INTEGRATION.md
+4. Use **Pattern 6 (background + PID file)** as the default for Claude Code compatibility
+5. Add the server startup section to CLAUDE.md
+6. Add `.env` to `.gitignore` if not already present
+
+If the project has no server component, skip this step.
+
+If the project has multiple services (e.g., API + frontend), create separate Makefile targets (`make serve`, `make serve-frontend`, etc.).
+
+#### Step 5: Initialize Roadmap
+
+Call `sprint init` from the sprint-runner skill to set up `docs/ROADMAP.md`.
+
+If the sprint-runner skill is not available, create `docs/ROADMAP.md` manually with a blank template.
+
+#### Step 6: Summary
+
+Present to the user:
+- What files were created or modified
+- The project structure that was set up
+- Any manual steps the user needs to take (e.g., installing portman if not present)
+
+## Document Hierarchy
+
+```
+{project-root}/
+├── CLAUDE.md                    # Layer 1: Always in context. Minimal.
+└── docs/
+    ├── ARCHITECTURE.md          # Layer 2: System design. Read on demand.
+    ├── ROADMAP.md               # Layer 2: Sprint tracking. Managed by sprint-runner.
+    └── sprint-logs/             # Sprint execution logs. Managed by sprint-runner.
+        └── {SprintID}/
+```
+
+Layer 1 (CLAUDE.md) should be under ~100 lines. If it's growing beyond that, content should be moved to Layer 2 documents.
+
+## Templates
+
+- `references/CLAUDE_TEMPLATE.md` — CLAUDE.md structure and format
+- `references/ARCHITECTURE_TEMPLATE.md` — ARCHITECTURE.md structure and format
