@@ -41,27 +41,44 @@ Prepare the next sprint. This is a collaborative phase with the user.
 
 ### `sprint run`
 
-Execute the current Sprint. Each Story goes through an implement → review → fix cycle before moving to the next.
+Execute the current Sprint. Stories are parallelized where dependencies allow, using sub-agents with worktree isolation.
 
 1. Read `docs/ROADMAP.md` and identify the current Sprint (same logic as `sprint plan`)
-2. For each Story in the Sprint (in order, respecting dependencies):
 
-   **Implement the Story:**
-   - Execute all Tasks in the Story
-   - For each Task: implement the code changes, run relevant tests, and **log the output** to `docs/sprint-logs/{SprintID}/`
-   - Mark each Task as `[x]` in the roadmap upon completion
+2. **Analyze Story dependencies and build execution waves:**
+   - Parse any inter-Story dependencies (explicit in the Dependencies section or implicit from Task descriptions)
+   - Group Stories into sequential "waves" — Stories within the same wave have no dependencies on each other and can run in parallel
+   - Stories that depend on other Stories in the same Sprint must be in a later wave
+   - If no dependencies exist between Stories, all Stories form a single wave
 
-   **Review the Story:**
-   - After all Tasks in the Story are complete, invoke `/review` via the Skill tool to review the changes made in this Story
-   - Fix all auto-fixable findings immediately (code style, missing error handling, naming issues, etc.)
-   - Re-run `/review` until no more auto-fixable findings remain
-   - If any findings require design decisions, present them to the user **one item at a time** and wait for the user's response before proceeding
+3. **For each wave (sequentially):**
 
-   **Complete the Story:**
-   - Mark the Story as `[x]` in the roadmap
+   Execute all Stories in the wave in parallel using sub-agents. Each Story follows this cycle:
+
+   **Step 1 — Implement (sub-agent, sonnet, worktree):**
+   - Launch an Agent with `model: "sonnet"` and `isolation: "worktree"` for each Story
+   - The agent prompt must include: the Story's Tasks, project context (CLAUDE.md, relevant architecture info), and the instruction to implement all Tasks, run tests, and log output to `docs/sprint-logs/{SprintID}/`
+   - All Stories in the wave launch in parallel (single message with multiple Agent tool calls)
+   - Wait for all implementation agents to complete. Each returns the worktree path and branch name.
+
+   **Step 2 — Review (sub-agent, sonnet):**
+   - For each completed implementation, launch a new Agent with `model: "sonnet"` (no worktree — it reviews the branch diff)
+   - The review agent's prompt must include: the branch name from Step 1, instruction to check out that branch, invoke `/review` via the Skill tool, and return all findings categorized as auto-fixable vs. design-decision-required
+   - All review agents for the wave launch in parallel
+
+   **Step 3 — Fix (SendMessage to implementation agent, sonnet):**
+   - For each review that returned auto-fixable findings, use SendMessage to the original implementation agent (which still has its worktree context) with the list of findings to fix
+   - The implementation agent fixes all auto-fixable findings in its worktree
+   - For findings that involve technical decisions: if there is a clear best practice or obvious recommendation, the agent makes the decision autonomously and proceeds. Only escalate to the user when the decision has significant architectural impact (e.g., changing data models, introducing new dependencies, altering public APIs, or fundamentally changing the approach agreed upon in sprint plan)
+   - After fixes, send another review cycle (Step 2 → Step 3) until no more findings remain
+
+   **Step 4 — Merge and complete:**
+   - The main agent merges each Story's worktree branch into the current branch (e.g., `git merge --no-ff {branch}`)
+   - Resolve any merge conflicts (if parallel Stories touched the same files, fix conflicts and re-run tests)
+   - Mark each Story and its Tasks as `[x]` in `docs/ROADMAP.md`
    - Log the review results to `docs/sprint-logs/{SprintID}/`
 
-3. After all Stories are complete, present a summary of what was implemented
+4. After all waves are complete, present a summary of what was implemented
 
 ### `sprint verify`
 
@@ -82,10 +99,10 @@ This is a final review of the entire Sprint's changes as a whole. Story-level re
 
 4. After all gaps are filled, invoke the `/review` skill directly by using the Skill tool. Do NOT just mention /review or tell the user to run it — you must actually call it yourself as a slash command so that it executes and produces findings. This is a critical step; skipping it or deferring it to the user defeats the purpose of verify.
 5. Read ALL findings produced by `/review`. For each finding:
-   - If it can be fixed without user input (code style, missing error handling, naming issues, etc.), fix it immediately
-   - If it requires a design decision, note it for discussion
-6. After fixing all auto-fixable findings, re-run `/review` to confirm the fixes are clean. Repeat until no more auto-fixable findings remain.
-7. If any findings require design decisions, present them to the user **one item at a time** and wait for the user's response before proceeding to the next.
+   - If the fix direction is clear (code style, missing error handling, naming issues, refactoring with obvious approach, etc.), fix it immediately and autonomously
+   - Only escalate to the user for decisions with significant architectural impact (changing data models, introducing major dependencies, altering public APIs, or deviating from the sprint plan)
+6. After fixing findings, re-run `/review` to confirm the fixes are clean. Repeat until no more fixable findings remain.
+7. If any findings require user input due to architectural impact, present them to the user **one item at a time** and wait for the user's response before proceeding to the next. Log all autonomous decisions in `docs/sprint-logs/{SprintID}/`.
 
 **Phase 3: Finalize**
 
@@ -147,12 +164,16 @@ Finalize the Sprint and update tracking.
 ## Important Behaviors
 
 - **One item at a time**: During `sprint plan` and reviews (when discussing with the user), always present and resolve one item before moving to the next. Don't dump a list of 10 questions at once.
+- **Autonomous technical decisions**: During `sprint run`, make technical decisions autonomously when there is a clear best practice or obvious recommendation (e.g., error handling strategy, naming conventions, library choice among equivalent options, implementation patterns). Only escalate to the user for decisions with significant architectural impact — changing data models, introducing major dependencies, altering public APIs, or deviating from the approach agreed upon in `sprint plan`. Log autonomous decisions in `docs/sprint-logs/{SprintID}/` for traceability.
 - **Log everything**: Test output, build output, and verification results go to `docs/sprint-logs/{SprintID}/`. This creates an audit trail.
 - **Roadmap is the source of truth**: Always read `docs/ROADMAP.md` before taking action. Never assume you know the current state from memory.
 - **Respect dependencies**: If a Sprint depends on another Sprint that isn't complete, flag it as a blocker during `sprint plan`.
 - **Backlog awareness**: During `sprint plan`, if a Backlog item becomes relevant, suggest promoting it to the current Sprint.
 - **Actually invoke /review**: During `sprint run` (per-Story) and `sprint verify` (Sprint-level), you must call the `/review` skill yourself via the Skill tool. Never skip this step, never just describe what /review would do, and never ask the user to run it separately.
 - **Two-level review**: Story-level review during `sprint run` catches local issues. Sprint-level review during `sprint verify` catches cross-Story and integration issues. Both are mandatory.
+- **Parallel execution with worktrees**: During `sprint run`, independent Stories run in parallel via sub-agents with worktree isolation. This prevents file conflicts between parallel implementations. Always merge worktree branches sequentially after a wave completes to catch conflicts early. Before the first worktree is created, ensure `.claude/worktrees/` is listed in the project's `.gitignore` (create the file if it doesn't exist). This prevents worktree contents from appearing as untracked files.
+- **Sub-agent model selection**: Implementation and review sub-agents use `model: "sonnet"` for speed and cost efficiency. The main (orchestrating) agent remains on the default model to handle dependency analysis, merge conflicts, and user interaction.
+- **Sub-agent prompts must be self-contained**: Each sub-agent starts fresh with no conversation context. Include all necessary information in the prompt: Story/Task details, project conventions (from CLAUDE.md), file paths, and expected behavior. Never assume the sub-agent knows what happened in prior steps.
 - **Demo with real output**: During `sprint demo`, always execute real commands and show actual output. Never just describe what would happen or show hypothetical output.
 - **Always commit and push on done**: `sprint done` must leave a clean working tree. If there are uncommitted changes, commit and push them. Never finish a sprint with dirty state.
 
