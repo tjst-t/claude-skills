@@ -1,146 +1,188 @@
-# Roadmap Format Specification
+# ロードマップフォーマット仕様
 
-This document defines the standard roadmap format used by the sprint-runner skill.
+このドキュメントは sprint-runner スキルが使用する標準ロードマップフォーマットを定義します。
 
-## File Location
+## ファイルの場所
 
-Always: `docs/ROADMAP.md` in the project root.
+常にプロジェクトルートの `docs/ROADMAP.md`。
 
-## Structure
+## 構造
 
 ```markdown
-# Project Roadmap: {Project Name}
+# プロジェクトロードマップ: {プロジェクト名}
 
-> {One-line project description}
+> {プロジェクトの一行説明}
 
-## Progress
+## 進捗
 
-- Total: 3 Sprints | Done: 1 | In Progress: 1 | Remaining: 1
+- 合計: 3スプリント | 完了: 1 | 進行中: 1 | 残り: 1
 - [██████░░░░░░░░░░░░░░] 33%
 
-## Execution Order
+## 実行順序
 
 S001 → S002 → S003
-        ↑ current
+        ↑ 現在
 
 ---
 
-## Sprint S001: {Sprint Title} [DONE]
+## スプリント S001: {スプリントタイトル} [DONE]
 
-{Sprint description — what this sprint achieves and why.}
+{スプリントの説明 — このスプリントで何を達成するか、なぜそれが必要か。}
 
-### Story S001-1: {Story Title} [x]
+### ストーリー S001-1: {ストーリータイトル} [x]
 
-{Story description — the user-facing outcome or capability this story delivers.}
+**ユーザーストーリー:**
+{役割}として、{やりたいこと}をしたい。なぜなら、{理由・価値}だから。
 
-- [x] **Task S001-1-1**: {Task title}
-  {Task description — what specifically needs to be implemented.}
-- [x] **Task S001-1-2**: {Task title}
-  {Task description.}
+**受け入れ条件:**
+- [ ] {条件1 — ユーザーが確認できる振る舞いで書く}
+- [ ] {条件2}
 
-### Story S001-2: {Story Title} [x]
+**タスク:**
+- [x] **タスク S001-1-1**: {タスクタイトル}
+  {タスクの説明 — 具体的に何を実装するか。}
+- [x] **タスク S001-1-2**: {タスクタイトル}
+  {タスクの説明。}
 
-{Story description.}
+### ストーリー S001-2: {ストーリータイトル} [x]
 
-- [x] **Task S001-2-1**: {Task title}
-  {Task description.}
+**ユーザーストーリー:**
+{役割}として、{やりたいこと}をしたい。なぜなら、{理由・価値}だから。
 
-## Sprint S002: {Sprint Title} [IN PROGRESS]
+**受け入れ条件:**
+- [ ] {条件1}
 
-{Sprint description.}
+**タスク:**
+- [x] **タスク S001-2-1**: {タスクタイトル}
+  {タスクの説明。}
 
-### Story S002-1: {Story Title} [ ]
+## スプリント S002: {スプリントタイトル} [IN PROGRESS]
 
-{Story description.}
+{スプリントの説明。}
 
-- [x] **Task S002-1-1**: {Task title}
-  {Task description.}
-- [ ] **Task S002-1-2**: {Task title}
-  {Task description.}
+### ストーリー S002-1: {ストーリータイトル} [ ]
 
-## Sprint S003: {Sprint Title} [ ]
+**ユーザーストーリー:**
+{役割}として、{やりたいこと}をしたい。なぜなら、{理由・価値}だから。
 
-{Sprint description.}
+**受け入れ条件:**
+- [ ] {条件1}
+- [ ] {条件2}
 
-### Story S003-1: {Story Title} [ ]
+**タスク:**
+- [x] **タスク S002-1-1**: {タスクタイトル}
+  {タスクの説明。}
+- [ ] **タスク S002-1-2**: {タスクタイトル}
+  {タスクの説明。}
 
-{Story description.}
+## スプリント S003: {スプリントタイトル} [ ]
 
-- [ ] **Task S003-1-1**: {Task title}
-  {Task description.}
+{スプリントの説明。}
+
+### ストーリー S003-1: {ストーリータイトル} [ ]
+
+**ユーザーストーリー:**
+{役割}として、{やりたいこと}をしたい。なぜなら、{理由・価値}だから。
+
+**受け入れ条件:**
+- [ ] {条件1}
+
+**タスク:**
+- [ ] **タスク S003-1-1**: {タスクタイトル}
+  {タスクの説明。}
 
 ---
 
-## Dependencies
+## 依存関係
 
-{Define inter-Sprint dependencies and execution order rationale. The Execution Order section above shows the sequence; this section explains *why*.}
+{スプリント間の依存関係と実行順序の根拠を記述する。実行順序セクションは順序を示すが、このセクションは「なぜ」を説明する。}
 
-- S003 depends on S002 (Story S002-1 provides the API that Story S003-1 consumes)
+- S003 は S002 に依存する（ストーリー S002-1 が提供する API をストーリー S003-1 が利用するため）
 
 ---
 
-## Backlog
+## バックログ
 
-{Unscheduled items. Ideas, future work, or tasks not yet prioritized into a Sprint. May or may not ever be implemented.}
+{未スケジュールの項目。アイデア、将来の作業、まだスプリントに優先順位付けされていないタスク。}
 
-- [ ] **{Task title}**
-  {Description. Include enough context so future-you understands why this was noted.}
-- [ ] **{Task title}**
-  {Description.}
+- [ ] **{タスクタイトル}**
+  {説明。将来の自分が文脈を理解できるだけの情報を含める。}
 ```
 
-## Sprint IDs
+## ユーザーストーリーのルール
 
-Sprints use sequential IDs in creation order: `S001`, `S002`, `S003`, etc.
+ストーリーは必ず以下の形式で書く:
 
-- IDs reflect **creation order**, NOT execution order
-- Execution order is defined in the **Execution Order** section at the top
-- When inserting a new Sprint, assign the next available ID (e.g., if S001–S004 exist, the new Sprint is S005) and place it in the document at the appropriate position in execution order
-- Never renumber existing Sprints
-
-Example — inserting a Sprint between S002 and S003:
-
-```markdown
-## Execution Order
-
-S001 → S002 → S005 → S003 → S004
-                ↑ newly inserted
+```
+{役割}として、{やりたいこと}をしたい。なぜなら、{理由・価値}だから。
 ```
 
-The document order of Sprint sections should match the Execution Order for readability. When inserting S005 between S002 and S003, move the `## Sprint S005` section to appear between them in the file.
+**良い例:**
+```
+VMオペレーターとして、停止中のVMを起動したい。
+なぜなら、ワークロードを実行する必要があるからだ。
+```
 
-## Story and Task IDs
+**悪い例（タスク分解になっている）:**
+```
+VM起動APIエンドポイントを実装する
+起動ボタンのフロントエンドコンポーネントを作る
+```
 
-- Story IDs: `{SprintID}-{number}` (e.g., `S002-1`, `S002-2`)
-- Task IDs: `{SprintID}-{story}-{task}` (e.g., `S002-1-3`)
+悪い例はタスクの記述であり、ストーリーではない。`sprint plan` 時に Claude がこの形式を検証し、タスク分解的なストーリーがあれば修正を促す。
 
-Story and Task numbers are sequential within their parent and never change.
+## 受け入れ条件のルール
 
-## Status Markers
+- ユーザーが実際に確認できる振る舞いで書く
+- 「〜が実装されている」ではなく「〜ができる」という形式
+- GUI を含むストーリーの場合、`gui-spec` スキルが Playwright テストシナリオを追記する
 
-- Sprint level: `[DONE]`, `[IN PROGRESS]`, `[ ]` (not started)
-- Story level: `[x]` (complete), `[ ]` (incomplete)
-- Task level: `[x]` (complete), `[ ]` (incomplete)
+**良い例:**
+```
+- [ ] 起動ボタンをクリックすると VM のステータスが「起動中」に変わる
+- [ ] 起動完了後、ステータスが「実行中」になる
+- [ ] 起動に失敗した場合、エラーメッセージが表示される
+```
 
-A Story is `[x]` only when ALL its Tasks are `[x]`.
-A Sprint is `[DONE]` only when ALL its Stories are `[x]`.
+## スプリント ID
 
-## Progress Section
+スプリントは作成順に連番 ID を使用する: `S001`, `S002`, `S003`, etc.
 
-The Progress section is at the top of the roadmap and is **automatically maintained** by `sprint done` and `sprint plan`. It contains:
+- ID は**作成順**を反映する（実行順ではない）
+- 実行順序はドキュメント上部の**実行順序**セクションで定義する
+- 新しいスプリントを追加する場合、次の利用可能な ID を割り当てる（S001〜S004 が存在する場合、新スプリントは S005）
+- 既存スプリントの ID は変更しない
 
-1. **Summary line**: count of total, done, in-progress, and remaining Sprints
-2. **Progress bar**: visual indicator (using block characters, 20 chars wide)
-3. **Execution Order**: the full Sprint sequence with a marker on the current Sprint
+## ストーリーおよびタスク ID
 
-Progress percentage = (Done Sprints / Total Sprints) × 100, rounded to nearest integer.
+- ストーリー ID: `{スプリントID}-{番号}` (例: `S002-1`, `S002-2`)
+- タスク ID: `{スプリントID}-{ストーリー番号}-{タスク番号}` (例: `S002-1-3`)
 
-## Rules
+## ステータスマーカー
 
-1. **Sprint IDs are permanent**: once assigned, never change.
-2. **Document order matches Execution Order**: Sprint sections appear in the file in the same order as the Execution Order line. This keeps the file readable top-to-bottom.
-3. **Descriptions are mandatory** at every level — Sprint, Story, and Task. A title alone is not enough context for implementation.
-4. **Only one Sprint can be `[IN PROGRESS]`** at a time.
-5. **Dependencies section** explains the rationale behind the Execution Order. Only include non-obvious relationships.
-6. **Backlog** is always the last section. Items here have no Sprint assignment and no ID prefix.
-7. **Progress section** is always the first section after the title. Updated automatically; do not edit manually.
+- スプリントレベル: `[DONE]`, `[IN PROGRESS]`, `[ ]`（未着手）
+- ストーリーレベル: `[x]`（完了）, `[ ]`（未完了）
+- タスクレベル: `[x]`（完了）, `[ ]`（未完了）
+
+ストーリーは全タスクが `[x]` のときのみ `[x]` にする。
+スプリントは全ストーリーが `[x]` のときのみ `[DONE]` にする。
+
+## 進捗セクション
+
+進捗セクションはロードマップの先頭にあり、`sprint done` と `sprint plan` によって**自動管理**される。内容:
+
+1. **サマリー行**: 合計・完了・進行中・残りスプリントの数
+2. **プログレスバー**: ブロック文字を使用した視覚的インジケーター（20文字幅）
+3. **実行順序**: 現在のスプリントにマーカーを付けた全スプリントのシーケンス
+
+進捗率 = (完了スプリント数 / 合計スプリント数) × 100（最近接整数に丸め）
+
+## ルール
+
+1. **スプリント ID は永続的**: 一度割り当てたら変更しない。
+2. **ドキュメント順序は実行順序に一致させる**: スプリントセクションは実行順序と同じ順番でファイルに現れる。
+3. **説明はすべてのレベルで必須**: スプリント・ストーリー・タスクそれぞれにタイトルだけでなく説明が必要。
+4. **`[IN PROGRESS]` は同時に1スプリントのみ**。
+5. **依存関係セクション**は実行順序の根拠を説明する。自明な関係は省略してよい。
+6. **バックログ**は常に最後のセクション。
+7. **進捗セクション**は常にタイトルの直後。自動更新されるため手動編集しない。
