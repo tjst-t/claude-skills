@@ -36,8 +36,13 @@ Prepare the next sprint. This is a collaborative phase with the user.
    - Any dependencies on prior Sprints that are not yet complete (flag as blockers)
    - Design decisions or architectural questions that should be resolved before implementation
 4. Discuss with the user **one item at a time**. Wait for the user's response before moving to the next item.
-5. After all items are resolved, update `docs/ROADMAP.md` if any changes were agreed upon (scope changes, task additions, etc.)
-6. **Update the Progress section** if any changes were made (new tasks, scope changes, etc.)
+5. **GUI Spec phase**: After scope is confirmed, invoke the `gui-spec` skill via the Skill tool.
+   - The `gui-spec` skill will detect whether the Sprint contains GUI Stories.
+   - If GUI Stories are found, it conducts dialogue with the user to elicit scenarios, generate a state diagram, and produce Playwright acceptance tests.
+   - If no GUI Stories are found, it returns immediately and `sprint plan` continues.
+   - Do NOT skip this step even if the Sprint seems straightforward — let `gui-spec` make the determination.
+6. After all items are resolved (including GUI spec if applicable), update `docs/ROADMAP.md` if any changes were agreed upon (scope changes, task additions, acceptance criteria added by `gui-spec`, etc.)
+7. **Update the Progress section** if any changes were made (new tasks, scope changes, etc.)
 
 ### `sprint run`
 
@@ -58,6 +63,7 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
    **Step 1 — Implement (sub-agent, sonnet, worktree):**
    - Launch an Agent with `model: "sonnet"` and `isolation: "worktree"` for each Story
    - The agent prompt must include: the Story's Tasks, project context (CLAUDE.md, relevant architecture info), and the instruction to implement all Tasks, run tests, and log output to `docs/sprint-logs/{SprintID}/`
+   - **For GUI Stories**: The agent prompt must also include the Playwright test file path from `gui-spec` and the instruction: "Add `data-testid` attributes to all interactive elements. Run `npx playwright test {test-file}` after implementation. Fix all failures before marking the Story complete. Do not mark the Story as `[x]` if any Playwright tests are failing."
    - All Stories in the wave launch in parallel (single message with multiple Agent tool calls)
    - Wait for all implementation agents to complete. Each returns the worktree path and branch name.
 
@@ -91,6 +97,7 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
    - Compare every Task in the Sprint against the actual code changes and test logs in `docs/sprint-logs/{SprintID}/`
    - Check for any Tasks marked incomplete or missing implementation
    - Check for any Tasks that were implemented but not marked complete
+   - **For GUI Stories**: Verify that `npx playwright test` passes for each Story's test file. If any tests are failing, treat this as an incomplete Task and execute the missing work immediately.
 3. If gaps are found, execute the missing work immediately
 
 **Phase 2: Sprint-level code review via /review**
@@ -176,6 +183,8 @@ Finalize the Sprint and update tracking.
 - **Sub-agent prompts must be self-contained**: Each sub-agent starts fresh with no conversation context. Include all necessary information in the prompt: Story/Task details, project conventions (from CLAUDE.md), file paths, and expected behavior. Never assume the sub-agent knows what happened in prior steps.
 - **Demo with real output**: During `sprint demo`, always execute real commands and show actual output. Never just describe what would happen or show hypothetical output.
 - **Always commit and push on done**: `sprint done` must leave a clean working tree. If there are uncommitted changes, commit and push them. Never finish a sprint with dirty state.
+- **GUI spec is mandatory in sprint plan**: Always invoke `gui-spec` during `sprint plan`, even if the Sprint appears to have no GUI work. Let `gui-spec` make the determination. Never skip this step.
+- **Playwright tests gate GUI Story completion**: A GUI Story cannot be marked `[x]` unless its Playwright tests pass. This is enforced in both `sprint run` and `sprint verify`.
 
 ## Roadmap Format Reference
 
