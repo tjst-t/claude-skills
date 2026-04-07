@@ -5,197 +5,193 @@ description: Agile Sprint lifecycle management for software projects. Use this s
 
 # Sprint Runner
 
-Agile スプリントライフサイクルを管理する: plan → run → verify → demo → done。
+Manages the Agile Sprint lifecycle: plan → run → verify → demo → done.
 
-## ロードマップの場所
+## Roadmap Location
 
-ロードマップファイルは常にプロジェクトルートの `docs/ROADMAP.md`。存在しない場合は `sprint init` を実行するよう促す。
+The roadmap file is always at `docs/ROADMAP.md` in the project root. If it doesn't exist, prompt the user to run `sprint init` first.
 
-## コマンド
+## Commands
 
 ### `sprint init`
 
-プロジェクトのロードマップを標準フォーマットで初期化または移行する。
+Initialize or migrate a project's roadmap to the standard format.
 
-1. `docs/ROADMAP.md` が既に存在するか確認する
-2. 存在しない場合、プロジェクト内の既存ロードマップ的ファイル（README, ROADMAP, SPRINT, TODO など）を検索する
-3. 既存ロードマップが見つかった場合、その内容を読み取り、標準フォーマットに移行して `docs/ROADMAP.md` に保存する
-4. 既存ロードマップが見つからない場合、`docs/ROADMAP.md` に空のテンプレートを作成する
-5. `references/ROADMAP_TEMPLATE.md` で定義されたテンプレートを使用する
+1. Check if `docs/ROADMAP.md` already exists
+2. If not, search the project for existing roadmap-like files (README, ROADMAP, SPRINT, TODO, etc.)
+3. If an existing roadmap is found, read it and migrate its content to the standard format at `docs/ROADMAP.md`
+4. If no existing roadmap is found, create a blank template at `docs/ROADMAP.md`
+5. Use the template defined in `references/ROADMAP_TEMPLATE.md`
 
-移行時は既存情報をすべて保持し、Sprint > Story > Task 階層に可能な限りマッピングする。スプリントに明確に属さないタスクはバックログセクションに入れる。
+When migrating, preserve all existing information — map it into the Sprint > Story > Task hierarchy as best you can. Tasks that don't clearly belong to a sprint go into the Backlog section.
 
 ### `sprint plan`
 
-次のスプリントを準備する。ユーザーとの協調フェーズ。
+Prepare the next sprint. This is a collaborative phase with the user.
 
-1. `docs/ROADMAP.md` を読む
-2. **実行順序**に従って次の未完了スプリントを特定する（ドキュメント順やID順ではない）
-3. ユーザーに提示する:
-   - スプリントのゴールとスコープ（実行するストーリーとタスク）
-   - 未完了の先行スプリントへの依存関係（ブロッカーとしてフラグを立てる）
-   - 実装前に解決すべき設計上の決定事項やアーキテクチャ上の疑問点
-4. **ユーザーストーリーの検証**: 各ストーリーが以下の形式になっているか確認する:
+1. Read `docs/ROADMAP.md`
+2. Identify the next unfinished Sprint according to the **Execution Order** (not document order or ID order)
+3. Present to the user:
+   - The Sprint's goal and scope (Stories and Tasks to execute)
+   - Any dependencies on prior Sprints that are not yet complete (flag as blockers)
+   - Design decisions or architectural questions that should be resolved before implementation
+4. **User Story validation**: Verify that each Story follows the format:
    ```
    {役割}として、{やりたいこと}をしたい。なぜなら、{理由・価値}だから。
    ```
-   タスク分解的な記述（「〜を実装する」「〜コンポーネントを作る」など）になっているストーリーがあれば、ユーザーと協力してユーザーストーリー形式に書き直す。受け入れ条件も合わせて確認・追記する。
-5. **一度に一項目**ユーザーと議論する。次の項目に進む前にユーザーの回答を待つ。
-6. **GUI Spec フェーズ**: スコープが確定したら、Skill ツール経由で `gui-spec` スキルを呼び出す。
-   - `gui-spec` スキルはスプリントに GUI ストーリーが含まれるか判定する
-   - GUI ストーリーがある場合、ユーザーとの対話でシナリオを引き出し、状態遷移図を生成し、Playwright 受け入れテストを作成する
-   - GUI ストーリーがない場合は即座にリターンし、`sprint plan` を続行する
-   - スプリントが単純に見えても、このステップをスキップしない — `gui-spec` に判定させる
-7. すべての項目が解決したら（gui-spec による追記がある場合も含む）、合意した変更があれば `docs/ROADMAP.md` を更新する
-8. 変更があった場合は**進捗セクションを更新する**
+   If any Story is written as a task decomposition ("〜を実装する", "〜コンポーネントを作る", etc.), collaborate with the user to rewrite it as a user story and confirm acceptance criteria.
+5. Discuss with the user **one item at a time**. Wait for the user's response before moving to the next item.
+6. **GUI Spec phase**: After scope is confirmed, invoke the `gui-spec` skill via the Skill tool.
+   - The `gui-spec` skill will detect whether the Sprint contains GUI Stories.
+   - If GUI Stories are found, it conducts dialogue with the user to elicit scenarios, generate a state diagram, and produce Playwright acceptance tests.
+   - If no GUI Stories are found, it returns immediately and `sprint plan` continues.
+   - Do NOT skip this step even if the Sprint seems straightforward — let `gui-spec` make the determination.
+7. After all items are resolved (including GUI spec if applicable), update `docs/ROADMAP.md` if any changes were agreed upon (scope changes, task additions, acceptance criteria added by `gui-spec`, etc.)
+8. **Update the Progress section** if any changes were made (new tasks, scope changes, etc.)
 
 ### `sprint run`
 
-現在のスプリントを実行する。依存関係が許す範囲でストーリーを並列化し、ワークツリー分離でサブエージェントを使用する。
+Execute the current Sprint. Stories are parallelized where dependencies allow, using sub-agents with worktree isolation.
 
-1. `docs/ROADMAP.md` を読み、現在のスプリントを特定する（`sprint plan` と同じロジック）
+1. Read `docs/ROADMAP.md` and identify the current Sprint (same logic as `sprint plan`)
 
-2. **ストーリーの依存関係を分析し、実行ウェーブを構築する:**
-   - ストーリー間の依存関係を解析する（依存関係セクションの明示的なものとタスク説明から暗示されるもの）
-   - ストーリーを順次「ウェーブ」にグループ化する — 同じウェーブ内のストーリーは互いに依存関係がなく並列実行できる
-   - 同じスプリント内の他のストーリーに依存するストーリーは後のウェーブに入れる
-   - ストーリー間に依存関係がない場合、全ストーリーは単一のウェーブを形成する
+2. **Analyze Story dependencies and build execution waves:**
+   - Parse any inter-Story dependencies (explicit in the Dependencies section or implicit from Task descriptions)
+   - Group Stories into sequential "waves" — Stories within the same wave have no dependencies on each other and can run in parallel
+   - Stories that depend on other Stories in the same Sprint must be in a later wave
+   - If no dependencies exist between Stories, all Stories form a single wave
 
-3. **各ウェーブ（順次）:**
+3. **For each wave (sequentially):**
 
-   ウェーブ内の全ストーリーをサブエージェントで並列実行する。各ストーリーは以下のサイクルで処理:
+   Execute all Stories in the wave in parallel using sub-agents. Each Story follows this cycle:
 
-   **ステップ1 — 実装（サブエージェント、sonnet、ワークツリー）:**
-   - 各ストーリーに対して `model: "sonnet"` と `isolation: "worktree"` でエージェントを起動する
-   - エージェントプロンプトには必ず含める: ストーリーのタスク、プロジェクトコンテキスト（CLAUDE.md、関連アーキテクチャ情報）、全タスクを実装してテストを実行し出力を `docs/sprint-logs/{SprintID}/` に記録する指示
-   - **GUI ストーリーの場合**: `gui-spec` で生成された Playwright テストファイルパスと、「全インタラクティブ要素に `data-testid` 属性を追加し、実装後に `npx playwright test {test-file}` を実行すること。全テストが通過するまでストーリーを `[x]` にしないこと」という指示を追加する
-   - ウェーブ内の全ストーリーを並列に起動する（複数の Agent ツール呼び出しを単一メッセージで）
-   - 全実装エージェントの完了を待つ。各エージェントはワークツリーパスとブランチ名を返す
+   **Step 1 — Implement (sub-agent, sonnet, worktree):**
+   - Launch an Agent with `model: "sonnet"` and `isolation: "worktree"` for each Story
+   - The agent prompt must include: the Story's Tasks, project context (CLAUDE.md, relevant architecture info), and the instruction to implement all Tasks, run tests, and log output to `docs/sprint-logs/{SprintID}/`
+   - **For GUI Stories**: The agent prompt must also include the Playwright test file path from `gui-spec` and the instruction: "Add `data-testid` attributes to all interactive elements. Run `npx playwright test {test-file}` after implementation. Fix all failures before marking the Story complete. Do not mark the Story as `[x]` if any Playwright tests are failing."
+   - All Stories in the wave launch in parallel (single message with multiple Agent tool calls)
+   - Wait for all implementation agents to complete. Each returns the worktree path and branch name.
 
-   **ステップ2 — レビュー（サブエージェント、sonnet）:**
-   - 完了した各実装に対して、`model: "sonnet"` で新しいエージェントを起動する（ワークツリーなし — ブランチの差分をレビューする）
-   - レビューエージェントのプロンプトには: ステップ1のブランチ名、そのブランチをチェックアウトして Skill ツール経由で `/review` を呼び出し、全所見を自動修正可能・設計判断必要に分類して返す指示を含める
-   - ウェーブの全レビューエージェントを並列に起動する
+   **Step 2 — Review (sub-agent, sonnet):**
+   - For each completed implementation, launch a new Agent with `model: "sonnet"` (no worktree — it reviews the branch diff)
+   - The review agent's prompt must include: the branch name from Step 1, instruction to check out that branch, invoke `/review` via the Skill tool, and return all findings categorized as auto-fixable vs. design-decision-required
+   - All review agents for the wave launch in parallel
 
-   **ステップ3 — 修正（実装エージェントへの SendMessage、sonnet）:**
-   - 自動修正可能な所見があった各レビューに対して、元の実装エージェント（ワークツリーコンテキストを保持）に修正リストを SendMessage する
-   - 実装エージェントはワークツリー内の全自動修正可能な所見を修正する
-   - 技術的判断が必要な所見については: 明確なベストプラクティスや明白な推奨がある場合、エージェントが自律的に判断して進める。アーキテクチャへの重大な影響がある場合のみユーザーにエスカレーションする
-   - 修正後、所見がなくなるまでレビューサイクルを繰り返す（ステップ2 → ステップ3）
+   **Step 3 — Fix (SendMessage to implementation agent, sonnet):**
+   - For each review that returned auto-fixable findings, use SendMessage to the original implementation agent (which still has its worktree context) with the list of findings to fix
+   - The implementation agent fixes all auto-fixable findings in its worktree
+   - For findings that involve technical decisions: if there is a clear best practice or obvious recommendation, the agent makes the decision autonomously and proceeds. Only escalate to the user when the decision has significant architectural impact (e.g., changing data models, introducing new dependencies, altering public APIs, or fundamentally changing the approach agreed upon in sprint plan)
+   - After fixes, send another review cycle (Step 2 → Step 3) until no more findings remain
 
-   **ステップ4 — マージと完了:**
-   - メインエージェントが各ストーリーのワークツリーブランチを現在のブランチにマージする（例: `git merge --no-ff {branch}`）
-   - マージコンフリクトを解決する（並列ストーリーが同じファイルを変更した場合、コンフリクトを修正して再テストする）
-   - `docs/ROADMAP.md` の各ストーリーとタスクを `[x]` にする
-   - レビュー結果を `docs/sprint-logs/{SprintID}/` に記録する
+   **Step 4 — Merge and complete:**
+   - The main agent merges each Story's worktree branch into the current branch (e.g., `git merge --no-ff {branch}`)
+   - Resolve any merge conflicts (if parallel Stories touched the same files, fix conflicts and re-run tests)
+   - Mark each Story and its Tasks as `[x]` in `docs/ROADMAP.md`
+   - Log the review results to `docs/sprint-logs/{SprintID}/`
 
-4. 全ウェーブ完了後、実装内容のサマリーを提示する
+4. After all waves are complete, present a summary of what was implemented
 
 ### `sprint verify`
 
-スプリントの実装が完全かつ正しいか検証する。`sprint run` の後に実行する。
+Verify the Sprint implementation is complete and correct. Run this after `sprint run`.
 
-**フェーズ1: 完全性チェック**
+**Phase 1: Completeness check**
 
-1. `docs/ROADMAP.md` を読み、現在のスプリントを特定する
-2. サブエージェントを使って包括的なレビューを実施する:
-   - スプリントの各タスクを `docs/sprint-logs/{SprintID}/` の実際のコード変更とテストログと照合する
-   - 未完了またはタスクのマークがついていない実装を確認する
-   - 実装済みだがマーク未完了のタスクを確認する
-   - **GUI ストーリーの場合**: 各ストーリーのテストファイルで `npx playwright test` が通過することを確認する。失敗しているテストがあれば未完了タスクとして扱い、即座に修正する
-3. ギャップが見つかった場合、即座に不足している作業を実行する
+1. Read `docs/ROADMAP.md` and identify the current Sprint
+2. Use a subagent to perform a comprehensive review:
+   - Compare every Task in the Sprint against the actual code changes and test logs in `docs/sprint-logs/{SprintID}/`
+   - Check for any Tasks marked incomplete or missing implementation
+   - Check for any Tasks that were implemented but not marked complete
+   - **For GUI Stories**: Verify that `npx playwright test` passes for each Story's test file. If any tests are failing, treat this as an incomplete Task and execute the missing work immediately.
+3. If gaps are found, execute the missing work immediately
 
-**フェーズ2: スプリントレベルのコードレビュー（/review）**
+**Phase 2: Sprint-level code review via /review**
 
-4. 全ギャップを埋めた後、Skill ツール経由で `/review` スキルを直接呼び出す。/review に言及したり、ユーザーに実行を求めるのではなく、実際に自分でスラッシュコマンドとして呼び出すこと。このステップは必須であり、スキップまたはユーザーへの委任は不可。
-5. `/review` が生成した全所見を読む。各所見について:
-   - 修正方向が明確なもの（コードスタイル、エラーハンドリングの欠如、命名の問題、明白なアプローチによるリファクタリングなど）は即座に自律的に修正する
-   - アーキテクチャへの重大な影響がある決定（データモデルの変更、主要な依存関係の導入、パブリック API の変更、スプリント計画からの逸脱）のみユーザーにエスカレーションする
-6. 所見を修正したら、`/review` を再実行して修正が正しいことを確認する。修正可能な所見がなくなるまで繰り返す。
-7. アーキテクチャへの影響からユーザー入力が必要な所見がある場合、**一度に一項目**ユーザーに提示し、次に進む前に回答を待つ。全自律判断を `docs/sprint-logs/{SprintID}/` に記録する。
+This is a final review of the entire Sprint's changes as a whole. Story-level reviews during `sprint run` catch issues within each Story, but this Sprint-level review catches cross-Story issues: inconsistencies between Stories, integration problems, duplicated code across Stories, and overall coherence.
 
-**フェーズ3: 完了**
+4. After all gaps are filled, invoke the `/review` skill directly by using the Skill tool. Do NOT just mention /review or tell the user to run it — you must actually call it yourself as a slash command so that it executes and produces findings. This is a critical step; skipping it or deferring it to the user defeats the purpose of verify.
+5. Read ALL findings produced by `/review`. For each finding:
+   - If the fix direction is clear (code style, missing error handling, naming issues, refactoring with obvious approach, etc.), fix it immediately and autonomously
+   - Only escalate to the user for decisions with significant architectural impact (changing data models, introducing major dependencies, altering public APIs, or deviating from the sprint plan)
+6. After fixing findings, re-run `/review` to confirm the fixes are clean. Repeat until no more fixable findings remain.
+7. If any findings require user input due to architectural impact, present them to the user **one item at a time** and wait for the user's response before proceeding to the next. Log all autonomous decisions in `docs/sprint-logs/{SprintID}/`.
 
-8. 検証済み状態を反映するよう `docs/ROADMAP.md` を更新する
+**Phase 3: Finalize**
+
+8. Update `docs/ROADMAP.md` to reflect the verified state
 
 ### `sprint demo`
 
-スプリントの成果物をユーザーに実演する。`sprint verify` の後に実行する。
+Demonstrate the Sprint's deliverables to the user by running the actual program. Run this after `sprint verify`.
 
-1. `docs/ROADMAP.md` を読み、現在のスプリントを特定する
-2. スプリントのストーリーとタスクを読み、何が構築されたかを把握する
-3. `docs/ARCHITECTURE.md` と `CLAUDE.md` を読み、デモ方法を判断する
+1. Read `docs/ROADMAP.md` and identify the current Sprint
+2. Read the Sprint's Stories and Tasks to understand what was built
+3. Read `docs/ARCHITECTURE.md` and `CLAUDE.md` to determine the startup command
 
-**デモの基本方針:**
+**Determine the startup command (in priority order):**
+1. If `Makefile` has a `serve` target → use `make serve` (preferred)
+2. If `CLAUDE.md` or `ARCHITECTURE.md` documents a startup command → use that
+3. Infer from project type (`go run ./cmd/...`, `npm run dev`, `python -m uvicorn ...`, etc.)
 
-デモは「ユーザーストーリーが実現されたことを実際に見せる」こと。テストコードの実行ではなく、実際にプログラムを動かして実演する。
+**For each Story in the Sprint:**
 
-**起動コマンドの決定:**
+4. Read the Story's user story statement aloud ("As a {role}, {action} is now possible")
+5. Start the service if not already running
+6. Demonstrate each acceptance criterion one by one:
+   - **API/backend**: Send real requests with `curl` or `httpie`, show actual responses
+   - **CLI**: Run actual commands, show output
+   - **UI**: Start the dev server, tell the user which URL to visit and what to interact with
+7. Also demonstrate error cases and edge cases if they appear in the acceptance criteria
+8. Highlight anything notable: edge cases handled, performance characteristics, important caveats
 
-以下の優先順位でサービス起動方法を判断する:
-1. `Makefile` に `serve` ターゲットがあれば `make serve` を使用する（最優先）
-2. `CLAUDE.md` や `ARCHITECTURE.md` に記載された起動コマンドがあればそれを使用する
-3. プロジェクト種別から推測する（`go run ./cmd/...`、`npm run dev`、`python -m uvicorn ...` など）
+**Wrap up:**
 
-**各ストーリーのデモ:**
+9. Summarize what was demonstrated
+10. Ask the user if they want to explore anything further or see additional scenarios
 
-4. ストーリーのユーザーストーリー文を読み上げる（「{役割}として、{やりたいこと}ができるようになりました」）
-5. サービスを起動する（まだ起動していない場合）
-6. ストーリーの受け入れ条件を一つずつ実演する:
-   - **API/バックエンドの場合**: `curl` や `httpie` で実際にリクエストを送り、レスポンスを表示する
-   - **CLI の場合**: 実際のコマンドを実行して出力を表示する
-   - **UI の場合**: 開発サーバーを起動し、ユーザーがアクセスすべき URL とそこで確認できる動作を説明する
-7. エラーケースや境界値も実演する（受け入れ条件にある場合）
-8. 注目すべき点を強調する: 処理されたエッジケース、パフォーマンス特性、重要な注意事項
-
-**締めくくり:**
-
-9. 実演した内容をまとめる
-10. さらに詳しく見たい部分や追加シナリオがあるか確認する
-
-デモはライブウォークスルーのように行う。実際のコマンドを実行し、実際の出力を表示する。デモ中に何かが失敗した場合、`sprint done` 前に対処すべき潜在的な問題として記録する。
+The demo must show a running program, not test code execution. If something fails during the demo, note it as a potential issue to address before `sprint done`.
 
 ### `sprint done`
 
-スプリントを完了し、トラッキングを更新する。
+Finalize the Sprint and update tracking.
 
-1. `docs/ROADMAP.md` を読む
-2. 現在のスプリントを完了としてマークする（ステータスを `[DONE]` に変更）
-3. 全ストーリーとタスクをまだ `[x]` でない場合は `[x]` にする
-4. ロードマップ上部の**進捗セクションを更新する**（数値、プログレスバー、実行順序の現在マーカー）
-5. **`docs/ARCHITECTURE.md` の更新が必要か確認する。** スプリントの変更をレビューし、新しいコンポーネントが追加された、データフローが変わった、ディレクトリ構造が変わった、インフラが変更されたなどがあれば ARCHITECTURE.md を更新する。バグ修正、リファクタリング、アーキテクチャへの影響がない UI の調整のみのスプリントはスキップする。
-6. **全未コミット変更をコミットしてプッシュする。** `git status` で未コミット・未ステージのファイルを確認する。存在する場合:
-   - 全変更をステージする: `git add -A`
-   - コミット: `chore: complete Sprint {SprintID} — {Sprint Title}`
-   - 現在のブランチにプッシュ: `git push`
-   - プッシュが失敗した場合（上流ブランチなし）、上流を設定してプッシュ: `git push -u origin {branch}`
-   - コミット内容をユーザーに報告する（ファイル数、ブランチ名）
-7. ユーザーにサマリーを提示する:
-   - スプリントゴールと達成度
-   - 完了したストーリーと主要タスクのリスト
-   - 元の計画からの逸脱
-   - Git コミットハッシュとプッシュ先ブランチ
-   - 次のスプリントの内容（プレビュー）
+1. Read `docs/ROADMAP.md`
+2. Mark the current Sprint as complete (change status to `[DONE]`)
+3. Update all Stories and Tasks to `[x]` if not already
+4. **Update the Progress section** at the top of the roadmap (counts, progress bar, current marker in Execution Order)
+5. **Check if `docs/ARCHITECTURE.md` needs updating.** Review the Sprint's changes — if new components were added, data flow changed, directory structure changed, or infrastructure was modified, update ARCHITECTURE.md accordingly. If the Sprint was only bug fixes, refactoring, or UI tweaks with no architectural impact, skip this.
+6. **Commit and push all uncommitted changes.** Run `git status` to check for uncommitted or unstaged files. If any exist:
+   - Stage all changes: `git add -A`
+   - Commit with message: `chore: complete Sprint {SprintID} — {Sprint Title}`
+   - Push to the current branch: `git push`
+   - If the push fails (e.g., no upstream branch), set upstream and push: `git push -u origin {branch}`
+   - Report to the user what was committed (file count, branch name)
+7. Present a summary to the user:
+   - Sprint goal and whether it was achieved
+   - List of completed Stories and key Tasks
+   - Any deviations from the original plan
+   - Git commit hash and branch pushed to
+   - What the next Sprint covers (preview)
 
-## 重要な振る舞い
+## Important Behaviors
 
-- **一度に一項目**: `sprint plan` とレビュー（ユーザーとの議論）では、常に一項目を提示して解決してから次に進む。10個の質問を一度に並べない。
-- **ユーザーストーリーの強制**: `sprint plan` では全ストーリーが「{役割}として、{やりたいこと}をしたい。なぜなら、{理由・価値}だから。」形式であることを確認する。タスク分解的な記述は修正する。
-- **自律的な技術判断**: `sprint run` では、明確なベストプラクティスや明白な推奨がある場合（エラーハンドリング戦略、命名規則、同等オプション間のライブラリ選択、実装パターンなど）自律的に技術判断を下す。データモデルの変更、主要な依存関係の導入、パブリック API の変更、`sprint plan` で合意したアプローチからの逸脱など、アーキテクチャへの重大な影響がある場合のみユーザーにエスカレーションする。自律判断は `docs/sprint-logs/{SprintID}/` に記録する。
-- **全てを記録する**: テスト出力、ビルド出力、検証結果は `docs/sprint-logs/{SprintID}/` に記録する。
-- **ロードマップが真実の源**: 行動前に常に `docs/ROADMAP.md` を読む。メモリから現在の状態を仮定しない。
-- **依存関係を尊重する**: スプリントが未完了の別のスプリントに依存している場合、`sprint plan` でブロッカーとしてフラグを立てる。
-- **バックログ意識**: `sprint plan` で、バックログ項目が関連性を持つようになった場合、現在のスプリントへの昇格を提案する。
-- **実際に /review を呼び出す**: `sprint run`（ストーリー単位）と `sprint verify`（スプリント単位）では、Skill ツール経由で `/review` スキルを自分で呼び出すこと。このステップを省略したり、/review が何をするか説明するだけで終わったり、ユーザーに別途実行を求めたりしない。
-- **二段階レビュー**: `sprint run` のストーリーレベルレビューはストーリー内のローカルな問題を検出する。`sprint verify` のスプリントレベルレビューはストーリー間・統合の問題を検出する。両方必須。
-- **ワークツリーによる並列実行**: `sprint run` では、独立したストーリーをワークツリー分離のサブエージェントで並列実行する。並列実装間のファイル競合を防ぐ。ウェーブ完了後は順次ワークツリーブランチをマージしてコンフリクトを早期に検出する。最初のワークツリー作成前に、プロジェクトの `.gitignore` に `.claude/worktrees/` が含まれていることを確認する（ファイルが存在しない場合は作成する）。
-- **サブエージェントのモデル選択**: 実装・レビューのサブエージェントは速度とコスト効率のために `model: "sonnet"` を使用する。メイン（オーケストレーション）エージェントは依存関係分析、マージコンフリクト、ユーザーインタラクションのためデフォルトモデルを維持する。
-- **サブエージェントプロンプトは自己完結させる**: 各サブエージェントは会話コンテキストなしでゼロからスタートする。ストーリー/タスクの詳細、プロジェクト規約（CLAUDE.md から）、ファイルパス、期待される振る舞いを全てプロンプトに含める。
-- **デモは実際のプログラムを動かす**: `sprint demo` では、`make serve`（またはプロジェクトの起動コマンド）でサービスを起動し、受け入れ条件を一つずつ実際に実演する。テストコードの実行ではなく、動いているプログラムを見せる。
-- **done では必ずコミットしてプッシュする**: `sprint done` はクリーンなワーキングツリーで終了しなければならない。未コミット変更があればコミットしてプッシュする。ダーティな状態でスプリントを完了しない。
-- **GUI spec は sprint plan で必須**: GUI 作業がないように見えても、常に `sprint plan` で `gui-spec` を呼び出す。`gui-spec` に判定させる。このステップをスキップしない。
-- **Playwright テストが GUI ストーリー完了のゲート**: GUI ストーリーは Playwright テストが通過しない限り `[x]` にできない。`sprint run` と `sprint verify` の両方で強制する。
+- **One item at a time**: During `sprint plan` and reviews (when discussing with the user), always present and resolve one item before moving to the next. Don't dump a list of 10 questions at once.
+- **Enforce user stories**: During `sprint plan`, verify all Stories follow the "{役割}として、{やりたいこと}をしたい。なぜなら、{理由}だから。" format. Rewrite task-decomposition Stories collaboratively with the user.
+- **Autonomous technical decisions**: During `sprint run`, make technical decisions autonomously when there is a clear best practice or obvious recommendation. Only escalate to the user for decisions with significant architectural impact — changing data models, introducing major dependencies, altering public APIs, or deviating from the approach agreed upon in `sprint plan`. Log autonomous decisions in `docs/sprint-logs/{SprintID}/` for traceability.
+- **Log everything**: Test output, build output, and verification results go to `docs/sprint-logs/{SprintID}/`. This creates an audit trail.
+- **Roadmap is the source of truth**: Always read `docs/ROADMAP.md` before taking action. Never assume you know the current state from memory.
+- **Respect dependencies**: If a Sprint depends on another Sprint that isn't complete, flag it as a blocker during `sprint plan`.
+- **Backlog awareness**: During `sprint plan`, if a Backlog item becomes relevant, suggest promoting it to the current Sprint.
+- **Actually invoke /review**: During `sprint run` (per-Story) and `sprint verify` (Sprint-level), you must call the `/review` skill yourself via the Skill tool. Never skip this step, never just describe what /review would do, and never ask the user to run it separately.
+- **Two-level review**: Story-level review during `sprint run` catches local issues. Sprint-level review during `sprint verify` catches cross-Story and integration issues. Both are mandatory.
+- **Parallel execution with worktrees**: During `sprint run`, independent Stories run in parallel via sub-agents with worktree isolation. This prevents file conflicts between parallel implementations. Always merge worktree branches sequentially after a wave completes to catch conflicts early. Before the first worktree is created, ensure `.claude/worktrees/` is listed in the project's `.gitignore` (create the file if it doesn't exist). This prevents worktree contents from appearing as untracked files.
+- **Sub-agent model selection**: Implementation and review sub-agents use `model: "sonnet"` for speed and cost efficiency. The main (orchestrating) agent remains on the default model to handle dependency analysis, merge conflicts, and user interaction.
+- **Sub-agent prompts must be self-contained**: Each sub-agent starts fresh with no conversation context. Include all necessary information in the prompt: Story/Task details, project conventions (from CLAUDE.md), file paths, and expected behavior. Never assume the sub-agent knows what happened in prior steps.
+- **Demo with running program**: During `sprint demo`, start the service with `make serve` (or the project's startup command) and demonstrate each acceptance criterion live. Never substitute test code execution for a real program demo.
+- **Always commit and push on done**: `sprint done` must leave a clean working tree. If there are uncommitted changes, commit and push them. Never finish a sprint with dirty state.
+- **GUI spec is mandatory in sprint plan**: Always invoke `gui-spec` during `sprint plan`, even if the Sprint appears to have no GUI work. Let `gui-spec` make the determination. Never skip this step.
+- **Playwright tests gate GUI Story completion**: A GUI Story cannot be marked `[x]` unless its Playwright tests pass. This is enforced in both `sprint run` and `sprint verify`.
 
-## ロードマップフォーマット参照
+## Roadmap Format Reference
 
-`references/ROADMAP_TEMPLATE.md` を参照。
+See `references/ROADMAP_TEMPLATE.md` for the complete roadmap format specification and template.
