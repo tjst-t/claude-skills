@@ -8,12 +8,20 @@ Prepare the next sprint. This is a collaborative phase with the user.
    - The Sprint's goal and scope (Stories and Tasks to execute)
    - Any dependencies on prior Sprints that are not yet complete (flag as blockers)
    - Design decisions or architectural questions that should be resolved before implementation
-4. **User Story validation**: Verify that each Story follows the format:
+4. **User Story validation and granularity check**: Verify that each Story follows the format:
    ```
    {役割}として、{やりたいこと}をしたい。なぜなら、{理由・価値}だから。
    ```
-   If any Story is written as a task decomposition ("〜を実装する", "〜コンポーネントを作る", etc.), collaborate with the user to rewrite it as a user story and confirm acceptance criteria.
-5. Discuss with the user **one item at a time**. Wait for the user's response before moving to the next item.
+   If any Story is written as a task decomposition ("〜を実装する", "〜コンポーネントを作る", etc.), autonomously rewrite it as a proper user story with acceptance criteria.
+
+   After rewriting, evaluate each Story's **granularity**. A Story is too large if it:
+   - Contains multiple distinct user-facing behaviors that could be independently delivered and verified
+   - Has acceptance criteria spanning unrelated concerns (e.g., CRUD + search + export in one Story)
+   - Would require touching many unrelated modules or layers to implement
+
+   If a Story is clearly overloaded, propose a split into smaller, independently deliverable Stories. Each split Story must still be a proper user story with its own acceptance criteria. Splitting may affect the Sprint scope and roadmap structure, so **always present the proposed split to the user for confirmation** — this is a scope change, not a routine auto-decision.
+
+5. **Auto-decide, then confirm once**: For design decisions and architectural questions, first determine if there is a clear recommended approach. If so, auto-select it and note the rationale. Only ask the user for decisions that are genuinely ambiguous (multiple viable approaches with real trade-offs). Present the full sprint plan — including all auto-decided items, rewritten stories, proposed Story splits (if any), and any open questions — in a single summary for the user to confirm or adjust.
 6. **GUI Spec phase**: After scope is confirmed, invoke the `gui-spec` skill via the Skill tool.
    - The `gui-spec` skill will detect whether the Sprint contains GUI Stories.
    - If GUI Stories are found, it conducts dialogue with the user to elicit scenarios, generate a state diagram, and produce Playwright acceptance tests.

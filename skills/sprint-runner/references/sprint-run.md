@@ -17,7 +17,9 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
    **Step 1 — Implement (sub-agent, sonnet, worktree):**
    - Launch an Agent with `model: "sonnet"` and `isolation: "worktree"` for each Story
    - The agent prompt must include: the Story's Tasks, project context (CLAUDE.md, relevant architecture info), and the instruction to implement all Tasks, run tests, and log output to `docs/sprint-logs/{SprintID}/`
+   - **For frontend/UI Stories**: The agent prompt must instruct the agent to invoke the `/frontend-design` skill for building UI components, pages, and screens. This ensures high design quality and avoids generic AI aesthetics.
    - **For GUI Stories**: The agent prompt must also include the Playwright test file path from `gui-spec` and the instruction: "Add `data-testid` attributes to all interactive elements. Run `npx playwright test {test-file}` after implementation. Fix all failures before marking the Story complete. Do not mark the Story as `[x]` if any Playwright tests are failing."
+   - **For GUI Stories that call backend APIs**: Before writing any TypeScript API client code, the agent must read the corresponding backend handler files (`internal/api/*_handler.go` or equivalent) to confirm: (1) the exact endpoint path as registered in the router, (2) the exact JSON field names in request and response structs. Do not infer field names from TypeScript conventions — always read the actual handler. Mismatches between frontend field names and backend JSON tags are a common source of silent bugs that Playwright mocks cannot detect.
    - All Stories in the wave launch in parallel (single message with multiple Agent tool calls)
    - Wait for all implementation agents to complete. Each returns the worktree path and branch name.
 
@@ -35,7 +37,9 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
    **Step 4 — Merge and complete:**
    - The main agent merges each Story's worktree branch into the current branch (e.g., `git merge --no-ff {branch}`)
    - Resolve any merge conflicts (if parallel Stories touched the same files, fix conflicts and re-run tests)
-   - Mark each Story and its Tasks as `[x]` in `docs/ROADMAP.md`
+   - Mark each Story and its Tasks as `[x]` in `docs/ROADMAP.md`, with the following additional gate for GUI Stories:
+     - Playwright tests pass (mocked) ✓
+     - **Smoke test against real server**: Run `make serve` (or equivalent), then verify with `curl` that: (a) the login/auth endpoint exists and returns 200 for a valid token, and (b) at least one key API endpoint per Story returns the expected response shape. If any endpoint is missing or returns an unexpected shape, the Story is NOT complete — fix before marking `[x]`.
    - Log the review results to `docs/sprint-logs/{SprintID}/`
 
 4. After all waves are complete, present a summary of what was implemented

@@ -26,8 +26,8 @@ When a command is invoked, read the corresponding reference file before taking a
 
 ## Important Behaviors
 
-- **One item at a time**: During `sprint plan` and reviews, always present and resolve one item before moving to the next.
-- **Enforce user stories**: During `sprint plan`, verify all Stories follow the "{役割}として、{やりたいこと}をしたい。なぜなら、{理由}だから。" format. Rewrite task-decomposition Stories collaboratively with the user.
+- **Auto-decide, confirm once**: During `sprint plan` and reviews, auto-select the recommended approach when there is a clear best practice. Present a single summary with all decisions (auto-decided + open questions) for the user to confirm or adjust. Only ask individual questions for genuinely ambiguous design decisions with meaningful trade-offs.
+- **Enforce user stories**: During `sprint plan`, verify all Stories follow the "{役割}として、{やりたいこと}をしたい。なぜなら、{理由}だから。" format. Autonomously rewrite task-decomposition Stories as proper user stories.
 - **Autonomous technical decisions**: During `sprint run`, make technical decisions autonomously when there is a clear best practice. Only escalate for significant architectural impact. Log autonomous decisions in `docs/sprint-logs/{SprintID}/`.
 - **Log everything**: Test output, build output, and verification results go to `docs/sprint-logs/{SprintID}/`.
 - **Roadmap is the source of truth**: Always read `docs/ROADMAP.md` before taking action.
