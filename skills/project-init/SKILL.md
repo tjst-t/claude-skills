@@ -33,7 +33,7 @@ Read the project's source code, configs, and any existing documentation to under
 
 Read the source code and generate an architecture document. See `references/ARCHITECTURE_TEMPLATE.md` for the format.
 
-If `docs/ARCHITECTURE.md` already exists, ask the user whether to overwrite or skip.
+If `docs/ARCHITECTURE.md` already exists, ask the user whether to overwrite, merge, or skip. This is a scope decision (existing documentation may contain intentional content), not a routine auto-decision.
 
 The goal is for Claude Code to understand the system without reading every source file. Focus on:
 - What the major components are and how they relate
@@ -60,19 +60,30 @@ If CLAUDE.md already exists:
 - Existing content that doesn't fit any template section should be kept in a project-specific section rather than silently dropped
 - Show the user a diff or summary of what changed, what was added, and what was reorganized. Ask the user to confirm before writing the file.
 
-#### Step 4: Integrate portman
+#### Step 4: Integrate portman (optional)
 
 Only if the project has a web server, API, or dev server:
 
-1. Check if a Makefile exists; create one if not
-2. Add `make serve` target using portman
-3. For the correct portman pattern, fetch and follow the guide at:
+1. Check if `portman` is available (`which portman`). If not installed:
+   - Warn the user: "portman is not installed. You can install it from https://github.com/tjst-t/port-manager or skip this step."
+   - If the user chooses to skip, create a basic `make serve` target without portman (direct process launch) and continue.
+2. Check if a Makefile exists; create one if not
+3. Add `make serve` target using portman
+4. For the correct portman pattern, try to fetch the guide at:
    https://raw.githubusercontent.com/tjst-t/port-manager/main/docs/CLAUDE_INTEGRATION.md
-4. Use **Pattern 6 (background + PID file)** as the default for Claude Code compatibility
-5. Add the server startup section to CLAUDE.md
-6. Add `.env` to `.gitignore` if not already present
+   If the fetch fails (network error, 404, etc.), fall back to **Pattern 6 (background + PID file)** with this template:
+   ```makefile
+   serve:
+   	@portman acquire --name $(PROJECT_NAME) --pid-file .server.pid -- \
+   		$(START_COMMAND)
+   stop:
+   	@portman release --name $(PROJECT_NAME) --pid-file .server.pid
+   ```
+5. Use **Pattern 6 (background + PID file)** as the default for Claude Code compatibility
+6. Add the server startup section to CLAUDE.md
+7. Add `.env` to `.gitignore` if not already present
 
-If the project has no server component, skip this step.
+If the project has no server component, skip this step entirely.
 
 If the project has multiple services (e.g., API + frontend), create separate Makefile targets (`make serve`, `make serve-frontend`, etc.).
 

@@ -1,6 +1,6 @@
 ---
 name: gui-spec
-description: GUI specification elicitation for React/web UI components. Use this skill when a Sprint contains Stories that involve building or modifying UI components, screens, forms, modals, dashboards, or any interactive frontend elements. This skill runs before implementation to clarify user scenarios, state transitions, and acceptance criteria — turning ambiguous UI requirements into concrete Playwright test specifications that Claude Code can execute autonomously.
+description: GUI spec elicitation — generates Playwright acceptance tests from UI Stories. Use when a Sprint contains GUI/frontend Stories (components, screens, forms, modals, dashboards).
 ---
 
 # GUI Spec
@@ -69,31 +69,38 @@ Convert the confirmed scenarios and state diagram into Playwright test cases. Wr
 - Use `page.route()` to mock API responses — do not depend on a real backend
 - Each test must be independent (no shared state between tests)
 - Name tests in the format: `「シナリオ名」should [expected behavior]`
-- **Mock all dependent endpoints**: テスト対象コンポーネントが呼ぶ全エンドポイントを明示的にモックする。1つでも未モックのエンドポイントがあると、サイレントフォールバックが発動して誤って通過する可能性がある。
-- **Mock data must match real API contract**: モックが返すデータは実際の API レスポンス形式と一致させる。ページネーション API（`{ items: [...] }`）をそのまま返すこと。実装前に `internal/api/` の handler を読んでレスポンス形式を確認すること。
-- **Avoid overly broad URL wildcards**: `*/tenants` のようなワイルドカードは本来存在しないパスにもマッチする。可能な限り具体的なパスを使うか、ワイルドカードを使う場合はその意図をコメントで明記する。
-- **Verify all mocked endpoints are actually called**: 各テストの末尾で `expect(mockHandler).toHaveBeenCalled()` 等でモックが実際に呼ばれたことを確認する（呼ばれなかったモックは設計ミスの可能性がある）。
-- **Verify endpoint registration before writing tests**: For every endpoint the test will mock, confirm it is registered in the backend router (e.g., `internal/api/router.go`). If the endpoint does not exist yet, add a TODO comment in the test file: `// TODO: backend must implement POST /api/v1/auth/verify`. This prevents tests from silently passing against a frontend that calls non-existent endpoints.
+- **Mock all dependent endpoints**: Explicitly mock every endpoint the component under test calls. If even one endpoint is unmocked, a silent fallback may cause the test to pass incorrectly.
+- **Mock data must match real API contract**: Mock response data must match the actual API response shape. For paginated APIs (`{ items: [...] }`), return the wrapper as-is. Before writing mocks, read the project's backend handler files (e.g., `internal/api/*_handler.go` for Go, `app/controllers/` for Rails, `src/routes/` for Express) to confirm response structure.
+- **Avoid overly broad URL wildcards**: Wildcards like `*/tenants` match paths that may not exist. Use specific paths where possible; if a wildcard is necessary, add a comment explaining why.
+- **Verify all mocked endpoints are actually called**: At the end of each test, assert that mock handlers were called (e.g., `expect(mockHandler).toHaveBeenCalled()`). An uncalled mock may indicate a design mistake.
+- **Verify endpoint registration before writing tests**: For every endpoint the test will mock, confirm it is registered in the backend router (e.g., `internal/api/router.go` for Go, or the project's equivalent routing file). If the endpoint does not exist yet, add a TODO comment in the test file: `// TODO: backend must implement POST /api/v1/auth/verify`. This prevents tests from silently passing against a frontend that calls non-existent endpoints.
 
 **Example:**
 ```typescript
 import { test, expect } from '@playwright/test';
 
 test('VM list: should show empty state when no VMs exist', async ({ page }) => {
-  await page.route('/api/vms', route => route.fulfill({ json: [] }));
+  const listHandler = await page.route('/api/vms', route => route.fulfill({ json: [] }));
   await page.goto('/vms');
   await expect(page.getByTestId('empty-state-message')).toBeVisible();
   await expect(page.getByTestId('create-vm-button')).toBeEnabled();
+  // Verify mock was called
+  expect(listHandler).toHaveBeenCalled();
 });
 
 test('VM list: should show VM as running after start succeeds', async ({ page }) => {
-  await page.route('/api/vms', route => route.fulfill({
+  const listHandler = await page.route('/api/vms', route => route.fulfill({
     json: [{ id: 'vm-1', name: 'test-vm', status: 'stopped' }]
   }));
-  await page.route('/api/vms/vm-1/start', route => route.fulfill({ json: { status: 'running' } }));
+  const startHandler = await page.route('/api/vms/vm-1/start', route =>
+    route.fulfill({ json: { status: 'running' } })
+  );
   await page.goto('/vms');
   await page.getByTestId('vm-start-button-vm-1').click();
   await expect(page.getByTestId('vm-status-vm-1')).toHaveText('running');
+  // Verify all mocks were called
+  expect(listHandler).toHaveBeenCalled();
+  expect(startHandler).toHaveBeenCalled();
 });
 ```
 
@@ -107,9 +114,9 @@ For each GUI Story, produce a contract table and include it in the spec document
 | `/api/v1/organizations` | GET | ✓ / ✗ | — | `items: Organization[], next_cursor: string` |
 
 **How to fill this table**:
-- Read `internal/api/router.go` (or equivalent) to confirm each endpoint is registered. Mark ✗ if missing.
-- Read the corresponding handler function to extract the exact JSON field names from struct tags.
-- The TypeScript types in `web/src/api/` **must** match the "Response fields" column exactly.
+- Read the project's router file (e.g., `internal/api/router.go` for Go, `config/routes.rb` for Rails, `src/routes/` for Express) to confirm each endpoint is registered. Mark ✗ if missing.
+- Read the corresponding handler function to extract the exact field names from serialization annotations (Go JSON struct tags, Python serializer fields, etc.).
+- The frontend API types **must** match the "Response fields" column exactly.
 
 If any row has ✗ in "Router registration confirmed", flag it to `sprint plan` as a missing backend task before implementation begins.
 
@@ -149,4 +156,4 @@ This skill produces:
 - **Mock everything**: All tests use `page.route()` mocks. A test that requires a running backend is not acceptable — it cannot run autonomously in CI.
 - **data-testid is mandatory**: If the implementation doesn't have `data-testid` attributes, Playwright tests become fragile. This is a non-negotiable convention.
 - **Short-circuit if no GUI**: If no Stories in the Sprint involve GUI, skip immediately and tell `sprint plan` to continue without GUI spec.
-- **Read the handler, not the type name**: When generating mock data for Playwright tests, always read the actual backend handler (`internal/api/*_handler.go`) to get response field names from JSON struct tags. Never infer field names from Go type names or TypeScript conventions — Go uses `json:"ram_mb"` tags that often differ from the field name itself (e.g., `RAMMB int \`json:"ram_mb"\``).
+- **Read the handler, not the type name**: When generating mock data for Playwright tests, always read the actual backend handler to get response field names from serialization annotations. Never infer field names from type names or frontend conventions — backends often use different naming (e.g., Go `json:"ram_mb"` tags differ from the field name `RAMMB`, Python serializers may rename fields, etc.).

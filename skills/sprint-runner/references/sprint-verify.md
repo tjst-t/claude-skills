@@ -10,7 +10,7 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
    - Check for any Tasks marked incomplete or missing implementation
    - Check for any Tasks that were implemented but not marked complete
    - **For GUI Stories**: Verify that `npx playwright test` passes for each Story's test file. If any tests are failing, treat this as an incomplete Task and execute the missing work immediately.
-   - **API mock contract check**: GUI Story がある場合、Playwright テストのモックが返すデータ形式を `internal/api/` の実装と照合する。特にページネーションレスポンス（`items` ラッパー）の有無を確認する。モックと実 API の形式が乖離している場合、テストを修正する。
+   - **API mock contract check**: For GUI Stories, compare the data shapes returned by Playwright test mocks against the actual backend handler implementations. Pay special attention to pagination response wrappers (`items` wrapper presence/absence). If mocks diverge from the real API, fix the tests immediately.
 3. If gaps are found, execute the missing work immediately
 
 ## Phase 1.5: Real-server smoke test (GUI Sprints only)
@@ -18,10 +18,10 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
 If the Sprint contains GUI Stories, perform the following before invoking `/review`:
 
 1. Run `make serve` (or the project's startup command) to bring up the real server
-2. **Login gate**: Verify that the authentication endpoint the frontend uses (e.g., `POST /api/v1/auth/verify`) exists and returns 200 for the dev token. If it does not exist, create it immediately — a Sprint where the user cannot log in has zero usable acceptance criteria.
-3. **Per-Story endpoint check**: For each GUI Story, identify every API endpoint the frontend calls (read the TypeScript API client files in `web/src/api/`). For each endpoint:
+2. **Login gate**: Verify that the authentication endpoint the frontend uses exists and returns 200 for the dev token. If it does not exist, create it immediately — a Sprint where the user cannot log in has zero usable acceptance criteria.
+3. **Per-Story endpoint check**: For each GUI Story, identify every API endpoint the frontend calls (read the frontend API client files — e.g., `web/src/api/` for TypeScript, or the project's equivalent). For each endpoint:
    - Confirm it is registered in the router (grep the router file)
-   - Send a real `curl` request and confirm the response shape matches what the TypeScript types expect (field names, nesting, pagination wrapper or lack thereof)
+   - Send a real `curl` request and confirm the response shape matches what the frontend types expect (field names, nesting, pagination wrapper or lack thereof)
 4. **Fix all mismatches before proceeding**: Field name mismatches, missing endpoints, or wrong response shapes must be fixed now. These are bugs that Playwright mocks cannot detect.
 5. Document the smoke test results in `docs/sprint-logs/{SprintID}/smoke-test.md`
 

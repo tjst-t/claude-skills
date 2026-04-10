@@ -1,6 +1,6 @@
 ---
 name: sprint-runner
-description: Agile Sprint lifecycle management for software projects. Use this skill whenever the user mentions sprint commands like "sprint plan", "sprint run", "sprint verify", "sprint done", "sprint demo", "sprint init", or references sprint/story/task workflows, roadmap management, or agile-style development cycles. Also trigger when the user says things like "次のスプリント", "スプリント開始", "実装完了", "レビュー完了", "デモ", or asks to update a roadmap. This skill manages the full sprint lifecycle from planning through completion.
+description: Agile Sprint lifecycle — plan, run, verify, demo, done. Use for sprint commands, story/task workflows, roadmap management. Triggers on "sprint plan/run/verify/demo/done/init", "次のスプリント", "スプリント開始".
 ---
 
 # Sprint Runner
