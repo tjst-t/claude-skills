@@ -41,6 +41,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Always commit and push on done**: `sprint done` must leave a clean working tree.
 - **GUI spec is mandatory in sprint plan**: Always invoke `gui-spec` during `sprint plan`. Let `gui-spec` determine whether GUI work exists.
 - **Playwright tests gate GUI Story completion**: A GUI Story cannot be marked `[x]` unless its Playwright tests pass.
+- **Playwright contract check**: Before marking a GUI Story `[x]`, verify that POST/PUT/PATCH mock handlers in the test file contain `expect(body.<required_field>).toBeTruthy()` assertions. A Story whose tests only verify UI state (element visibility) but not request bodies is not complete.
 
 ## Reference Files
 

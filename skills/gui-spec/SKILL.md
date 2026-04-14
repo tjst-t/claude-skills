@@ -74,6 +74,7 @@ Convert the confirmed scenarios and state diagram into Playwright test cases. Wr
 - **Avoid overly broad URL wildcards**: Wildcards like `*/tenants` match paths that may not exist. Use specific paths where possible; if a wildcard is necessary, add a comment explaining why.
 - **Verify all mocked endpoints are actually called**: At the end of each test, assert that mock handlers were called (e.g., `expect(mockHandler).toHaveBeenCalled()`). An uncalled mock may indicate a design mistake.
 - **Verify endpoint registration before writing tests**: For every endpoint the test will mock, confirm it is registered in the backend router (e.g., `internal/api/router.go` for Go, or the project's equivalent routing file). If the endpoint does not exist yet, add a TODO comment in the test file: `// TODO: backend must implement POST /api/v1/auth/verify`. This prevents tests from silently passing against a frontend that calls non-existent endpoints.
+- **Assert mutation request bodies against the backend contract**: For every POST/PUT/PATCH request, the mock handler MUST inspect `route.request().postDataJSON()` and assert that all required fields (as listed in the endpoint contract table) are present and non-empty. A mock handler that returns 201 without inspecting the request body will pass even when the frontend omits required fields — this is a silent false positive.
 
 **Example:**
 ```typescript
@@ -102,6 +103,24 @@ test('VM list: should show VM as running after start succeeds', async ({ page })
   expect(listHandler).toHaveBeenCalled();
   expect(startHandler).toHaveBeenCalled();
 });
+
+test('VM create: should send required fields to backend', async ({ page }) => {
+  const createHandler = page.route('/api/vms', async route => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON();
+      // Assert all required fields from the endpoint contract table
+      expect(body.name).toBeTruthy();
+      expect(body.flavor_id).toBeTruthy();
+      return route.fulfill({ status: 201, json: { id: 'vm-1', name: body.name } });
+    }
+    return route.fulfill({ json: [] });
+  });
+  await page.goto('/vms');
+  await page.getByTestId('vm-create-button').click();
+  await page.getByTestId('vm-name-input').fill('my-vm');
+  await page.getByTestId('vm-create-submit').click();
+  await expect(page.getByTestId('vm-row-vm-1')).toBeVisible();
+});
 ```
 
 ### Phase 4.5: Endpoint contract table
@@ -117,6 +136,8 @@ For each GUI Story, produce a contract table and include it in the spec document
 - Read the project's router file (e.g., `internal/api/router.go` for Go, `config/routes.rb` for Rails, `src/routes/` for Express) to confirm each endpoint is registered. Mark ✗ if missing.
 - Read the corresponding handler function to extract the exact field names from serialization annotations (Go JSON struct tags, Python serializer fields, etc.).
 - The frontend API types **must** match the "Response fields" column exactly.
+
+For each row where Method is POST/PUT/PATCH, the "Request fields" column defines what the Playwright test's mock handler **must** assert via `route.request().postDataJSON()`. Populate this column before writing tests — if it is left blank, the tests cannot verify the frontend is sending the correct body.
 
 If any row has ✗ in "Router registration confirmed", flag it to `sprint plan` as a missing backend task before implementation begins.
 
@@ -157,3 +178,4 @@ This skill produces:
 - **data-testid is mandatory**: If the implementation doesn't have `data-testid` attributes, Playwright tests become fragile. This is a non-negotiable convention.
 - **Short-circuit if no GUI**: If no Stories in the Sprint involve GUI, skip immediately and tell `sprint plan` to continue without GUI spec.
 - **Read the handler, not the type name**: When generating mock data for Playwright tests, always read the actual backend handler to get response field names from serialization annotations. Never infer field names from type names or frontend conventions — backends often use different naming (e.g., Go `json:"ram_mb"` tags differ from the field name `RAMMB`, Python serializers may rename fields, etc.).
+- **Assert POST bodies, not just responses**: For every mutation (POST/PUT/PATCH), the test must call `route.request().postDataJSON()` and assert every required field from the backend handler. A test that only checks the response shape or that the row appears in the list cannot detect a missing required field — the mock returns success regardless of what was sent.
