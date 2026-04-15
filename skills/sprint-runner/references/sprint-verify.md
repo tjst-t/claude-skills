@@ -38,6 +38,14 @@ This is a final review of the entire Sprint's changes as a whole. Story-level re
 6. After fixing findings, re-run `/review` to confirm the fixes are clean. Repeat until no more fixable findings remain.
 7. If any findings require user input due to architectural impact, present them all together in a single summary with your recommended approach for each. The user can then confirm or override specific items. Log all autonomous decisions in `docs/sprint-logs/{SprintID}/`.
 
+## Phase 2.5: Backlog proposals
+
+Collect any out-of-scope issues discovered during the completeness check, smoke test, or code review that are NOT bugs in the current Sprint but warrant future attention (e.g., tech debt, missing tests in unrelated modules, performance concerns, refactoring opportunities). Present them to the user:
+- For each item, provide a short title and one-line description
+- Ask the user which items to add to the Backlog section of `docs/ROADMAP.md`
+- Only add items the user approves
+- If no out-of-scope issues were found, skip this step
+
 ## Phase 3: Finalize
 
-8. Update `docs/ROADMAP.md` to reflect the verified state
+8. Update `docs/ROADMAP.md` to reflect the verified state (including any backlog items approved in Phase 2.5)

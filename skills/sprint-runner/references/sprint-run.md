@@ -16,7 +16,7 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
 
    **Step 1 — Implement (sub-agent, sonnet, worktree):**
    - Launch an Agent with `model: "sonnet"` and `isolation: "worktree"` for each Story
-   - The agent prompt must include: the Story's Tasks, project context (CLAUDE.md, relevant architecture info), and the instruction to implement all Tasks, run tests, and log output to `docs/sprint-logs/{SprintID}/`
+   - The agent prompt must include: the Story's Tasks, project context (CLAUDE.md, relevant architecture info), and the instruction to implement all Tasks, run tests, and log output to `docs/sprint-logs/{SprintID}/`. Also instruct the agent to report any out-of-scope issues it discovers (tech debt, bugs in unrelated code, potential improvements) as a separate list in its output — these will be proposed to the user as backlog candidates.
    - **For frontend/UI Stories**: The agent prompt must instruct the agent to invoke the `/frontend-design` skill for building UI components, pages, and screens. This ensures high design quality and avoids generic AI aesthetics.
    - **For GUI Stories**: The agent prompt must also include the Playwright test file path from `gui-spec` and the instruction: "Add `data-testid` attributes to all interactive elements. Run `npx playwright test {test-file}` after implementation. Fix all failures before marking the Story complete. Do not mark the Story as `[x]` if any Playwright tests are failing."
    - **For GUI Stories that call backend APIs**: Before writing any frontend API client code, the agent must read the corresponding backend handler files (e.g., `internal/api/*_handler.go` for Go, `app/controllers/` for Rails, `src/routes/` for Express) to confirm: (1) the exact endpoint path as registered in the router, (2) the exact field names in request and response serialization (JSON struct tags, serializer fields, etc.). Do not infer field names from frontend conventions — always read the actual handler. Mismatches between frontend field names and backend serialization are a common source of silent bugs that Playwright mocks cannot detect.
@@ -42,4 +42,10 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
      - **Smoke test against real server**: Run `make serve` (or equivalent), then verify with `curl` that: (a) the login/auth endpoint exists and returns 200 for a valid token, and (b) at least one key API endpoint per Story returns the expected response shape. If any endpoint is missing or returns an unexpected shape, the Story is NOT complete — fix before marking `[x]`.
    - Log the review results to `docs/sprint-logs/{SprintID}/`
 
-4. After all waves are complete, present a summary of what was implemented
+4. **Backlog proposals**: After all waves are complete, collect any out-of-scope issues discovered during implementation or review (e.g., tech debt, missing error handling in unrelated code, potential improvements noticed by sub-agents). Sub-agents should return these as a separate "out-of-scope findings" list alongside their implementation results. Present them to the user as backlog candidates:
+   - For each item, provide a short title and one-line description
+   - Ask the user which items to add to the Backlog section of `docs/ROADMAP.md`
+   - Only add items the user approves
+   - If no out-of-scope issues were found, skip this step
+
+5. Present a summary of what was implemented
