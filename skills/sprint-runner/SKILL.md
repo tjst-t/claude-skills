@@ -1,6 +1,6 @@
 ---
 name: sprint-runner
-description: Agile Sprint lifecycle — plan, run, verify, demo, done. Use for sprint commands, story/task workflows, roadmap management. Triggers on "sprint plan/run/verify/demo/done/init", "次のスプリント", "スプリント開始".
+description: Agile Sprint lifecycle — plan, run, verify, demo, done, auto. Use for sprint commands, story/task workflows, roadmap management. Triggers on "sprint plan/run/verify/demo/done/auto/init", "次のスプリント", "スプリント開始".
 ---
 
 # Sprint Runner
@@ -21,6 +21,7 @@ The roadmap file is always at `docs/ROADMAP.md` in the project root. If it doesn
 | `sprint verify` | Verify completeness and quality | See `references/sprint-verify.md` |
 | `sprint demo` | Demonstrate deliverables by running the program | See `references/sprint-demo.md` |
 | `sprint done` | Finalize and commit the sprint | See `references/sprint-done.md` |
+| `sprint auto` | Execute one sprint fully autonomously | See `references/sprint-auto.md` |
 
 When a command is invoked, read the corresponding reference file before taking any action.
 
@@ -51,4 +52,5 @@ When a command is invoked, read the corresponding reference file before taking a
 - `references/sprint-verify.md` — verify command details
 - `references/sprint-demo.md` — demo command details
 - `references/sprint-done.md` — done command details
+- `references/sprint-auto.md` — auto (fully autonomous single sprint) command details
 - `references/ROADMAP_TEMPLATE.md` — roadmap format specification and template
