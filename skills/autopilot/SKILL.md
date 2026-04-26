@@ -31,10 +31,11 @@ If `VISION.md` or `DESIGN_PRINCIPLES.md` do not exist, **do not proceed**. Inste
 
 Guide the user through creating `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`:
 
-1. Read the templates in `references/vision-template.md` and `references/principles-template.md`
-2. Ask the user targeted questions to fill in each section (batch questions, don't ask one at a time)
-3. Write the files
-4. If a `docs/ROADMAP.md` exists, review it against the new VISION and flag any misalignment
+1. Check if `docs/VISION.md` or `docs/DESIGN_PRINCIPLES.md` already exist. If so, read them and ask the user whether to update or overwrite. Do not silently replace existing content.
+2. Read the templates in `references/vision-template.md` and `references/principles-template.md`
+3. Ask the user targeted questions to fill in each section (batch questions, don't ask one at a time)
+4. Write the files
+5. If a `docs/ROADMAP.md` exists, review it against the new VISION and flag any misalignment
 
 ## `autopilot start`
 
@@ -50,12 +51,22 @@ Guide the user through creating `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`
 
 ### Step 2: Sprint loop
 
+Each Sprint is executed as an **independent sub-agent** to manage context window usage. The main autopilot conversation stays lightweight and delegates heavy work.
+
 For each Sprint until the next milestone boundary:
 
-1. Invoke `sprint auto` from the sprint-runner skill
-2. Read the decision log (`docs/sprint-logs/{SprintID}/decisions.md`)
+1. Launch an Agent to invoke `sprint auto` via the Skill tool. The agent prompt must include:
+   - The Sprint ID to execute
+   - The full contents of `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`
+   - Instruction to return: completion status, decision summary, and any warnings
+2. When the agent completes, read the decision log (`docs/sprint-logs/{SprintID}/decisions.md`)
 3. **Drift check**: Review the decisions against VISION and DESIGN_PRINCIPLES. If any decision contradicts these documents, flag it but continue (it will be reviewed at the milestone demo)
-4. Proceed to the next Sprint
+4. **Failure handling**: If `sprint auto` returns `partial` or `blocked`, evaluate:
+   - `partial` with most Stories complete → continue to next Sprint, log incomplete Stories
+   - `partial` with critical Stories incomplete → stop and trigger milestone demo early
+   - `blocked` → stop and trigger milestone demo early
+5. Merge the Sprint's `autopilot/{SprintID}` branch into the working branch
+6. Proceed to the next Sprint
 
 ### Step 3: Milestone demo
 
@@ -78,23 +89,25 @@ When a milestone boundary is reached:
 
 ## Milestone Detection
 
-A milestone boundary is any of the following:
+A milestone boundary is any of the following (checked in order, use the earliest match):
 
 1. **Explicit milestone marker** in ROADMAP.md: A Sprint description or comment containing `[MILESTONE]` or `[マイルストーン]`
-2. **Natural boundaries**: The last Sprint before a major dependency shift (e.g., Sprint N builds the API, Sprint N+1 builds the frontend that consumes it)
-3. **Every 3 Sprints** as a fallback if no explicit milestones are defined — prevents unbounded execution
+2. **Dependency boundary**: Read the Dependencies section of ROADMAP.md. If the next Sprint has no dependency on the current Sprint (i.e., a new independent track begins), treat the current Sprint as a milestone. This is determined by the explicit dependency declarations, not by inference.
+3. **Every 3 Sprints** as a fallback if no explicit milestones or dependency boundaries are found — prevents unbounded execution
 4. **End of roadmap**: All Sprints complete
-
-When multiple rules apply, use the earliest boundary.
 
 ## `autopilot status`
 
-Read the current state and present:
-- Current Sprint being executed (or last completed)
-- Sprints completed in this autopilot run
-- Next milestone boundary
-- Recent decisions from the latest `decisions.md`
-- Any drift warnings
+Show the state of the most recent autopilot run. This command reads logs — it does not require an active autopilot session.
+
+1. Read `docs/ROADMAP.md` to determine overall progress
+2. Find the most recent `docs/sprint-logs/*/decisions.md` files
+3. Present:
+   - Last completed Sprint and its status
+   - Total Sprints completed in the most recent autopilot run (count sequential `autopilot/*` branches or decision logs)
+   - Next milestone boundary (based on current roadmap state)
+   - Key decisions from the latest `decisions.md`
+   - Any drift warnings or failure logs
 
 ## Important Behaviors
 
@@ -102,4 +115,5 @@ Read the current state and present:
 - **Never skip milestones**: Even if everything looks fine, always stop at milestone boundaries. The user's review is the alignment mechanism.
 - **Drift logging, not drift blocking**: If a decision seems to conflict with VISION/PRINCIPLES, log the concern but don't stop execution. The milestone review handles corrections.
 - **Preserve user agency**: The user can always interrupt autopilot. If the user sends any message during execution, pause and respond before continuing.
-- **Incremental commits**: Each Sprint is committed and pushed independently. If autopilot is interrupted, all completed Sprints are preserved.
+- **Incremental commits**: Each Sprint is committed and pushed on its own `autopilot/{SprintID}` branch. If autopilot is interrupted, all completed Sprints are preserved and can be merged independently.
+- **Context management**: Each Sprint runs in a dedicated sub-agent to prevent context window exhaustion. The main autopilot conversation only tracks Sprint-level status, decision summaries, and drift flags — it does not accumulate implementation details.

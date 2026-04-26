@@ -43,6 +43,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - **GUI spec is mandatory in sprint plan**: Always invoke `gui-spec` during `sprint plan`. Let `gui-spec` determine whether GUI work exists.
 - **Playwright tests gate GUI Story completion**: A GUI Story cannot be marked `[x]` unless its Playwright tests pass.
 - **Playwright contract check**: Before marking a GUI Story `[x]`, verify that POST/PUT/PATCH mock handlers in the test file contain `expect(body.<required_field>).toBeTruthy()` assertions. A Story whose tests only verify UI state (element visibility) but not request bodies is not complete.
+- **Auto mode logs all decisions**: During `sprint auto`, every decision (planning, implementation, review) must be logged to `docs/sprint-logs/{SprintID}/decisions.md` with rationale referencing VISION.md or DESIGN_PRINCIPLES.md. Work happens on an `autopilot/{SprintID}` branch, not directly on main.
 
 ## Reference Files
 

@@ -39,6 +39,8 @@ For each GUI Story, reason through the following aspects and **auto-select the r
 
 Present the complete scenario summary (auto-decided items + any questions) to the user for a single confirmation pass, rather than iterating through each item individually.
 
+**Autonomous mode** (when called from `sprint auto`): Skip the user confirmation pass entirely. Auto-decide all aspects, generate the state diagram and tests, and log all decisions to the Sprint's `decisions.md`. The scenario summary is still written to the spec document for post-hoc review, but no user interaction occurs.
+
 ### Phase 3: Generate State Transition Diagram
 
 Based on the elicited scenarios, generate a Mermaid state diagram covering:
@@ -177,5 +179,6 @@ This skill produces:
 - **Mock everything**: All tests use `page.route()` mocks. A test that requires a running backend is not acceptable — it cannot run autonomously in CI.
 - **data-testid is mandatory**: If the implementation doesn't have `data-testid` attributes, Playwright tests become fragile. This is a non-negotiable convention.
 - **Short-circuit if no GUI**: If no Stories in the Sprint involve GUI, skip immediately and tell `sprint plan` to continue without GUI spec.
+- **Autonomous mode**: When invoked from `sprint auto`, skip all user confirmation steps. Auto-decide every aspect, write the spec document, and log decisions. No user interaction.
 - **Read the handler, not the type name**: When generating mock data for Playwright tests, always read the actual backend handler to get response field names from serialization annotations. Never infer field names from type names or frontend conventions — backends often use different naming (e.g., Go `json:"ram_mb"` tags differ from the field name `RAMMB`, Python serializers may rename fields, etc.).
 - **Assert POST bodies, not just responses**: For every mutation (POST/PUT/PATCH), the test must call `route.request().postDataJSON()` and assert every required field from the backend handler. A test that only checks the response shape or that the row appears in the list cannot detect a missing required field — the mock returns success regardless of what was sent.
