@@ -13,19 +13,43 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
    - **API mock contract check**: For GUI Stories, compare the data shapes returned by Playwright test mocks against the actual backend handler implementations. Pay special attention to pagination response wrappers (`items` wrapper presence/absence). If mocks diverge from the real API, fix the tests immediately.
 3. If gaps are found, execute the missing work immediately
 
-## Phase 1.5: Real-server smoke test (GUI Sprints only)
+## Phase 1.5: E2E tests and acceptance criteria verification
 
-If the Sprint contains GUI Stories, perform the following before invoking `/review`:
+Perform the following before invoking `/review`:
+
+### Step 1: Start the real server
 
 1. Run `make serve` (or the project's startup command) to bring up the real server
-2. **Login gate**: Verify that the authentication endpoint the frontend uses exists and returns 200 for the dev token. If it does not exist, create it immediately — a Sprint where the user cannot log in has zero usable acceptance criteria.
-3. **Per-Story endpoint check**: For each GUI Story, identify every API endpoint the frontend calls (read the frontend API client files — e.g., `web/src/api/` for TypeScript, or the project's equivalent). For each endpoint:
-   - Confirm it is registered in the router (grep the router file)
-   - Send a real `curl` request and confirm the response shape matches what the frontend types expect (field names, nesting, pagination wrapper or lack thereof)
-4. **Fix all mismatches before proceeding**: Field name mismatches, missing endpoints, or wrong response shapes must be fixed now. These are bugs that Playwright mocks cannot detect.
-5. Document the smoke test results in `docs/sprint-logs/{SprintID}/smoke-test.md`
+2. **Login gate**: Verify that the authentication endpoint the frontend uses exists and returns 200 for the dev token. If it does not exist, create it immediately.
 
-> **Why this step exists**: Playwright tests use `page.route()` mocks, which means they test the frontend in isolation. They cannot detect: missing backend endpoints, wrong JSON field names (e.g., `ram_mb` vs `memory_mb`), wrong URL paths (e.g., `/storage-backends` vs `/admin/storage-backends`), or wrong response structure (array vs paginated object). This step is the only gate that catches frontend-backend contract violations before the demo.
+### Step 2: Run E2E tests
+
+3. **For GUI Stories**: Run all E2E test files: `npx playwright test *.e2e.spec.ts`
+   - These tests hit the real server (no mocks) and verify the full stack works together
+   - If any E2E tests fail, fix the issue (could be frontend, backend, or integration problem) and re-run
+4. **For non-GUI Stories**: Run backend acceptance tests (e.g., `go test ./tests/acceptance/...` or equivalent)
+   - If no acceptance tests exist for a Story, this is a gap — create them now
+5. Document test results in `docs/sprint-logs/{SprintID}/e2e-results.md`
+
+### Step 3: Acceptance criteria traceability check
+
+6. For each Story in the Sprint, read its acceptance criteria from `docs/ROADMAP.md`
+7. For each acceptance criterion, verify a corresponding test exists:
+   - GUI Stories: look for `[AC-{StoryID}-{N}]` tagged tests in `*.e2e.spec.ts`
+   - Non-GUI Stories: look for test functions named with the acceptance criterion reference
+8. **If any acceptance criterion has no corresponding test**: create the missing test and run it
+9. **If any acceptance criterion's test is failing**: fix the implementation and re-run
+10. Log the traceability matrix to `docs/sprint-logs/{SprintID}/acceptance-matrix.md`:
+
+```markdown
+| Story | Acceptance Criterion | Test | Status |
+|-------|---------------------|------|--------|
+| S002-1 | AC-1: VM list displays after login | [AC-S002-1-1] in vm-list.e2e.spec.ts | ✅ Pass |
+| S002-1 | AC-2: VM can be started | [AC-S002-1-2] in vm-list.e2e.spec.ts | ✅ Pass |
+| S002-2 | AC-1: User can create organization | test_create_org in acceptance_test.go | ✅ Pass |
+```
+
+> **Why this step exists**: Mock tests (run during sprint-run) verify frontend behavior in isolation. E2E tests verify the full stack works together. The acceptance criteria traceability check ensures nothing was forgotten — every requirement has a test, and every test passes.
 
 ## Phase 2: Sprint-level code review via /review
 

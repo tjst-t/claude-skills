@@ -61,56 +61,95 @@ stateDiagram-v2
     Error --> Loading: user clicks Retry
 ```
 
-### Phase 4: Generate Playwright Acceptance Tests
+### Phase 4: Generate Playwright Tests (2 types)
 
-Convert the confirmed scenarios and state diagram into Playwright test cases. Write these as concrete, runnable test code.
+Generate **two separate test files** per GUI Story. Each serves a different purpose and runs at a different phase.
 
-**Rules for generated tests:**
+#### 4A: E2E Tests — `tests/e2e/{story-slug}.e2e.spec.ts`
+
+Real end-to-end tests that run against the actual server (no mocks). These verify that the full stack works together.
+
+**Rules for E2E tests:**
 - Use `data-testid` attributes for all selectors (never CSS classes or text content)
-- Cover: happy path, empty state, loading state, error state, each edge case identified
-- Use `page.route()` to mock API responses — do not depend on a real backend
-- Each test must be independent (no shared state between tests)
-- Name tests in the format: `「シナリオ名」should [expected behavior]`
-- **Mock all dependent endpoints**: Explicitly mock every endpoint the component under test calls. If even one endpoint is unmocked, a silent fallback may cause the test to pass incorrectly.
-- **Mock data must match real API contract**: Mock response data must match the actual API response shape. For paginated APIs (`{ items: [...] }`), return the wrapper as-is. Before writing mocks, read the project's backend handler files (e.g., `internal/api/*_handler.go` for Go, `app/controllers/` for Rails, `src/routes/` for Express) to confirm response structure.
-- **Avoid overly broad URL wildcards**: Wildcards like `*/tenants` match paths that may not exist. Use specific paths where possible; if a wildcard is necessary, add a comment explaining why.
-- **Verify all mocked endpoints are actually called**: At the end of each test, assert that mock handlers were called (e.g., `expect(mockHandler).toHaveBeenCalled()`). An uncalled mock may indicate a design mistake.
-- **Verify endpoint registration before writing tests**: For every endpoint the test will mock, confirm it is registered in the backend router (e.g., `internal/api/router.go` for Go, or the project's equivalent routing file). If the endpoint does not exist yet, add a TODO comment in the test file: `// TODO: backend must implement POST /api/v1/auth/verify`. This prevents tests from silently passing against a frontend that calls non-existent endpoints.
-- **Assert mutation request bodies against the backend contract**: For every POST/PUT/PATCH request, the mock handler MUST inspect `route.request().postDataJSON()` and assert that all required fields (as listed in the endpoint contract table) are present and non-empty. A mock handler that returns 201 without inspecting the request body will pass even when the frontend omits required fields — this is a silent false positive.
+- **No `page.route()` mocks** — tests hit the real backend
+- Cover: happy path and every acceptance criterion from the ROADMAP
+- **Name tests with acceptance criterion reference**: `[AC-{StoryID}-{N}] {description}` (e.g., `[AC-S002-1-1] should show VM list after login`). This enables traceability from acceptance criteria → test.
+- Each test must set up its own test data via API calls in `test.beforeEach()` and clean up in `test.afterEach()`
+- Tests assume the server is already running (`make serve`) — do not start the server within tests
+- Use a dedicated test user/token for authentication (documented in CLAUDE.md)
+- For mutations (POST/PUT/PATCH), verify the change persisted by reading back via GET
 
-**Example:**
+**E2E Example:**
 ```typescript
 import { test, expect } from '@playwright/test';
 
-test('VM list: should show empty state when no VMs exist', async ({ page }) => {
-  const listHandler = await page.route('/api/vms', route => route.fulfill({ json: [] }));
+test.describe('VM management', () => {
+  let testVmId: string;
+
+  test.beforeEach(async ({ request }) => {
+    // Create test data via API
+    const res = await request.post('/api/vms', {
+      data: { name: 'test-vm', flavor_id: 'small' },
+      headers: { Authorization: 'Bearer test-token' },
+    });
+    testVmId = (await res.json()).id;
+  });
+
+  test.afterEach(async ({ request }) => {
+    // Clean up test data
+    await request.delete(`/api/vms/${testVmId}`, {
+      headers: { Authorization: 'Bearer test-token' },
+    });
+  });
+
+  test('[AC-S002-1-1] should display VM in list', async ({ page }) => {
+    await page.goto('/vms');
+    await expect(page.getByTestId(`vm-row-${testVmId}`)).toBeVisible();
+  });
+
+  test('[AC-S002-1-2] should start VM and show running status', async ({ page }) => {
+    await page.goto('/vms');
+    await page.getByTestId(`vm-start-button-${testVmId}`).click();
+    await expect(page.getByTestId(`vm-status-${testVmId}`)).toHaveText('running');
+  });
+});
+```
+
+**When E2E tests run**: During `sprint verify` (after all Stories are merged and the server is running).
+
+#### 4B: Mock Tests — `tests/e2e/{story-slug}.mock.spec.ts`
+
+Frontend-only tests using `page.route()` mocks. These verify UI behavior for states that are hard to reproduce with a real server.
+
+**Rules for mock tests:**
+- Cover: empty state, loading state, error state (500, timeout), edge cases (long strings, special characters)
+- Use `page.route()` to mock API responses
+- **Mock all dependent endpoints**: Explicitly mock every endpoint the component calls
+- **Mock data must match real API contract**: Read the backend handler to confirm response structure
+- **Verify all mocked endpoints are actually called**: Assert mock handlers were called
+- **Assert mutation request bodies**: For POST/PUT/PATCH, inspect `route.request().postDataJSON()` and assert required fields
+- Name tests in the format: `[MOCK] {scenario} should {expected behavior}`
+
+**Mock Example:**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('[MOCK] VM list: should show error message on server failure', async ({ page }) => {
+  await page.route('/api/vms', route => route.fulfill({ status: 500 }));
+  await page.goto('/vms');
+  await expect(page.getByTestId('error-message')).toBeVisible();
+});
+
+test('[MOCK] VM list: should show empty state when no VMs exist', async ({ page }) => {
+  await page.route('/api/vms', route => route.fulfill({ json: [] }));
   await page.goto('/vms');
   await expect(page.getByTestId('empty-state-message')).toBeVisible();
-  await expect(page.getByTestId('create-vm-button')).toBeEnabled();
-  // Verify mock was called
-  expect(listHandler).toHaveBeenCalled();
 });
 
-test('VM list: should show VM as running after start succeeds', async ({ page }) => {
-  const listHandler = await page.route('/api/vms', route => route.fulfill({
-    json: [{ id: 'vm-1', name: 'test-vm', status: 'stopped' }]
-  }));
-  const startHandler = await page.route('/api/vms/vm-1/start', route =>
-    route.fulfill({ json: { status: 'running' } })
-  );
-  await page.goto('/vms');
-  await page.getByTestId('vm-start-button-vm-1').click();
-  await expect(page.getByTestId('vm-status-vm-1')).toHaveText('running');
-  // Verify all mocks were called
-  expect(listHandler).toHaveBeenCalled();
-  expect(startHandler).toHaveBeenCalled();
-});
-
-test('VM create: should send required fields to backend', async ({ page }) => {
-  const createHandler = page.route('/api/vms', async route => {
+test('[MOCK] VM create: should send required fields to backend', async ({ page }) => {
+  await page.route('/api/vms', async route => {
     if (route.request().method() === 'POST') {
       const body = route.request().postDataJSON();
-      // Assert all required fields from the endpoint contract table
       expect(body.name).toBeTruthy();
       expect(body.flavor_id).toBeTruthy();
       return route.fulfill({ status: 201, json: { id: 'vm-1', name: body.name } });
@@ -124,6 +163,8 @@ test('VM create: should send required fields to backend', async ({ page }) => {
   await expect(page.getByTestId('vm-row-vm-1')).toBeVisible();
 });
 ```
+
+**When mock tests run**: During `sprint run` (per-Story, fast feedback loop).
 
 ### Phase 4.5: Endpoint contract table
 
@@ -149,10 +190,11 @@ For each GUI Story, append the following to its entry in `docs/ROADMAP.md`:
 
 ```markdown
 **Acceptance Criteria (GUI):**
-- [ ] State diagram confirmed with user (see sprint-logs/{SprintID}/gui-spec-{StoryID}.md)
-- [ ] Playwright tests pass: `npx playwright test {test-file}`
+- [ ] State diagram confirmed (see sprint-logs/{SprintID}/gui-spec-{StoryID}.md)
+- [ ] Mock tests pass: `npx playwright test {story-slug}.mock.spec.ts`
+- [ ] E2E tests pass: `npx playwright test {story-slug}.e2e.spec.ts` (run during sprint verify)
 - [ ] All interactive elements have `data-testid` attributes
-- [ ] API calls are mocked in tests (no real backend dependency)
+- [ ] Every acceptance criterion has a corresponding `[AC-*]` tagged E2E test
 ```
 
 Write the full spec output (state diagram + test code) to `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.md`.
@@ -163,22 +205,24 @@ Create the sprint-logs directory if it doesn't exist.
 
 This skill produces:
 1. Confirmed Mermaid state diagram per GUI Story
-2. Playwright test file at `tests/e2e/{story-slug}.spec.ts` (or equivalent path per project conventions)
-3. Spec document at `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.md`
-4. Updated acceptance criteria in `docs/ROADMAP.md`
+2. E2E test file at `tests/e2e/{story-slug}.e2e.spec.ts` — real server tests for acceptance criteria
+3. Mock test file at `tests/e2e/{story-slug}.mock.spec.ts` — error/edge case tests with mocks
+4. Spec document at `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.md`
+5. Updated acceptance criteria in `docs/ROADMAP.md`
 
 `sprint run` implementation sub-agents must:
 - Add `data-testid` to every interactive element
-- Run `npx playwright test` and fix failures before marking the Story complete
-- Never mark a GUI Story as `[x]` if Playwright tests are failing
+- Run `npx playwright test {story-slug}.mock.spec.ts` and fix failures before marking the Story complete
+- E2E tests (`*.e2e.spec.ts`) are NOT run during sprint run — they run during sprint verify against the real server
 
 ## Important Behaviors
 
 - **Auto-decide, then confirm once**: Reason through all aspects autonomously, auto-select when recommendations are clear, and present a single summary for user confirmation. Only ask individual questions when a design decision is genuinely ambiguous with meaningful trade-offs.
 - **Diagram before tests**: Present the state diagram as part of the scenario summary. Tests derived from an unconfirmed diagram will likely be wrong.
-- **Mock everything**: All tests use `page.route()` mocks. A test that requires a running backend is not acceptable — it cannot run autonomously in CI.
+- **Two test files per Story**: E2E tests (real server, acceptance criteria) and mock tests (error/edge cases). Never mix them in the same file.
+- **E2E tests trace to acceptance criteria**: Every E2E test name must start with `[AC-{StoryID}-{N}]` matching an acceptance criterion in ROADMAP.md. Every acceptance criterion must have at least one E2E test. This is the traceability mechanism.
 - **data-testid is mandatory**: If the implementation doesn't have `data-testid` attributes, Playwright tests become fragile. This is a non-negotiable convention.
 - **Short-circuit if no GUI**: If no Stories in the Sprint involve GUI, skip immediately and tell `sprint plan` to continue without GUI spec.
 - **Autonomous mode**: When invoked from `sprint auto`, skip all user confirmation steps. Auto-decide every aspect, write the spec document, and log decisions. No user interaction.
 - **Read the handler, not the type name**: When generating mock data for Playwright tests, always read the actual backend handler to get response field names from serialization annotations. Never infer field names from type names or frontend conventions — backends often use different naming (e.g., Go `json:"ram_mb"` tags differ from the field name `RAMMB`, Python serializers may rename fields, etc.).
-- **Assert POST bodies, not just responses**: For every mutation (POST/PUT/PATCH), the test must call `route.request().postDataJSON()` and assert every required field from the backend handler. A test that only checks the response shape or that the row appears in the list cannot detect a missing required field — the mock returns success regardless of what was sent.
+- **Assert POST bodies in mock tests**: For every mutation (POST/PUT/PATCH) in mock tests, inspect `route.request().postDataJSON()` and assert every required field. In E2E tests, verify via GET that the mutation persisted instead.

@@ -42,8 +42,10 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Demo with running program**: `sprint demo` runs `make serve` (or equivalent) and demonstrates acceptance criteria live. Never substitute test code execution.
 - **Always commit and push on done**: `sprint done` must leave a clean working tree.
 - **GUI spec is mandatory in sprint plan**: Always invoke `gui-spec` during `sprint plan`. Let `gui-spec` determine whether GUI work exists.
-- **Playwright tests gate GUI Story completion**: A GUI Story cannot be marked `[x]` unless its Playwright tests pass.
-- **Playwright contract check**: Before marking a GUI Story `[x]`, verify that POST/PUT/PATCH mock handlers in the test file contain `expect(body.<required_field>).toBeTruthy()` assertions. A Story whose tests only verify UI state (element visibility) but not request bodies is not complete.
+- **Two-tier testing**: GUI Stories produce two test files — mock tests (`*.mock.spec.ts`) for error/edge cases, E2E tests (`*.e2e.spec.ts`) for acceptance criteria against the real server. Non-GUI Stories produce acceptance tests in `tests/acceptance/`.
+- **Mock tests gate Story completion in sprint run**: A GUI Story cannot be marked `[x]` in sprint run unless its mock tests pass. E2E tests run later in sprint verify.
+- **E2E tests gate Sprint completion in sprint verify**: All E2E tests and acceptance tests must pass against the real server before the Sprint can proceed to done.
+- **Acceptance criteria traceability**: Every acceptance criterion in ROADMAP.md must have a corresponding test tagged with `[AC-{StoryID}-{N}]`. sprint verify checks this mapping and creates missing tests.
 - **Auto mode logs all decisions**: During `sprint auto`, every decision (planning, implementation, review) must be logged to `docs/sprint-logs/{SprintID}/decisions.md` with rationale referencing VISION.md or DESIGN_PRINCIPLES.md. Work happens on an `autopilot/{SprintID}` branch, not directly on main.
 
 ## Reference Files
