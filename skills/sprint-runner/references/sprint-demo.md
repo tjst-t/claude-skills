@@ -26,6 +26,6 @@ Demonstrate the Sprint's deliverables to the user by running the actual program.
 ## Wrap up
 
 9. Summarize what was demonstrated
-10. Ask the user if they want to explore anything further or see additional scenarios
+10. Ask the user: "Would you like to refine anything? If so, run `sprint refine` to start an interactive adjustment session. Otherwise, proceed to `sprint done`."
 
-The demo must show a running program, not test code execution. If something fails during the demo, note it as a potential issue to address before `sprint done`.
+The demo must show a running program, not test code execution. If something fails during the demo, note it as a potential issue to address in `sprint refine` or before `sprint done`.

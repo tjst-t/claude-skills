@@ -143,7 +143,7 @@ For each Sprint until the next milestone boundary:
 5. Merge the Sprint's `autopilot/{SprintID}` branch into the working branch
 6. Proceed to the next Sprint
 
-### Step 3: Milestone demo
+### Step 3: Milestone demo and refine
 
 When a milestone boundary is reached:
 
@@ -154,13 +154,14 @@ When a milestone boundary is reached:
    - Any drift warnings flagged during the run
    - Backlog items added
    - Current state of the roadmap progress
-3. Ask the user:
+3. **Refine phase**: Invoke `sprint refine`. The user interacts with the running application and requests adjustments. This is the user's opportunity to fine-tune UI, UX, spacing, colors, wording, and other visual/interactive details that only human eyes can judge. The refine loop continues until the user is satisfied.
+4. After refine, ask the user:
    - "Are there any decisions you want to revise?"
    - "Do you want to update VISION or DESIGN_PRINCIPLES based on what you see?"
    - "Continue to next milestone, or stop here?"
-4. If the user wants to revise decisions: make the changes, then re-verify affected code if needed
-5. If the user updates VISION/PRINCIPLES: re-read them before continuing
-6. If continuing: return to Step 2 for the next batch of Sprints
+5. If the user wants to revise decisions: make the changes, then re-verify affected code if needed
+6. If the user updates VISION/PRINCIPLES: re-read them before continuing
+7. If continuing: return to Step 2 for the next batch of Sprints
 
 ## Milestone Detection
 

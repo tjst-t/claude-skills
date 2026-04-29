@@ -1,11 +1,11 @@
 ---
 name: sprint-runner
-description: Agile Sprint lifecycle — plan, run, verify, demo, done, auto, roadmap. Use for sprint commands, story/task workflows, roadmap management. Triggers on "sprint plan/run/verify/demo/done/auto/roadmap/init", "次のスプリント", "スプリント開始", "ロードマップ作成".
+description: Agile Sprint lifecycle — plan, run, verify, demo, refine, done, auto, roadmap. Use for sprint commands, story/task workflows, roadmap management. Triggers on "sprint plan/run/verify/demo/done/refine/auto/roadmap/init", "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して".
 ---
 
 # Sprint Runner
 
-Manages the Agile Sprint lifecycle: plan → run → verify → demo → done.
+Manages the Agile Sprint lifecycle: plan → run → verify → demo → refine → done.
 
 ## Roadmap Location
 
@@ -20,6 +20,7 @@ The roadmap file is always at `docs/ROADMAP.md` in the project root. If it doesn
 | `sprint run` | Execute the current sprint | See `references/sprint-run.md` |
 | `sprint verify` | Verify completeness and quality | See `references/sprint-verify.md` |
 | `sprint demo` | Demonstrate deliverables by running the program | See `references/sprint-demo.md` |
+| `sprint refine` | Interactive UI/UX refinement with user | See `references/sprint-refine.md` |
 | `sprint done` | Finalize and commit the sprint | See `references/sprint-done.md` |
 | `sprint auto` | Execute one sprint fully autonomously | See `references/sprint-auto.md` |
 | `sprint roadmap` | Generate full roadmap from VISION | See `references/sprint-roadmap.md` |
@@ -40,6 +41,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Sub-agent model**: Implementation and review sub-agents use `model: "sonnet"`. Main agent uses the default model.
 - **Sub-agent prompts must be self-contained**: Include all necessary context in each sub-agent prompt — never assume prior conversation is available.
 - **Demo with running program**: `sprint demo` runs `make serve` (or equivalent) and demonstrates acceptance criteria live. Never substitute test code execution.
+- **Refine is interactive only**: `sprint refine` requires the user to look at the running app and provide feedback. It is skipped in `sprint auto`. In autopilot, it runs at milestone boundaries after the demo.
 - **Always commit and push on done**: `sprint done` must leave a clean working tree.
 - **GUI spec is mandatory in sprint plan**: Always invoke `gui-spec` during `sprint plan`. Let `gui-spec` determine whether GUI work exists.
 - **Two-tier testing**: GUI Stories produce two test files — mock tests (`*.mock.spec.ts`) for error/edge cases, E2E tests (`*.e2e.spec.ts`) for acceptance criteria against the real server. Non-GUI Stories produce acceptance tests in `tests/acceptance/`.
@@ -55,6 +57,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - `references/sprint-run.md` — run command details
 - `references/sprint-verify.md` — verify command details
 - `references/sprint-demo.md` — demo command details
+- `references/sprint-refine.md` — refine (interactive UI/UX adjustment) command details
 - `references/sprint-done.md` — done command details
 - `references/sprint-auto.md` — auto (fully autonomous single sprint) command details
 - `references/sprint-roadmap.md` — roadmap generation from VISION command details
