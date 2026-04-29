@@ -117,3 +117,9 @@ Show the state of the most recent autopilot run. This command reads logs — it 
 - **Preserve user agency**: The user can always interrupt autopilot. If the user sends any message during execution, pause and respond before continuing.
 - **Incremental commits**: Each Sprint is committed and pushed on its own `autopilot/{SprintID}` branch. If autopilot is interrupted, all completed Sprints are preserved and can be merged independently.
 - **Context management**: Each Sprint runs in a dedicated sub-agent to prevent context window exhaustion. The main autopilot conversation only tracks Sprint-level status, decision summaries, and drift flags — it does not accumulate implementation details.
+
+## Reference Files
+
+- `references/getting-started.md` — 新規プロジェクト開始手順（仕様あり/なし両パターン）
+- `references/vision-template.md` — VISION.md テンプレート
+- `references/principles-template.md` — DESIGN_PRINCIPLES.md テンプレート
