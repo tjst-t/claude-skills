@@ -56,19 +56,45 @@ Same as `sprint done` but:
 
 ## Failure Recovery
 
-Autonomous execution cannot ask the user for help. Follow these rules when things go wrong:
+Autonomous execution cannot ask the user for help. The default behavior is **keep trying until fixed**. Only give up when further attempts cannot possibly succeed.
 
-| Failure | Action | Max retries |
-|---------|--------|-------------|
-| **Tests fail after implementation** | Fix and re-run. If still failing after 3 attempts, mark the Story as incomplete, log the failure, and continue to the next Story. | 3 |
-| **Build does not compile** | Read error output, attempt fix. If unresolvable after 2 attempts, stop the Sprint and mark status as `partial`. | 2 |
-| **Smoke test endpoint missing** | Create the missing endpoint if it's part of the current Sprint's scope. If it belongs to a different Sprint, log it as a blocker and skip the Story. | 1 |
-| **Merge conflict** | Attempt automatic resolution. If the conflict is non-trivial (both sides changed the same logic), log the conflict details and mark status as `partial`. | 1 |
-| **Sprint has unresolvable dependency** | Stop the Sprint, mark as `blocked`, log the dependency. | 0 |
+### Test failures (mock tests, E2E tests, acceptance tests)
+
+**Loop until fixed:**
+1. Read the failure output carefully
+2. Analyze the root cause (frontend bug, backend bug, integration mismatch, test data issue, timing issue)
+3. Fix the issue
+4. Re-run the failing tests
+5. If still failing, go back to step 1 with a different approach
+
+**Give up only when:**
+- The fix requires information that is not available in the codebase (e.g., external API credentials, third-party service configuration)
+- The fix requires a design decision that contradicts both VISION.md and DESIGN_PRINCIPLES.md (genuine conflict with no clear resolution)
+- The same root cause has been correctly identified but the fix is architecturally impossible within the current Sprint's scope (e.g., requires a database migration from a prior Sprint that was not completed)
+
+When giving up:
+- Log the full diagnosis to `docs/sprint-logs/{SprintID}/failures.md`: what was tried, why each attempt failed, and why further attempts are futile
+- Mark the Story as incomplete with a clear summary of the blocker
+- **Flag it prominently** so the user sees it at milestone review: add `⚠️ BLOCKED: {reason}` to the Story entry in ROADMAP.md
+
+### Other failures
+
+| Failure | Action |
+|---------|--------|
+| **Build does not compile** | Read error output, fix, and rebuild. Loop until it compiles. Give up only if the error is caused by a missing dependency or tool that cannot be installed autonomously. |
+| **E2E endpoint missing** | Create the missing endpoint if it's part of the current Sprint's scope. If it belongs to a different Sprint, log it as a blocker and mark the Story incomplete. |
+| **Merge conflict** | Attempt automatic resolution. If the conflict is in logic (not just formatting), read both sides, understand intent, and resolve. Give up only if the conflict represents a genuine design disagreement between two Stories that requires user input. |
+| **Sprint has unresolvable dependency** | Stop the Sprint, mark as `blocked`, log the dependency. |
+
+### Sprint completion status
+
+- `success` — all Stories complete, all tests pass
+- `partial` — some Stories incomplete (blocked items flagged with ⚠️)
+- `blocked` — Sprint cannot proceed due to external dependency
 
 When a Sprint completes as `partial`:
 - Completed Stories remain marked `[x]`
-- Incomplete Stories remain `[ ]` with failure details in `docs/sprint-logs/{SprintID}/failures.md`
+- Incomplete Stories remain `[ ]` with `⚠️ BLOCKED: {reason}` and failure details in `docs/sprint-logs/{SprintID}/failures.md`
 - The Sprint status stays `[IN PROGRESS]`, not `[DONE]`
 - The calling skill (autopilot) decides whether to continue to the next Sprint or stop
 

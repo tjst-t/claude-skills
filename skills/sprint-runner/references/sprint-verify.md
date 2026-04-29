@@ -26,9 +26,10 @@ Perform the following before invoking `/review`:
 
 3. **For GUI Stories**: Run all E2E test files: `npx playwright test *.e2e.spec.ts`
    - These tests hit the real server (no mocks) and verify the full stack works together
-   - If any E2E tests fail, fix the issue (could be frontend, backend, or integration problem) and re-run
+   - If any E2E tests fail: analyze the root cause (frontend, backend, or integration), fix, and re-run. **Loop until all tests pass.** Only give up if the fix requires information or changes outside the current Sprint's scope — in that case, log the blocker to `failures.md` and flag it with `⚠️ BLOCKED` in ROADMAP.md.
 4. **For non-GUI Stories**: Run backend acceptance tests (e.g., `go test ./tests/acceptance/...` or equivalent)
    - If no acceptance tests exist for a Story, this is a gap — create them now
+   - If tests fail, follow the same loop-until-fixed approach as GUI E2E tests
 5. Document test results in `docs/sprint-logs/{SprintID}/e2e-results.md`
 
 ### Step 3: Acceptance criteria traceability check
