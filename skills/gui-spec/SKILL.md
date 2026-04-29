@@ -1,11 +1,25 @@
 ---
 name: gui-spec
-description: GUI spec elicitation — generates Playwright acceptance tests from UI Stories. Use when a Sprint contains GUI/frontend Stories (components, screens, forms, modals, dashboards).
+description: Derives GUI scenarios and generates Playwright acceptance tests (E2E + mock) from UI Stories. Produces state diagrams, endpoint contract tables, and test files.
+when_to_use: Use when a Sprint contains GUI/frontend Stories involving components, screens, pages, forms, modals, dashboards, or any interactive UI elements.
+allowed-tools: Read Grep Glob
 ---
 
 # GUI Spec
 
 Elicits GUI specifications through structured dialogue, then generates Playwright acceptance tests that allow autonomous implementation and self-verification.
+
+## Important Behaviors
+
+- **Auto-decide, then confirm once**: Reason through all aspects autonomously, auto-select when recommendations are clear, and present a single summary for user confirmation. Only ask individual questions when a design decision is genuinely ambiguous with meaningful trade-offs.
+- **Diagram before tests**: Present the state diagram as part of the scenario summary. Tests derived from an unconfirmed diagram will likely be wrong.
+- **Two test files per Story**: E2E tests (real server, acceptance criteria) and mock tests (error/edge cases). Never mix them in the same file.
+- **E2E tests trace to acceptance criteria**: Every E2E test name must start with `[AC-{StoryID}-{N}]` matching an acceptance criterion in ROADMAP.md. Every acceptance criterion must have at least one E2E test.
+- **data-testid is mandatory**: If the implementation doesn't have `data-testid` attributes, Playwright tests become fragile. This is a non-negotiable convention.
+- **Short-circuit if no GUI**: If no Stories in the Sprint involve GUI, skip immediately and return to `sprint plan`.
+- **Autonomous mode**: When invoked from `sprint auto`, skip all user confirmation steps. Auto-decide every aspect, write the spec document, and log decisions.
+- **Read the handler, not the type name**: Always read the actual backend handler for response field names. Never infer from type names or frontend conventions.
+- **Assert POST bodies in mock tests**: For every mutation, inspect `route.request().postDataJSON()` and assert required fields. In E2E tests, verify via GET that the mutation persisted instead.
 
 ## When to Use
 
@@ -79,41 +93,7 @@ Real end-to-end tests that run against the actual server (no mocks). These verif
 - Use a dedicated test user/token for authentication (documented in CLAUDE.md)
 - For mutations (POST/PUT/PATCH), verify the change persisted by reading back via GET
 
-**E2E Example:**
-```typescript
-import { test, expect } from '@playwright/test';
-
-test.describe('VM management', () => {
-  let testVmId: string;
-
-  test.beforeEach(async ({ request }) => {
-    // Create test data via API
-    const res = await request.post('/api/vms', {
-      data: { name: 'test-vm', flavor_id: 'small' },
-      headers: { Authorization: 'Bearer test-token' },
-    });
-    testVmId = (await res.json()).id;
-  });
-
-  test.afterEach(async ({ request }) => {
-    // Clean up test data
-    await request.delete(`/api/vms/${testVmId}`, {
-      headers: { Authorization: 'Bearer test-token' },
-    });
-  });
-
-  test('[AC-S002-1-1] should display VM in list', async ({ page }) => {
-    await page.goto('/vms');
-    await expect(page.getByTestId(`vm-row-${testVmId}`)).toBeVisible();
-  });
-
-  test('[AC-S002-1-2] should start VM and show running status', async ({ page }) => {
-    await page.goto('/vms');
-    await page.getByTestId(`vm-start-button-${testVmId}`).click();
-    await expect(page.getByTestId(`vm-status-${testVmId}`)).toHaveText('running');
-  });
-});
-```
+For examples, see [references/test-examples.md](references/test-examples.md).
 
 **When E2E tests run**: During `sprint verify` (after all Stories are merged and the server is running).
 
@@ -130,39 +110,7 @@ Frontend-only tests using `page.route()` mocks. These verify UI behavior for sta
 - **Assert mutation request bodies**: For POST/PUT/PATCH, inspect `route.request().postDataJSON()` and assert required fields
 - Name tests in the format: `[MOCK] {scenario} should {expected behavior}`
 
-**Mock Example:**
-```typescript
-import { test, expect } from '@playwright/test';
-
-test('[MOCK] VM list: should show error message on server failure', async ({ page }) => {
-  await page.route('/api/vms', route => route.fulfill({ status: 500 }));
-  await page.goto('/vms');
-  await expect(page.getByTestId('error-message')).toBeVisible();
-});
-
-test('[MOCK] VM list: should show empty state when no VMs exist', async ({ page }) => {
-  await page.route('/api/vms', route => route.fulfill({ json: [] }));
-  await page.goto('/vms');
-  await expect(page.getByTestId('empty-state-message')).toBeVisible();
-});
-
-test('[MOCK] VM create: should send required fields to backend', async ({ page }) => {
-  await page.route('/api/vms', async route => {
-    if (route.request().method() === 'POST') {
-      const body = route.request().postDataJSON();
-      expect(body.name).toBeTruthy();
-      expect(body.flavor_id).toBeTruthy();
-      return route.fulfill({ status: 201, json: { id: 'vm-1', name: body.name } });
-    }
-    return route.fulfill({ json: [] });
-  });
-  await page.goto('/vms');
-  await page.getByTestId('vm-create-button').click();
-  await page.getByTestId('vm-name-input').fill('my-vm');
-  await page.getByTestId('vm-create-submit').click();
-  await expect(page.getByTestId('vm-row-vm-1')).toBeVisible();
-});
-```
+For examples, see [references/test-examples.md](references/test-examples.md).
 
 **When mock tests run**: During `sprint run` (per-Story, fast feedback loop).
 
@@ -215,14 +163,6 @@ This skill produces:
 - Run `npx playwright test {story-slug}.mock.spec.ts` and fix failures before marking the Story complete
 - E2E tests (`*.e2e.spec.ts`) are NOT run during sprint run — they run during sprint verify against the real server
 
-## Important Behaviors
+## Reference Files
 
-- **Auto-decide, then confirm once**: Reason through all aspects autonomously, auto-select when recommendations are clear, and present a single summary for user confirmation. Only ask individual questions when a design decision is genuinely ambiguous with meaningful trade-offs.
-- **Diagram before tests**: Present the state diagram as part of the scenario summary. Tests derived from an unconfirmed diagram will likely be wrong.
-- **Two test files per Story**: E2E tests (real server, acceptance criteria) and mock tests (error/edge cases). Never mix them in the same file.
-- **E2E tests trace to acceptance criteria**: Every E2E test name must start with `[AC-{StoryID}-{N}]` matching an acceptance criterion in ROADMAP.md. Every acceptance criterion must have at least one E2E test. This is the traceability mechanism.
-- **data-testid is mandatory**: If the implementation doesn't have `data-testid` attributes, Playwright tests become fragile. This is a non-negotiable convention.
-- **Short-circuit if no GUI**: If no Stories in the Sprint involve GUI, skip immediately and tell `sprint plan` to continue without GUI spec.
-- **Autonomous mode**: When invoked from `sprint auto`, skip all user confirmation steps. Auto-decide every aspect, write the spec document, and log decisions. No user interaction.
-- **Read the handler, not the type name**: When generating mock data for Playwright tests, always read the actual backend handler to get response field names from serialization annotations. Never infer field names from type names or frontend conventions — backends often use different naming (e.g., Go `json:"ram_mb"` tags differ from the field name `RAMMB`, Python serializers may rename fields, etc.).
-- **Assert POST bodies in mock tests**: For every mutation (POST/PUT/PATCH) in mock tests, inspect `route.request().postDataJSON()` and assert every required field. In E2E tests, verify via GET that the mutation persisted instead.
+- `references/test-examples.md` — E2E and mock test code examples

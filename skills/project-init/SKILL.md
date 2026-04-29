@@ -1,6 +1,8 @@
 ---
 name: project-init
-description: Standardize project structure, documentation, and development environment for mid-to-large projects. Use this skill when the user says "project init", asks to set up a new project's documentation structure, wants to generate or standardize CLAUDE.md, asks to integrate portman/port-manager, or mentions standardizing project structure. Also trigger for "プロジェクト初期化", "ドキュメント整備", or "CLAUDE.md作成". This is for projects large enough to use sprint-based development — not for small scripts or one-off tools.
+description: Generates CLAUDE.md, docs/ARCHITECTURE.md, and Makefile for mid-to-large projects. Sets up standardized project documentation and development environment with progressive disclosure.
+when_to_use: Use when the user says "project init", asks to set up documentation structure, wants to generate CLAUDE.md, or mentions portman integration. Also triggers on "プロジェクト初期化", "ドキュメント整備", "CLAUDE.md作成". For projects large enough for sprint-based development.
+allowed-tools: Read Grep Glob Write Bash(make *) Bash(which *)
 ---
 
 # Project Init

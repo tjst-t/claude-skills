@@ -1,6 +1,8 @@
 ---
 name: autopilot
-description: Autonomous multi-sprint execution with PO role. Runs sprints continuously until milestone, guided by VISION.md and DESIGN_PRINCIPLES.md. Use when user says "autopilot", "自動実行", "まとめて実行", or wants hands-off sprint execution.
+description: Runs multiple Sprints autonomously as developer and product owner. Executes plan-run-verify-done cycles guided by VISION.md and DESIGN_PRINCIPLES.md, stopping at milestones for user review.
+when_to_use: Use when user says "autopilot", "autopilot start/setup/status", "自動実行", "まとめて実行", or wants hands-off multi-sprint execution.
+allowed-tools: Read Grep Glob
 ---
 
 # Autopilot
@@ -196,6 +198,6 @@ Show the state of the most recent autopilot run. This command reads logs — it 
 
 ## Reference Files
 
-- `references/getting-started.md` — 新規プロジェクト開始手順（仕様あり/なし両パターン）
-- `references/vision-template.md` — VISION.md テンプレート
-- `references/principles-template.md` — DESIGN_PRINCIPLES.md テンプレート
+- `references/getting-started.md` — New project setup guide (with specs / without specs / existing project)
+- `references/vision-template.md` — VISION.md template and guidelines
+- `references/principles-template.md` — DESIGN_PRINCIPLES.md template and guidelines
