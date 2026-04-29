@@ -4,25 +4,22 @@
 
 新規プロジェクトを autopilot で開発するための手順書。仕様が明確な場合と、アイデア段階の場合の2パターンを記載。
 
+どちらのパターンでも、最終的に必要なのは:
+- `docs/VISION.md` — なぜ作るか、誰のためか
+- `docs/DESIGN_PRINCIPLES.md` — 判断基準
+- `CLAUDE.md` — プロジェクトコンテキスト
+- `docs/ARCHITECTURE.md` — アーキテクチャ概要
+- `docs/ROADMAP.md` — スプリント計画
+
+`/autopilot setup` を実行すると、上記すべてが一括で生成される。
+
 ---
 
 ## パターン A: 作りたいものの仕様がある場合
 
 既に要件定義書、画面設計、API仕様書などがある場合。最速でコードに落とすルート。
 
-### Step 1: プロジェクト初期化
-
-```
-/project-init
-```
-
-以下が生成される:
-- `CLAUDE.md` — プロジェクトのコンテキスト
-- `docs/ARCHITECTURE.md` — アーキテクチャ概要
-- `docs/ROADMAP.md` — 空のロードマップ
-- `Makefile` — 開発用コマンド
-
-### Step 2: VISION と DESIGN_PRINCIPLES を作成
+### Step 1: autopilot setup を実行
 
 ```
 /autopilot setup
@@ -30,31 +27,28 @@
 
 仕様書がある場合、以下のように伝える:
 
-> 「仕様書はこれです（貼り付け or ファイルパス指定）。これを元に VISION と DESIGN_PRINCIPLES を作ってください。」
+> 「仕様書はこれです（貼り付け or ファイルパス指定）。これを元にセットアップしてください。」
 
-Claude が仕様書を読み取って `docs/VISION.md` と `docs/DESIGN_PRINCIPLES.md` を生成する。
+`autopilot setup` が以下を順番に実行する:
+1. **VISION / PRINCIPLES 作成** — 仕様書から「なぜ作るか」「判断基準」を抽出
+2. **project-init** — CLAUDE.md, ARCHITECTURE.md, Makefile 生成
+3. **sprint roadmap** — VISION + ARCHITECTURE からロードマップを一括生成
 
 **ポイント**:
 - 仕様書の内容をそのまま転記するのではなく、「なぜ作るか」「判断基準」に変換してもらう
 - 仕様書に書かれていない暗黙の判断基準（技術スタック選定理由、UIの方向性等）を補足する
 - 「スコープ外」を明確にする — 仕様書に書かれていない機能は全てスコープ外
 
-### Step 3: ロードマップを作成
+### Step 2: ロードマップを確認
 
-```
-/sprint plan
-```
+生成されたロードマップを確認する:
+- ストーリーの粒度は適切か
+- 最初のスプリントが「動く最小限」になっているか
+- マイルストーンの位置は妥当か
 
-または仕様書を元に一括で作成:
+問題があればその場で修正。
 
-> 「この仕様書を元に、ロードマップをスプリント単位で作成してください。MVP に必要な最小限から始めて、段階的に機能を追加する順序で。」
-
-**ポイント**:
-- 最初のスプリントは必ず「動く最小限」にする（認証 + 1画面 + 1APIなど）
-- マイルストーンを明示する（`[MILESTONE]` マーカー）
-- 依存関係を正確に記載する（autopilot がマイルストーン判定に使う）
-
-### Step 4: Autopilot 開始
+### Step 3: Autopilot 開始
 
 ```
 /autopilot start
@@ -62,7 +56,7 @@ Claude が仕様書を読み取って `docs/VISION.md` と `docs/DESIGN_PRINCIPL
 
 Claude が自律的にスプリントを連続実行。マイルストーンで停止してデモを見せてくれる。
 
-### Step 5: マイルストーンレビュー
+### Step 4: マイルストーンレビュー
 
 デモを見て:
 - 期待通り → 「続行」
@@ -83,7 +77,7 @@ Claude が自律的にスプリントを連続実行。マイルストーンで�
 
 この時点では完璧でなくてよい。1〜3文で十分。
 
-### Step 2: VISION を対話的に作る
+### Step 2: autopilot setup を実行
 
 ```
 /autopilot setup
@@ -96,37 +90,29 @@ Claude がテンプレートに沿って質問してくる:
 - やらないことは？
 - 参考にするプロダクトは？
 
+回答後、自動的に project-init と sprint roadmap も実行される。
+
 **ポイント**:
 - 「わからない」と答えてOK — Claude が推奨を提案する
 - 「スコープ外」は特に重要。最初は広めに除外する方が安全
 - 参考プロダクトがあると、UI判断の精度が劇的に上がる
 
-### Step 3: プロジェクト初期化
+### Step 3: ロードマップを対話的にレビュー
 
-```
-/project-init
-```
-
-VISION が決まった後に初期化する方が、ARCHITECTURE.md の精度が上がる。
-
-### Step 4: ロードマップを Claude に提案してもらう
-
-> 「VISION を元にロードマップを提案してください。最小限のMVPから始めて。」
-
-Claude がスプリント構成を提案する。ここでは対話的にレビューする:
+生成されたロードマップを確認する:
 - ストーリーの粒度は適切か
 - 優先順位は正しいか
 - マイルストーンの区切りは妥当か
 
-このステップはしっかり時間をかける。ロードマップの質が autopilot の出力品質を決める。
+仕様が曖昧な場合、ここはしっかり時間をかける。ロードマップの質が autopilot の出力品質を決める。
 
-### Step 5: Autopilot 開始
+### Step 4: Autopilot 開始
 
 ```
 /autopilot start
 ```
 
-### Step 6: マイルストーンレビュー（重要）
+### Step 5: マイルストーンレビュー（重要）
 
 仕様が曖昧な状態から始めた場合、最初のマイルストーンレビューが特に重要:
 - 「思っていたのと違う」は正常 — VISION/PRINCIPLES を更新する
@@ -139,16 +125,18 @@ Claude がスプリント構成を提案する。ここでは対話的にレビ�
 
 ## 共通: プロジェクト開始時のチェックリスト
 
-| # | 項目 | 確認方法 |
-|---|------|----------|
-| 1 | git リポジトリが初期化されている | `git status` |
-| 2 | `docs/VISION.md` が存在する | ファイル確認 |
-| 3 | `docs/DESIGN_PRINCIPLES.md` が存在する | ファイル確認 |
-| 4 | `docs/ROADMAP.md` にスプリントが定義されている | ファイル確認 |
-| 5 | `CLAUDE.md` が存在する | ファイル確認 |
-| 6 | ロードマップに `[MILESTONE]` マーカーがある | grep確認 |
-| 7 | 最初のスプリントが「動く最小限」になっている | 内容確認 |
-| 8 | `.gitignore` に `.claude/worktrees/` と `docs/sprint-logs/` が含まれる | ファイル確認 |
+`/autopilot setup` が完了すると、以下がすべて揃っている状態になる:
+
+| # | 項目 | 生成元 |
+|---|------|--------|
+| 1 | git リポジトリが初期化されている | 事前準備 |
+| 2 | `docs/VISION.md` | autopilot setup Phase 1 |
+| 3 | `docs/DESIGN_PRINCIPLES.md` | autopilot setup Phase 1 |
+| 4 | `CLAUDE.md` | autopilot setup Phase 2 (project-init) |
+| 5 | `docs/ARCHITECTURE.md` | autopilot setup Phase 2 (project-init) |
+| 6 | `docs/ROADMAP.md` にスプリントが定義されている | autopilot setup Phase 3 (sprint roadmap) |
+| 7 | ロードマップに `[MILESTONE]` マーカーがある | sprint roadmap が自動付与 |
+| 8 | `.gitignore` に `.claude/worktrees/` が含まれる | project-init |
 
 ---
 

@@ -29,13 +29,34 @@ If `VISION.md` or `DESIGN_PRINCIPLES.md` do not exist, **do not proceed**. Inste
 
 ## `autopilot setup`
 
-Guide the user through creating `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`:
+Full project setup for autopilot-driven development. Creates all required documents in the correct order.
+
+### Phase 1: VISION and DESIGN_PRINCIPLES
 
 1. Check if `docs/VISION.md` or `docs/DESIGN_PRINCIPLES.md` already exist. If so, read them and ask the user whether to update or overwrite. Do not silently replace existing content.
 2. Read the templates in `references/vision-template.md` and `references/principles-template.md`
 3. Ask the user targeted questions to fill in each section (batch questions, don't ask one at a time)
-4. Write the files
-5. If a `docs/ROADMAP.md` exists, review it against the new VISION and flag any misalignment
+4. Write `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`
+
+### Phase 2: Project initialization
+
+5. Invoke `/project-init` to generate `CLAUDE.md`, `docs/ARCHITECTURE.md`, and `Makefile`. Since VISION.md now exists, project-init can reference it for better ARCHITECTURE.md generation.
+   - If these files already exist (project-init was already run), skip this phase.
+
+### Phase 3: Roadmap generation
+
+6. Invoke `/sprint roadmap` to generate `docs/ROADMAP.md` from VISION + ARCHITECTURE.
+   - If `docs/ROADMAP.md` already exists with defined Sprints, ask the user whether to regenerate or keep existing.
+   - The generated roadmap includes `[MILESTONE]` markers at natural review points.
+
+### Result
+
+After `autopilot setup` completes, the project is ready for `/autopilot start`. All prerequisites are satisfied:
+- `docs/VISION.md` ✓
+- `docs/DESIGN_PRINCIPLES.md` ✓
+- `CLAUDE.md` ✓
+- `docs/ARCHITECTURE.md` ✓
+- `docs/ROADMAP.md` ✓ (with Sprints, Stories, milestones)
 
 ## `autopilot start`
 
