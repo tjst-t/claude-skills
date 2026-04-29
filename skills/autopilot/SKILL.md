@@ -29,25 +29,79 @@ If `VISION.md` or `DESIGN_PRINCIPLES.md` do not exist, **do not proceed**. Inste
 
 ## `autopilot setup`
 
-Full project setup for autopilot-driven development. Creates all required documents in the correct order.
+Project setup for autopilot-driven development. Detects whether this is a new project or an existing sprint-runner project and adapts accordingly.
 
-### Phase 1: VISION and DESIGN_PRINCIPLES
+### Detection
 
-1. Check if `docs/VISION.md` or `docs/DESIGN_PRINCIPLES.md` already exist. If so, read them and ask the user whether to update or overwrite. Do not silently replace existing content.
+First, check what already exists:
+- `CLAUDE.md` — project-init already run?
+- `docs/ARCHITECTURE.md` — architecture documented?
+- `docs/ROADMAP.md` — sprints defined? Any `[IN PROGRESS]` or `[DONE]` sprints?
+- `docs/VISION.md` — vision exists?
+- `docs/DESIGN_PRINCIPLES.md` — principles exist?
+
+Based on this, follow the **new project flow** or the **existing project flow**.
+
+---
+
+### New project flow
+
+When `CLAUDE.md` and `docs/ROADMAP.md` do not exist (or ROADMAP has no defined Sprints).
+
+#### Phase 1: VISION and DESIGN_PRINCIPLES
+
+1. Check if `docs/VISION.md` or `docs/DESIGN_PRINCIPLES.md` already exist. If so, read them and ask the user whether to update or overwrite.
 2. Read the templates in `references/vision-template.md` and `references/principles-template.md`
 3. Ask the user targeted questions to fill in each section (batch questions, don't ask one at a time)
 4. Write `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`
 
-### Phase 2: Project initialization
+#### Phase 2: Project initialization
 
 5. Invoke `/project-init` to generate `CLAUDE.md`, `docs/ARCHITECTURE.md`, and `Makefile`. Since VISION.md now exists, project-init can reference it for better ARCHITECTURE.md generation.
-   - If these files already exist (project-init was already run), skip this phase.
 
-### Phase 3: Roadmap generation
+#### Phase 3: Roadmap generation
 
 6. Invoke `/sprint roadmap` to generate `docs/ROADMAP.md` from VISION + ARCHITECTURE.
-   - If `docs/ROADMAP.md` already exists with defined Sprints, ask the user whether to regenerate or keep existing.
    - The generated roadmap includes `[MILESTONE]` markers at natural review points.
+
+---
+
+### Existing project flow
+
+When `docs/ROADMAP.md` already exists with defined Sprints (typical for projects already using sprint-runner).
+
+#### Phase 1: VISION and DESIGN_PRINCIPLES
+
+1. Read the existing codebase, `CLAUDE.md`, `docs/ARCHITECTURE.md`, and `docs/ROADMAP.md` to understand the project context
+2. Read the templates in `references/vision-template.md` and `references/principles-template.md`
+3. Ask the user targeted questions, but **pre-fill answers where possible** from existing documentation:
+   - Tech stack → from CLAUDE.md / ARCHITECTURE.md
+   - Project purpose → from ROADMAP.md sprint descriptions and README
+   - Existing patterns → from codebase conventions already established
+4. Write `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`
+
+#### Phase 2: Project initialization → Skip
+
+Existing project already has `CLAUDE.md` and `docs/ARCHITECTURE.md`. Skip this phase entirely.
+
+#### Phase 3: Roadmap generation → Skip
+
+Existing project already has a populated `docs/ROADMAP.md`. Do NOT regenerate it.
+
+#### Phase 4: Alignment check (existing projects only)
+
+7. **VISION ↔ ROADMAP alignment**: Compare the newly created VISION with the existing ROADMAP.
+   - Flag any Stories or Sprints that fall outside VISION's scope
+   - Flag any VISION goals that have no corresponding Sprint
+   - Present findings to the user and ask if adjustments are needed
+
+8. **Milestone injection**: Check if `docs/ROADMAP.md` has `[MILESTONE]` markers.
+   - If no milestones exist, propose milestone placements based on the Milestone Detection rules (dependency boundaries, every 3 sprints) and apply them
+   - Present proposed milestones to the user for confirmation
+
+9. **ARCHITECTURE.md refresh**: If ARCHITECTURE.md was generated before VISION existed, offer to regenerate it with VISION context for improved accuracy. Ask the user — do not auto-overwrite.
+
+---
 
 ### Result
 
