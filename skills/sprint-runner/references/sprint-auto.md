@@ -67,36 +67,46 @@ Autonomous execution cannot ask the user for help. The default behavior is **kee
 4. Re-run the failing tests
 5. If still failing, go back to step 1 with a different approach
 
-**Give up only when:**
-- The fix requires information that is not available in the codebase (e.g., external API credentials, third-party service configuration)
-- The fix requires a design decision that contradicts both VISION.md and DESIGN_PRINCIPLES.md (genuine conflict with no clear resolution)
-- The same root cause has been correctly identified but the fix is architecturally impossible within the current Sprint's scope (e.g., requires a database migration from a prior Sprint that was not completed)
+**When the fix is outside the current Sprint's scope:**
 
-When giving up:
-- Log the full diagnosis to `docs/sprint-logs/{SprintID}/failures.md`: what was tried, why each attempt failed, and why further attempts are futile
-- Mark the Story as incomplete with a clear summary of the blocker
-- **Flag it prominently** so the user sees it at milestone review: add `⚠️ BLOCKED: {reason}` to the Story entry in ROADMAP.md
+If the root cause is in code that belongs to a different Sprint (e.g., missing DB migration, incomplete API from a prior Sprint, infrastructure not yet set up):
+1. Create a new fix Story in the Backlog of `docs/ROADMAP.md` with a clear description of what needs to be fixed and why
+2. Insert a new Sprint (or add the fix Story to the next unfinished Sprint) in the execution order, **before** the current Sprint
+3. Mark the current Story as `[ ]` with a dependency note: `Depends on: {fix Story ID}`
+4. Mark the current Sprint as `partial` and return — autopilot will execute the fix Sprint next, then retry the current Sprint
+
+This ensures scope-external problems are resolved autonomously rather than escalated to the user.
+
+**Escalate to the user only when Claude Code genuinely cannot resolve the issue:**
+- The fix requires information that is not available in the codebase AND cannot be derived (e.g., external API credentials, third-party service secrets, paid service account setup)
+- The fix requires human judgment on a real-world constraint that has no representation in code, VISION, or DESIGN_PRINCIPLES (e.g., legal compliance question, business rule that was never documented)
+
+When escalating:
+- Log the full diagnosis to `docs/sprint-logs/{SprintID}/failures.md`: what was tried, why each attempt failed, and why Claude Code cannot resolve it
+- Mark the Story as incomplete: add `⚠️ NEEDS_HUMAN: {reason}` to the Story entry in ROADMAP.md
+- The milestone review will surface this to the user
 
 ### Other failures
 
 | Failure | Action |
 |---------|--------|
-| **Build does not compile** | Read error output, fix, and rebuild. Loop until it compiles. Give up only if the error is caused by a missing dependency or tool that cannot be installed autonomously. |
-| **E2E endpoint missing** | Create the missing endpoint if it's part of the current Sprint's scope. If it belongs to a different Sprint, log it as a blocker and mark the Story incomplete. |
-| **Merge conflict** | Attempt automatic resolution. If the conflict is in logic (not just formatting), read both sides, understand intent, and resolve. Give up only if the conflict represents a genuine design disagreement between two Stories that requires user input. |
-| **Sprint has unresolvable dependency** | Stop the Sprint, mark as `blocked`, log the dependency. |
+| **Build does not compile** | Read error output, fix, and rebuild. Loop until it compiles. If the error is caused by a missing dependency or tool, attempt to install it. Escalate only if installation requires credentials or permissions Claude Code does not have. |
+| **E2E endpoint missing** | Create the missing endpoint if it's part of the current Sprint's scope. If it belongs to a different Sprint, create a fix Sprint in the roadmap (same as scope-external test fix above). |
+| **Merge conflict** | Attempt automatic resolution. If the conflict is in logic (not just formatting), read both sides, understand intent, and resolve. Loop until resolved. Escalate only if the conflict represents a genuine ambiguity that cannot be resolved from VISION/PRINCIPLES. |
+| **Sprint has unresolvable dependency** | Create a fix Sprint to resolve the dependency, insert it before the current Sprint, and return `partial`. |
 
 ### Sprint completion status
 
 - `success` — all Stories complete, all tests pass
-- `partial` — some Stories incomplete (blocked items flagged with ⚠️)
-- `blocked` — Sprint cannot proceed due to external dependency
+- `partial` — some Stories incomplete; fix Sprints may have been created in the roadmap
+- `needs_human` — at least one Story requires human intervention (⚠️ NEEDS_HUMAN flagged)
 
 When a Sprint completes as `partial`:
 - Completed Stories remain marked `[x]`
-- Incomplete Stories remain `[ ]` with `⚠️ BLOCKED: {reason}` and failure details in `docs/sprint-logs/{SprintID}/failures.md`
+- Incomplete Stories remain `[ ]` with dependency notes or `⚠️ NEEDS_HUMAN`
+- Failure details logged to `docs/sprint-logs/{SprintID}/failures.md`
 - The Sprint status stays `[IN PROGRESS]`, not `[DONE]`
-- The calling skill (autopilot) decides whether to continue to the next Sprint or stop
+- The calling skill (autopilot) checks if a fix Sprint was inserted — if so, execute it next, then retry the incomplete Stories
 
 ## Decision Logging
 

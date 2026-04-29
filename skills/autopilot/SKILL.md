@@ -136,10 +136,10 @@ For each Sprint until the next milestone boundary:
    - Instruction to return: completion status, decision summary, and any warnings
 2. When the agent completes, read the decision log (`docs/sprint-logs/{SprintID}/decisions.md`)
 3. **Drift check**: Review the decisions against VISION and DESIGN_PRINCIPLES. If any decision contradicts these documents, flag it but continue (it will be reviewed at the milestone demo)
-4. **Failure handling**: If `sprint auto` returns `partial` or `blocked`, evaluate:
-   - `partial` with most Stories complete → continue to next Sprint, log incomplete Stories
-   - `partial` with critical Stories incomplete → stop and trigger milestone demo early
-   - `blocked` → stop and trigger milestone demo early
+4. **Failure handling**: If `sprint auto` returns `partial` or `needs_human`:
+   - `partial` with fix Sprint inserted → execute the fix Sprint next (it was added to the roadmap by sprint auto), then retry the incomplete Stories from the original Sprint
+   - `partial` without fix Sprint → continue to next Sprint, log incomplete Stories
+   - `needs_human` → stop and trigger milestone demo early so the user can address the blocker
 5. Merge the Sprint's `autopilot/{SprintID}` branch into the working branch
 6. Proceed to the next Sprint
 
