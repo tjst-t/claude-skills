@@ -1,6 +1,6 @@
 ---
 name: sprint-runner
-description: Agile Sprint lifecycle — plan, run, verify, demo, refine, done, auto, roadmap. Use for sprint commands, story/task workflows, roadmap management. Triggers on "sprint plan/run/verify/demo/done/refine/auto/roadmap/init", "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して".
+description: Agile Sprint lifecycle — plan, run, verify, demo, refine, done, auto, roadmap, propose. Use for sprint commands, story/task workflows, roadmap management. Triggers on "sprint plan/run/verify/demo/done/refine/auto/roadmap/propose/init", "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して", "機能追加したい", "こういうの欲しい".
 ---
 
 # Sprint Runner
@@ -23,6 +23,7 @@ The roadmap file is always at `docs/ROADMAP.md` in the project root. If it doesn
 | `sprint refine` | Interactive UI/UX refinement with user | See `references/sprint-refine.md` |
 | `sprint done` | Finalize and commit the sprint | See `references/sprint-done.md` |
 | `sprint auto` | Execute one sprint fully autonomously | See `references/sprint-auto.md` |
+| `sprint propose` | Discuss and add new features to roadmap | See `references/sprint-propose.md` |
 | `sprint roadmap` | Generate full roadmap from VISION | See `references/sprint-roadmap.md` |
 
 When a command is invoked, read the corresponding reference file before taking any action.
@@ -60,5 +61,6 @@ When a command is invoked, read the corresponding reference file before taking a
 - `references/sprint-refine.md` — refine (interactive UI/UX adjustment) command details
 - `references/sprint-done.md` — done command details
 - `references/sprint-auto.md` — auto (fully autonomous single sprint) command details
+- `references/sprint-propose.md` — propose (add new features to roadmap) command details
 - `references/sprint-roadmap.md` — roadmap generation from VISION command details
 - `references/ROADMAP_TEMPLATE.md` — roadmap format specification and template
