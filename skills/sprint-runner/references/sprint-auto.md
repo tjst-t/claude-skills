@@ -14,10 +14,12 @@ This command is designed to be called by the `autopilot` skill for multi-sprint 
 ### 0. Branch setup
 
 Create a dedicated branch for this Sprint's autonomous work:
-- `git checkout -b autopilot/{SprintID}` from the current branch
+- Determine the current base branch name: `git branch --show-current` (e.g., `main`, `feature/auth`)
+- Sanitize the branch name for use in paths: replace `/` with `-` (e.g., `feature/auth` → `feature-auth`)
+- `git checkout -b autopilot/{base-branch-sanitized}/{SprintID}` from the current branch (e.g., `autopilot/main/S003`, `autopilot/feature-auth/S003`)
 - All commits during this Sprint happen on this branch
-- The branch is merged back (or into main) during `sprint done` or at the autopilot milestone review
-- This prevents autonomous pushes from landing directly on main
+- The branch is merged back into the base branch during `sprint done` or at the autopilot milestone review
+- This naming convention prevents branch collisions when multiple autopilot sessions run on different branches simultaneously
 
 ### 1. Autonomous Plan
 
@@ -51,7 +53,7 @@ Same as `sprint verify` but:
 
 Same as `sprint done` but:
 - Worktree cleanup proceeds without confirmation (unmerged worktrees are logged as warnings, not deleted)
-- Commit and push the `autopilot/{SprintID}` branch without user confirmation (safe — this is not main)
+- Commit and push the `autopilot/{base-branch}/{SprintID}` branch without user confirmation (safe — this is not main)
 - Skip the summary presentation (the calling skill or user can read the logs)
 
 ## Failure Recovery

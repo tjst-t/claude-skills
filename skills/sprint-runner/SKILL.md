@@ -40,7 +40,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Respect dependencies**: Flag incomplete prior Sprints as blockers during `sprint plan`.
 - **Actually invoke /review**: During `sprint run` (per-Story) and `sprint verify` (Sprint-level), call the `/review` skill yourself via the Skill tool. Never skip or delegate this.
 - **Two-level review**: Story-level review in `sprint run` + Sprint-level review in `sprint verify`. Both are mandatory.
-- **Parallel execution with worktrees**: Independent Stories run in parallel via sub-agents with worktree isolation. Ensure `.claude/worktrees/` is in `.gitignore` before first worktree creation.
+- **Parallel execution with worktrees**: Independent Stories run in parallel via sub-agents with worktree isolation. Ensure `.claude/worktrees/` and `.claude/autopilot-*.lock` are in `.gitignore` before first worktree creation.
 - **Sub-agent model**: Implementation and review sub-agents use `model: "sonnet"`. Main agent uses the default model.
 - **Sub-agent prompts must be self-contained**: Include all necessary context in each sub-agent prompt — never assume prior conversation is available.
 - **Demo with running program**: `sprint demo` runs `make serve` (or equivalent) and demonstrates acceptance criteria live. Never substitute test code execution.
@@ -51,7 +51,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Mock tests gate Story completion in sprint run**: A GUI Story cannot be marked `[x]` in sprint run unless its mock tests pass. E2E tests run later in sprint verify.
 - **E2E tests gate Sprint completion in sprint verify**: All E2E tests and acceptance tests must pass against the real server before the Sprint can proceed to done.
 - **Acceptance criteria traceability**: Every acceptance criterion in ROADMAP.md must have a corresponding test tagged with `[AC-{StoryID}-{N}]`. sprint verify checks this mapping and creates missing tests.
-- **Auto mode logs all decisions**: During `sprint auto`, every decision (planning, implementation, review) must be logged to `docs/sprint-logs/{SprintID}/decisions.md` with rationale referencing VISION.md or DESIGN_PRINCIPLES.md. Work happens on an `autopilot/{SprintID}` branch, not directly on main.
+- **Auto mode logs all decisions**: During `sprint auto`, every decision (planning, implementation, review) must be logged to `docs/sprint-logs/{SprintID}/decisions.md` with rationale referencing VISION.md or DESIGN_PRINCIPLES.md. Work happens on an `autopilot/{base-branch}/{SprintID}` branch, not directly on the base branch.
 
 ## Reference Files
 
