@@ -1,5 +1,5 @@
 ---
-name: sprint-runner
+name: sprint
 description: Manages Agile Sprint lifecycle — plan, run, verify, demo, refine, done. Generates roadmaps, executes sprints autonomously, and tracks progress via docs/ROADMAP.md.
 when_to_use: Use for sprint commands (plan/run/verify/demo/done/refine/auto/roadmap/propose/init), story/task workflows, roadmap management. Also triggers on "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して", "機能追加したい", "こういうの欲しい".
 allowed-tools: Read Grep Glob Bash(git *) Bash(make *)

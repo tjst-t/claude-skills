@@ -65,7 +65,7 @@ Claude が自律的にスプリントを連続実行。マイルストーンで�
 
 ---
 
-## パターン B: 既に sprint-runner で開発中のプロジェクト
+## パターン B: 既に sprint で開発中のプロジェクト
 
 CLAUDE.md, ARCHITECTURE.md, ROADMAP.md が揃っていて、手動スプリントで開発を進めている場合。
 

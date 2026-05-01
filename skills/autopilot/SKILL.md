@@ -31,7 +31,7 @@ If `VISION.md` or `DESIGN_PRINCIPLES.md` do not exist, **do not proceed**. Inste
 
 ## `autopilot setup`
 
-Project setup for autopilot-driven development. Detects whether this is a new project or an existing sprint-runner project and adapts accordingly.
+Project setup for autopilot-driven development. Detects whether this is a new project or an existing sprint project and adapts accordingly.
 
 ### Detection
 
@@ -70,7 +70,7 @@ When `CLAUDE.md` and `docs/ROADMAP.md` do not exist (or ROADMAP has no defined S
 
 ### Existing project flow
 
-When `docs/ROADMAP.md` already exists with defined Sprints (typical for projects already using sprint-runner).
+When `docs/ROADMAP.md` already exists with defined Sprints (typical for projects already using sprint).
 
 #### Phase 1: VISION and DESIGN_PRINCIPLES
 
