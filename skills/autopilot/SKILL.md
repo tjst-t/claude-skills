@@ -131,6 +131,20 @@ After `autopilot setup` completes, the project is ready for `/autopilot start`. 
    - "Will execute Sprints {list} autonomously, stopping at milestone: {milestone description}"
    - Ask for confirmation before starting
 
+### Step 1.5: Prototype review (GUI Stories only)
+
+If the upcoming Sprints (up to the next milestone) contain GUI Stories:
+
+1. Collect all GUI Stories from the Sprints that will execute before the next milestone
+2. Invoke `sprint prototype` — this generates static HTML mockups in `prototype/` covering all collected GUI Stories
+3. **Pause for user review** — the user opens the HTML files and provides feedback
+4. Iterate until the user approves the prototype
+5. Commit the approved prototype
+
+If no GUI Stories exist in the upcoming batch, skip this step entirely.
+
+> This is an interactive phase — autopilot pauses here. The approved prototype prevents costly UI rework during the sprint loop.
+
 ### Step 2: Sprint loop
 
 Each Sprint is executed as an **independent sub-agent** to manage context window usage. The main autopilot conversation stays lightweight and delegates heavy work.

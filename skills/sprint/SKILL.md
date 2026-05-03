@@ -1,13 +1,13 @@
 ---
 name: sprint
-description: Manages Agile Sprint lifecycle — plan, run, verify, demo, refine, done. Generates roadmaps, executes sprints autonomously, and tracks progress via docs/ROADMAP.json.
-when_to_use: Use for sprint commands (plan/run/verify/demo/done/refine/auto/roadmap/propose/init), story/task workflows, roadmap management. Also triggers on "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して", "機能追加したい", "こういうの欲しい".
+description: Manages Agile Sprint lifecycle — plan, prototype, run, verify, demo, refine, done. Generates roadmaps, executes sprints autonomously, and tracks progress via docs/ROADMAP.json.
+when_to_use: Use for sprint commands (plan/run/verify/demo/done/refine/prototype/auto/roadmap/propose/init), story/task workflows, roadmap management. Also triggers on "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して", "機能追加したい", "こういうの欲しい", "モック見せて", "プロトタイプ".
 allowed-tools: Read Grep Glob Bash(git *) Bash(make *)
 ---
 
 # Sprint Runner
 
-Manages the Agile Sprint lifecycle: plan → run → verify → demo → refine → done.
+Manages the Agile Sprint lifecycle: plan → prototype → run → verify → demo → refine → done.
 
 ## Roadmap Location
 
@@ -19,6 +19,7 @@ The roadmap file is always at `docs/ROADMAP.json` in the project root. If it doe
 |---|---|---|
 | `sprint init` | Initialize or migrate the roadmap | See `references/sprint-init.md` |
 | `sprint plan` | Prepare the next sprint collaboratively | See `references/sprint-plan.md` |
+| `sprint prototype` | Generate HTML prototype for GUI review | See `references/sprint-prototype.md` |
 | `sprint run` | Execute the current sprint | See `references/sprint-run.md` |
 | `sprint verify` | Verify completeness and quality | See `references/sprint-verify.md` |
 | `sprint demo` | Demonstrate deliverables by running the program | See `references/sprint-demo.md` |
@@ -47,6 +48,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Refine is interactive only**: `sprint refine` requires the user to look at the running app and provide feedback. It is skipped in `sprint auto`. In autopilot, it runs at milestone boundaries after the demo.
 - **Always commit and push on done**: `sprint done` must leave a clean working tree.
 - **GUI spec is mandatory in sprint plan**: Always invoke `gui-spec` during `sprint plan`. Let `gui-spec` determine whether GUI work exists.
+- **Prototype before implementation**: For GUI Stories, run `sprint prototype` after `sprint plan` and before `sprint run`. The approved HTML prototype in `prototype/` is the visual reference for implementation sub-agents. In autopilot, prototyping covers all GUI Stories up to the next milestone.
 - **Two-tier testing**: GUI Stories produce two test files — mock tests (`*.mock.spec.ts`) for error/edge cases, E2E tests (`*.e2e.spec.ts`) for acceptance criteria against the real server. Non-GUI Stories produce acceptance tests in `tests/acceptance/`.
 - **Mock tests gate Story completion in sprint run**: A GUI Story cannot be marked `[x]` in sprint run unless its mock tests pass. E2E tests run later in sprint verify.
 - **E2E tests gate Sprint completion in sprint verify**: All E2E tests and acceptance tests must pass against the real server before the Sprint can proceed to done.
@@ -58,6 +60,7 @@ When a command is invoked, read the corresponding reference file before taking a
 
 - `references/sprint-init.md` — init command details
 - `references/sprint-plan.md` — plan command details
+- `references/sprint-prototype.md` — prototype (HTML mockup for GUI review) command details
 - `references/sprint-run.md` — run command details
 - `references/sprint-verify.md` — verify command details
 - `references/sprint-demo.md` — demo command details
