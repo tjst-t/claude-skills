@@ -28,6 +28,7 @@ If `VISION.json` or `DESIGN_PRINCIPLES.json` do not exist, **do not proceed**. I
 | `autopilot start` | Begin autonomous multi-sprint execution |
 | `autopilot status` | Show progress and recent decisions |
 | `autopilot setup` | Create VISION.json and DESIGN_PRINCIPLES.json interactively |
+| `autopilot help` | Show command list and usage guide |
 
 ## `autopilot setup`
 
@@ -235,3 +236,4 @@ Show the state of the most recent autopilot run. This command reads logs — it 
 - `references/DESIGN_PRINCIPLES_SCHEMA.json` — DESIGN_PRINCIPLES.json schema and example
 - `references/vision-template.md` — VISION setup guidelines (question prompts)
 - `references/principles-template.md` — DESIGN_PRINCIPLES setup guidelines (question prompts)
+- `references/autopilot-help.md` — help (command list and usage guide)
