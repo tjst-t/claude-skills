@@ -2,7 +2,7 @@
 
 Finalize the Sprint and update tracking.
 
-1. Read `docs/ROADMAP.md`
+1. Read `docs/ROADMAP.json`
 2. Mark the current Sprint as complete (change status to `[DONE]`)
 3. Update all Stories and Tasks to `[x]` if not already
 4. **Update the Progress section** at the top of the roadmap (counts, progress bar, current marker in Execution Order)

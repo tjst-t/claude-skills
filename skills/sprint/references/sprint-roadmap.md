@@ -1,26 +1,26 @@
 # sprint roadmap
 
-Generate a full multi-sprint roadmap from VISION.md and ARCHITECTURE.md. This command creates or replaces the contents of `docs/ROADMAP.md` with a complete set of Sprints, Stories, and Tasks.
+Generate a full multi-sprint roadmap from VISION.json and ARCHITECTURE.md. This command creates or replaces the contents of `docs/ROADMAP.json` with a complete set of Sprints, Stories, and Tasks.
 
 Unlike `sprint init` (which creates a blank template or migrates existing files), this command **generates substantive content** — it designs the entire development plan.
 
 ## Prerequisites
 
-- `docs/VISION.md` must exist (provides the "what" and "why")
+- `docs/VISION.json` must exist (provides the "what" and "why")
 - `docs/ARCHITECTURE.md` should exist (provides technical context for task breakdown)
-- `docs/DESIGN_PRINCIPLES.md` should exist (guides granularity and priority decisions)
+- `docs/DESIGN_PRINCIPLES.json` should exist (guides granularity and priority decisions)
 
-If VISION.md does not exist, refuse to proceed and suggest running `autopilot setup` first.
+If VISION.json does not exist, refuse to proceed and suggest running `autopilot setup` first.
 
 ## Execution Flow
 
 ### 1. Read context
 
 Read the following files:
-- `docs/VISION.md` — product goals, target users, scope, constraints
+- `docs/VISION.json` — product goals, target users, scope, constraints
 - `docs/ARCHITECTURE.md` — system components, tech stack, data flow (if exists)
-- `docs/DESIGN_PRINCIPLES.md` — priority rules, constraints (if exists)
-- `docs/ROADMAP.md` — check if one already exists (may have backlog items to preserve)
+- `docs/DESIGN_PRINCIPLES.json` — priority rules, constraints (if exists)
+- `docs/ROADMAP.json` — check if one already exists (may have backlog items to preserve)
 
 ### 2. Design the sprint structure
 
@@ -44,13 +44,13 @@ Based on VISION and ARCHITECTURE, design a roadmap following these principles:
 - Tasks should be specific enough that a sub-agent can execute without ambiguity
 
 **Scope control**:
-- Only include what is in VISION.md scope
+- Only include what is in VISION.json scope
 - Anything listed in VISION's "スコープ外" must NOT appear in the roadmap
 - If VISION is ambiguous about scope, default to excluding it (add to Backlog instead)
 
 ### 3. Generate the roadmap
 
-Write `docs/ROADMAP.md` using the format defined in `references/ROADMAP_TEMPLATE.md`. Include:
+Write `docs/ROADMAP.json` using the format defined in `references/ROADMAP_SCHEMA.json`. Include:
 - Progress section (initial state: all sprints at 0%)
 - Execution order with milestone markers
 - All Sprints with Stories and Tasks

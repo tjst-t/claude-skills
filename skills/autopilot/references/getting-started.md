@@ -5,11 +5,11 @@
 新規プロジェクトを autopilot で開発するための手順書。仕様が明確な場合と、アイデア段階の場合の2パターンを記載。
 
 どちらのパターンでも、最終的に必要なのは:
-- `docs/VISION.md` — なぜ作るか、誰のためか
-- `docs/DESIGN_PRINCIPLES.md` — 判断基準
+- `docs/VISION.json` — なぜ作るか、誰のためか
+- `docs/DESIGN_PRINCIPLES.json` — 判断基準
 - `CLAUDE.md` — プロジェクトコンテキスト
 - `docs/ARCHITECTURE.md` — アーキテクチャ概要
-- `docs/ROADMAP.md` — スプリント計画
+- `docs/ROADMAP.json` — スプリント計画
 
 `/autopilot setup` を実行すると、上記すべてが一括で生成される。
 
@@ -67,7 +67,7 @@ Claude が自律的にスプリントを連続実行。マイルストーンで�
 
 ## パターン B: 既に sprint で開発中のプロジェクト
 
-CLAUDE.md, ARCHITECTURE.md, ROADMAP.md が揃っていて、手動スプリントで開発を進めている場合。
+CLAUDE.md, ARCHITECTURE.md, ROADMAP.json が揃っていて、手動スプリントで開発を進めている場合。
 
 ### Step 1: autopilot setup を実行
 
@@ -100,7 +100,7 @@ CLAUDE.md, ARCHITECTURE.md, ROADMAP.md が揃っていて、手動スプリン�
 **ポイント**:
 - 現在 `[IN PROGRESS]` のスプリントがある場合、そこから再開される
 - 既存コードとの整合性はsprint autoのverifyフェーズで確認される
-- 手動で進めたスプリントの判断はdecisions.mdには残らないが、それは問題ない
+- 手動で進めたスプリントの判断はdecisions.jsonには残らないが、それは問題ない
 
 ---
 
@@ -169,11 +169,11 @@ Claude がテンプレートに沿って質問してくる:
 | # | 項目 | 生成元 |
 |---|------|--------|
 | 1 | git リポジトリが初期化されている | 事前準備 |
-| 2 | `docs/VISION.md` | autopilot setup Phase 1 |
-| 3 | `docs/DESIGN_PRINCIPLES.md` | autopilot setup Phase 1 |
+| 2 | `docs/VISION.json` | autopilot setup Phase 1 |
+| 3 | `docs/DESIGN_PRINCIPLES.json` | autopilot setup Phase 1 |
 | 4 | `CLAUDE.md` | autopilot setup Phase 2 (project-init) |
 | 5 | `docs/ARCHITECTURE.md` | autopilot setup Phase 2 (project-init) |
-| 6 | `docs/ROADMAP.md` にスプリントが定義されている | autopilot setup Phase 3 (sprint roadmap) |
+| 6 | `docs/ROADMAP.json` にスプリントが定義されている | autopilot setup Phase 3 (sprint roadmap) |
 | 7 | ロードマップに `[MILESTONE]` マーカーがある | sprint roadmap が自動付与 |
 | 8 | `.gitignore` に `.claude/worktrees/` が含まれる | project-init |
 

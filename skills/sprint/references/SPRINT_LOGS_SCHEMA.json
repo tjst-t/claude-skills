@@ -1,0 +1,139 @@
+{
+  "$comment": "Schema and examples for all sprint log JSON files under docs/sprint-logs/{SprintID}/",
+  "decisions": {
+    "$file": "decisions.json",
+    "$comment": "Autonomous decisions made during the sprint",
+    "sprint": "S002",
+    "decisions": [
+      {
+        "timestamp": "2026-05-01T14:32:00Z",
+        "category": "planning",
+        "title": "Short decision title",
+        "detail": "What was decided and why",
+        "reference": "VISION/DESIGN_PRINCIPLES section that guided this"
+      }
+    ]
+  },
+  "acceptance_matrix": {
+    "$file": "acceptance-matrix.json",
+    "$comment": "Traceability from acceptance criteria to tests",
+    "sprint": "S002",
+    "matrix": {
+      "S002-1": [
+        {
+          "criterion": "AC-S002-1-1",
+          "description": "User can see VM list after login",
+          "test_file": "vm-list.e2e.spec.ts",
+          "test_name": "[AC-S002-1-1] should display VM list after login",
+          "status": "pass",
+          "error": null
+        }
+      ]
+    }
+  },
+  "e2e_results": {
+    "$file": "e2e-results.json",
+    "$comment": "E2E and acceptance test execution results",
+    "sprint": "S002",
+    "run_at": "2026-05-01T16:00:00Z",
+    "server_command": "make serve",
+    "summary": {
+      "total": 10,
+      "pass": 9,
+      "fail": 1,
+      "skip": 0
+    },
+    "tests": [
+      {
+        "name": "[AC-S002-1-1] should display VM list",
+        "file": "vm-list.e2e.spec.ts",
+        "status": "pass",
+        "duration_ms": 1200,
+        "error": null
+      }
+    ]
+  },
+  "refine": {
+    "$file": "refine.json",
+    "$comment": "Interactive refinement changes from user feedback",
+    "sprint": "S002",
+    "refinements": [
+      {
+        "id": 1,
+        "feedback": "User's description of the issue",
+        "change": "What was changed",
+        "files": ["path/to/modified/file.tsx"],
+        "tests_rerun": ["story.mock.spec.ts"],
+        "tests_passed": true
+      }
+    ]
+  },
+  "failures": {
+    "$file": "failures.json",
+    "$comment": "Unresolved failures and blockers",
+    "sprint": "S002",
+    "failures": [
+      {
+        "story": "S002-3",
+        "type": "needs_human",
+        "summary": "LDAP credentials required",
+        "attempts": [
+          {
+            "approach": "Attempted to use mock LDAP",
+            "result": "Production LDAP has custom schema not replicable"
+          }
+        ],
+        "resolution": null
+      }
+    ]
+  },
+  "gui_spec": {
+    "$file": "gui-spec-{StoryID}.json",
+    "$comment": "GUI specification for a Story — state diagram + endpoint contracts",
+    "sprint": "S002",
+    "story": "S002-1",
+    "state_diagram": "stateDiagram-v2\n    [*] --> Empty: page load (no data)\n    Empty --> Loading: user clicks Add\n    Loading --> Populated: API success\n    Loading --> Error: API failure",
+    "scenarios": {
+      "entry_point": "Direct URL /vms",
+      "happy_path": "User sees VM list, clicks Start, VM status changes to running",
+      "data_states": {
+        "empty": "Show empty state message with Create button",
+        "loading": "Show spinner",
+        "error": "Show error message with Retry button"
+      },
+      "edge_cases": ["Long VM names truncated with ellipsis", "Concurrent start requests debounced"],
+      "success_feedback": "Inline status update with brief toast",
+      "failure_feedback": "Error message below the action button"
+    },
+    "endpoint_contracts": [
+      {
+        "path": "/api/v1/vms",
+        "method": "GET",
+        "registered": true,
+        "request_fields": null,
+        "response_fields": {
+          "items": "VM[]",
+          "next_cursor": "string"
+        }
+      },
+      {
+        "path": "/api/v1/vms",
+        "method": "POST",
+        "registered": true,
+        "request_fields": {
+          "name": "string (required)",
+          "flavor_id": "string (required)"
+        },
+        "response_fields": {
+          "id": "string",
+          "name": "string",
+          "status": "string"
+        }
+      }
+    ],
+    "test_files": {
+      "e2e": "tests/e2e/vm-list.e2e.spec.ts",
+      "mock": "tests/e2e/vm-list.mock.spec.ts"
+    }
+  }
+}

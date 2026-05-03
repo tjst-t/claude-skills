@@ -1,6 +1,6 @@
 ---
 name: sprint
-description: Manages Agile Sprint lifecycle — plan, run, verify, demo, refine, done. Generates roadmaps, executes sprints autonomously, and tracks progress via docs/ROADMAP.md.
+description: Manages Agile Sprint lifecycle — plan, run, verify, demo, refine, done. Generates roadmaps, executes sprints autonomously, and tracks progress via docs/ROADMAP.json.
 when_to_use: Use for sprint commands (plan/run/verify/demo/done/refine/auto/roadmap/propose/init), story/task workflows, roadmap management. Also triggers on "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して", "機能追加したい", "こういうの欲しい".
 allowed-tools: Read Grep Glob Bash(git *) Bash(make *)
 ---
@@ -11,7 +11,7 @@ Manages the Agile Sprint lifecycle: plan → run → verify → demo → refine 
 
 ## Roadmap Location
 
-The roadmap file is always at `docs/ROADMAP.md` in the project root. If it doesn't exist, prompt the user to run `sprint init` first.
+The roadmap file is always at `docs/ROADMAP.json` in the project root. If it doesn't exist, prompt the user to run `sprint init` first. If `docs/ROADMAP.md` exists but `ROADMAP.json` does not, run `sprint init` to migrate.
 
 ## Commands
 
@@ -36,7 +36,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Enforce user stories**: During `sprint plan`, verify all Stories follow the "{役割}として、{やりたいこと}をしたい。なぜなら、{理由}だから。" format. Autonomously rewrite task-decomposition Stories as proper user stories.
 - **Autonomous technical decisions**: During `sprint run`, make technical decisions autonomously when there is a clear best practice. Only escalate for significant architectural impact. Log autonomous decisions in `docs/sprint-logs/{SprintID}/`.
 - **Log everything**: Test output, build output, and verification results go to `docs/sprint-logs/{SprintID}/`.
-- **Roadmap is the source of truth**: Always read `docs/ROADMAP.md` before taking action.
+- **Roadmap is the source of truth**: Always read `docs/ROADMAP.json` before taking action.
 - **Respect dependencies**: Flag incomplete prior Sprints as blockers during `sprint plan`.
 - **Actually invoke /review**: During `sprint run` (per-Story) and `sprint verify` (Sprint-level), call the `/review` skill yourself via the Skill tool. Never skip or delegate this.
 - **Two-level review**: Story-level review in `sprint run` + Sprint-level review in `sprint verify`. Both are mandatory.
@@ -50,8 +50,9 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Two-tier testing**: GUI Stories produce two test files — mock tests (`*.mock.spec.ts`) for error/edge cases, E2E tests (`*.e2e.spec.ts`) for acceptance criteria against the real server. Non-GUI Stories produce acceptance tests in `tests/acceptance/`.
 - **Mock tests gate Story completion in sprint run**: A GUI Story cannot be marked `[x]` in sprint run unless its mock tests pass. E2E tests run later in sprint verify.
 - **E2E tests gate Sprint completion in sprint verify**: All E2E tests and acceptance tests must pass against the real server before the Sprint can proceed to done.
-- **Acceptance criteria traceability**: Every acceptance criterion in ROADMAP.md must have a corresponding test tagged with `[AC-{StoryID}-{N}]`. sprint verify checks this mapping and creates missing tests.
-- **Auto mode logs all decisions**: During `sprint auto`, every decision (planning, implementation, review) must be logged to `docs/sprint-logs/{SprintID}/decisions.md` with rationale referencing VISION.md or DESIGN_PRINCIPLES.md. Work happens on an `autopilot/{base-branch}/{SprintID}` branch, not directly on the base branch.
+- **Acceptance criteria traceability**: Every acceptance criterion in ROADMAP.json must have a corresponding test tagged with `[AC-{StoryID}-{N}]`. sprint verify checks this mapping and creates missing tests.
+- **Auto mode logs all decisions**: During `sprint auto`, every decision (planning, implementation, review) must be logged to `docs/sprint-logs/{SprintID}/decisions.json` with rationale referencing VISION.json or DESIGN_PRINCIPLES.json. Work happens on an `autopilot/{base-branch}/{SprintID}` branch, not directly on the base branch.
+- **All data files are JSON**: ROADMAP, VISION, DESIGN_PRINCIPLES, and all sprint-logs use JSON format. See `references/ROADMAP_SCHEMA.json` and `references/SPRINT_LOGS_SCHEMA.json` for structure. ARCHITECTURE.md and CLAUDE.md remain Markdown.
 
 ## Reference Files
 
@@ -65,4 +66,5 @@ When a command is invoked, read the corresponding reference file before taking a
 - `references/sprint-auto.md` — auto (fully autonomous single sprint) command details
 - `references/sprint-propose.md` — propose (add new features to roadmap) command details
 - `references/sprint-roadmap.md` — roadmap generation from VISION command details
-- `references/ROADMAP_TEMPLATE.md` — roadmap format specification and template
+- `references/ROADMAP_SCHEMA.json` — roadmap JSON schema and example
+- `references/SPRINT_LOGS_SCHEMA.json` — sprint log JSON schemas (decisions, e2e-results, acceptance-matrix, refine, failures, gui-spec)

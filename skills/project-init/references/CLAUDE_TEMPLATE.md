@@ -45,7 +45,7 @@ This is the standard CLAUDE.md structure. CLAUDE.md is Layer 1 — always loaded
 For details beyond what's here, read the relevant doc:
 
 - Architecture & system design: `docs/ARCHITECTURE.md`
-- Sprint roadmap & task tracking: `docs/ROADMAP.md`
+- Sprint roadmap & task tracking: `docs/ROADMAP.json`
 ```
 
 ## Key Principles

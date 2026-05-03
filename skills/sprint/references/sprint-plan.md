@@ -2,7 +2,7 @@
 
 Prepare the next sprint. This is a collaborative phase with the user.
 
-1. Read `docs/ROADMAP.md`
+1. Read `docs/ROADMAP.json`
 2. Identify the next unfinished Sprint according to the **Execution Order** (not document order or ID order)
 3. Present to the user:
    - The Sprint's goal and scope (Stories and Tasks to execute)
@@ -27,5 +27,5 @@ Prepare the next sprint. This is a collaborative phase with the user.
    - If GUI Stories are found, it conducts dialogue with the user to elicit scenarios, generate a state diagram, and produce Playwright acceptance tests.
    - If no GUI Stories are found, it returns immediately and `sprint plan` continues.
    - Do NOT skip this step even if the Sprint seems straightforward — let `gui-spec` make the determination.
-7. After all items are resolved, update `docs/ROADMAP.md` if any changes were agreed upon (scope changes, task additions, acceptance criteria added by `gui-spec`, etc.)
+7. After all items are resolved, update `docs/ROADMAP.json` if any changes were agreed upon (scope changes, task additions, acceptance criteria added by `gui-spec`, etc.)
 8. **Update the Progress section** if any changes were made.

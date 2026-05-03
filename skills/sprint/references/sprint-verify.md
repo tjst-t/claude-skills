@@ -4,7 +4,7 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
 
 ## Phase 1: Completeness check
 
-1. Read `docs/ROADMAP.md` and identify the current Sprint
+1. Read `docs/ROADMAP.json` and identify the current Sprint
 2. Use a subagent to perform a comprehensive review:
    - Compare every Task in the Sprint against the actual code changes and test logs in `docs/sprint-logs/{SprintID}/`
    - Check for any Tasks marked incomplete or missing implementation
@@ -30,17 +30,17 @@ Perform the following before invoking `/review`:
 4. **For non-GUI Stories**: Run backend acceptance tests (e.g., `go test ./tests/acceptance/...` or equivalent)
    - If no acceptance tests exist for a Story, this is a gap — create them now
    - If tests fail, follow the same loop-until-fixed approach as GUI E2E tests
-5. Document test results in `docs/sprint-logs/{SprintID}/e2e-results.md`
+5. Document test results in `docs/sprint-logs/{SprintID}/e2e-results.json`
 
 ### Step 3: Acceptance criteria traceability check
 
-6. For each Story in the Sprint, read its acceptance criteria from `docs/ROADMAP.md`
+6. For each Story in the Sprint, read its acceptance criteria from `docs/ROADMAP.json`
 7. For each acceptance criterion, verify a corresponding test exists:
    - GUI Stories: look for `[AC-{StoryID}-{N}]` tagged tests in `*.e2e.spec.ts`
    - Non-GUI Stories: look for test functions named with the acceptance criterion reference
 8. **If any acceptance criterion has no corresponding test**: create the missing test and run it
 9. **If any acceptance criterion's test is failing**: fix the implementation and re-run
-10. Log the traceability matrix to `docs/sprint-logs/{SprintID}/acceptance-matrix.md`:
+10. Log the traceability matrix to `docs/sprint-logs/{SprintID}/acceptance-matrix.json`:
 
 ```markdown
 | Story | Acceptance Criterion | Test | Status |
@@ -67,10 +67,10 @@ This is a final review of the entire Sprint's changes as a whole. Story-level re
 
 Collect any out-of-scope issues discovered during the completeness check, smoke test, or code review that are NOT bugs in the current Sprint but warrant future attention (e.g., tech debt, missing tests in unrelated modules, performance concerns, refactoring opportunities). Present them to the user:
 - For each item, provide a short title and one-line description
-- Ask the user which items to add to the Backlog section of `docs/ROADMAP.md`
+- Ask the user which items to add to the Backlog section of `docs/ROADMAP.json`
 - Only add items the user approves
 - If no out-of-scope issues were found, skip this step
 
 ## Phase 3: Finalize
 
-8. Update `docs/ROADMAP.md` to reflect the verified state (including any backlog items approved in Phase 2.5)
+8. Update `docs/ROADMAP.json` to reflect the verified state (including any backlog items approved in Phase 2.5)

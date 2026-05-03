@@ -13,7 +13,7 @@ This phase is **always interactive**. It cannot run in auto mode. During autopil
 
 ### 1. Start the refinement session
 
-1. Read `docs/ROADMAP.md` to identify the current Sprint and its Stories
+1. Read `docs/ROADMAP.json` to identify the current Sprint and its Stories
 2. Confirm the server is running. If not, start it.
 3. Tell the user:
    - Which URL(s) to visit
@@ -48,7 +48,7 @@ For each piece of feedback from the user:
 
 After the user signals completion:
 
-1. **Log all changes** to `docs/sprint-logs/{SprintID}/refine.md`:
+1. **Log all changes** to `docs/sprint-logs/{SprintID}/refine.json`:
    ```markdown
    # Sprint {SprintID} — Refinement Log
 

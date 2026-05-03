@@ -21,19 +21,19 @@ Ask clarifying questions in a **single batch** (not one at a time):
 - What problem does this solve? (why is it needed?)
 - Any constraints? (performance, compatibility, specific tech)
 
-If the user answers "I don't know" to any question, propose a reasonable default based on VISION.md and DESIGN_PRINCIPLES.md.
+If the user answers "I don't know" to any question, propose a reasonable default based on VISION.json and DESIGN_PRINCIPLES.json.
 
 ### 2. Scope check
 
-Read `docs/VISION.md` and check:
+Read `docs/VISION.json` and check:
 - Is this within the defined scope?
 - Does it contradict anything in "スコープ外" (out of scope)?
 
 **If in scope**: Proceed to story design.
 
 **If out of scope**: Tell the user:
-- "This is currently listed as out of scope in VISION.md. Would you like to update the VISION to include it, or add it to the Backlog for future consideration?"
-- If the user wants to update VISION: edit `docs/VISION.md` accordingly, then proceed
+- "This is currently listed as out of scope in VISION.json. Would you like to update the VISION to include it, or add it to the Backlog for future consideration?"
+- If the user wants to update VISION: edit `docs/VISION.json` accordingly, then proceed
 - If the user wants to backlog it: add to the Backlog section with a description and stop
 
 ### 3. Design Stories
@@ -52,7 +52,7 @@ Present the Stories to the user for feedback:
 
 ### 4. Place in roadmap
 
-Read `docs/ROADMAP.md` and determine where to insert the new work:
+Read `docs/ROADMAP.json` and determine where to insert the new work:
 
 **Analyze dependencies:**
 - Does the new work depend on existing Stories/Sprints?
@@ -72,11 +72,11 @@ Present the proposed placement with rationale:
 - "I recommend creating Sprint S005 after S003 because it depends on the API from S003 but is independent of S004. Here's the updated execution order: S001 → S002 → S003 → **S005** → S004"
 - Ask the user to confirm or adjust
 
-### 5. Update ROADMAP.md
+### 5. Update ROADMAP.json
 
 After the user confirms:
 
-1. Add the new Stories (and new Sprint if applicable) to `docs/ROADMAP.md`
+1. Add the new Stories (and new Sprint if applicable) to `docs/ROADMAP.json`
 2. Update the **Execution Order** section
 3. Update the **Dependencies** section
 4. Update the **Progress** section (total sprint count, progress bar)
@@ -100,13 +100,13 @@ Present the final state:
 
 When `sprint propose` is invoked during an autopilot milestone review:
 - The refine → propose → VISION update cycle all happens while autopilot is paused
-- After the user finishes proposing, autopilot re-reads ROADMAP.md and continues from the updated state
+- After the user finishes proposing, autopilot re-reads ROADMAP.json and continues from the updated state
 - New Sprints are automatically included in the next autopilot batch
 
 ## Important Behaviors
 
-- **Discussion first, roadmap second**: Don't rush to write ROADMAP.md. Make sure the user is satisfied with the story design before committing to the roadmap.
-- **Always check VISION scope**: Every new feature must be reconciled with VISION.md. This prevents scope creep.
+- **Discussion first, roadmap second**: Don't rush to write ROADMAP.json. Make sure the user is satisfied with the story design before committing to the roadmap.
+- **Always check VISION scope**: Every new feature must be reconciled with VISION.json. This prevents scope creep.
 - **Preserve existing work**: Never modify completed Sprints. Never reorder in a way that breaks dependencies of in-progress work.
 - **Minimal disruption**: Prefer appending new Sprints over reshuffling existing ones. Only insert before existing Sprints when there's a real dependency.
 - **Batch questions**: Ask clarifying questions in one message, not one at a time.

@@ -1,0 +1,20 @@
+{
+  "$comment": "Schema and example for docs/VISION.json. Guides autonomous decisions in autopilot and sprint auto.",
+  "summary": "One-line description of what this product is",
+  "target_users": [
+    "Specific user role or persona"
+  ],
+  "problem": "What problem the users currently face",
+  "success_criteria": [
+    "Measurable or observable outcome when the product succeeds"
+  ],
+  "out_of_scope": [
+    "Feature or capability intentionally excluded"
+  ],
+  "tech_constraints": [
+    "Technology choice, integration requirement, or performance constraint"
+  ],
+  "design_references": [
+    "Product or design to reference for UI/UX direction"
+  ]
+}

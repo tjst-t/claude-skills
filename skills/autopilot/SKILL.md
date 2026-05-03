@@ -1,13 +1,13 @@
 ---
 name: autopilot
-description: Runs multiple Sprints autonomously as developer and product owner. Executes plan-run-verify-done cycles guided by VISION.md and DESIGN_PRINCIPLES.md, stopping at milestones for user review.
+description: Runs multiple Sprints autonomously as developer and product owner. Executes plan-run-verify-done cycles guided by VISION.json and DESIGN_PRINCIPLES.json, stopping at milestones for user review.
 when_to_use: Use when user says "autopilot", "autopilot start/setup/status", "自動実行", "まとめて実行", or wants hands-off multi-sprint execution.
 allowed-tools: Read Grep Glob
 ---
 
 # Autopilot
 
-Runs multiple Sprints autonomously, acting as both developer and product owner. Guided by `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`, stops only at milestone boundaries for user review.
+Runs multiple Sprints autonomously, acting as both developer and product owner. Guided by `docs/VISION.json` and `docs/DESIGN_PRINCIPLES.json`, stops only at milestone boundaries for user review.
 
 ## Prerequisites
 
@@ -15,11 +15,11 @@ Before starting, verify these files exist:
 
 | File | Required | Purpose |
 |------|----------|---------|
-| `docs/ROADMAP.md` | Yes | Sprint definitions and execution order |
-| `docs/VISION.md` | Yes | Product purpose, target users, success criteria |
-| `docs/DESIGN_PRINCIPLES.md` | Yes | Decision-making rules for autonomous execution |
+| `docs/ROADMAP.json` | Yes | Sprint definitions and execution order |
+| `docs/VISION.json` | Yes | Product purpose, target users, success criteria |
+| `docs/DESIGN_PRINCIPLES.json` | Yes | Decision-making rules for autonomous execution |
 
-If `VISION.md` or `DESIGN_PRINCIPLES.md` do not exist, **do not proceed**. Instead, help the user create them using `references/vision-template.md` and `references/principles-template.md`. These documents are essential — without them, autonomous decisions have no guiding criteria and the output will drift from the user's intent.
+If `VISION.json` or `DESIGN_PRINCIPLES.json` do not exist, **do not proceed**. Instead, help the user create them using `references/vision-template.md` and `references/principles-template.md`. These documents are essential — without them, autonomous decisions have no guiding criteria and the output will drift from the user's intent.
 
 ## Commands
 
@@ -27,7 +27,7 @@ If `VISION.md` or `DESIGN_PRINCIPLES.md` do not exist, **do not proceed**. Inste
 |---|---|
 | `autopilot start` | Begin autonomous multi-sprint execution |
 | `autopilot status` | Show progress and recent decisions |
-| `autopilot setup` | Create VISION.md and DESIGN_PRINCIPLES.md interactively |
+| `autopilot setup` | Create VISION.json and DESIGN_PRINCIPLES.json interactively |
 
 ## `autopilot setup`
 
@@ -38,9 +38,9 @@ Project setup for autopilot-driven development. Detects whether this is a new pr
 First, check what already exists:
 - `CLAUDE.md` — project-init already run?
 - `docs/ARCHITECTURE.md` — architecture documented?
-- `docs/ROADMAP.md` — sprints defined? Any `[IN PROGRESS]` or `[DONE]` sprints?
-- `docs/VISION.md` — vision exists?
-- `docs/DESIGN_PRINCIPLES.md` — principles exist?
+- `docs/ROADMAP.json` — sprints defined? Any `[IN PROGRESS]` or `[DONE]` sprints?
+- `docs/VISION.json` — vision exists?
+- `docs/DESIGN_PRINCIPLES.json` — principles exist?
 
 Based on this, follow the **new project flow** or the **existing project flow**.
 
@@ -48,39 +48,39 @@ Based on this, follow the **new project flow** or the **existing project flow**.
 
 ### New project flow
 
-When `CLAUDE.md` and `docs/ROADMAP.md` do not exist (or ROADMAP has no defined Sprints).
+When `CLAUDE.md` and `docs/ROADMAP.json` do not exist (or ROADMAP has no defined Sprints).
 
 #### Phase 1: VISION and DESIGN_PRINCIPLES
 
-1. Check if `docs/VISION.md` or `docs/DESIGN_PRINCIPLES.md` already exist. If so, read them and ask the user whether to update or overwrite.
+1. Check if `docs/VISION.json` or `docs/DESIGN_PRINCIPLES.json` already exist. If so, read them and ask the user whether to update or overwrite.
 2. Read the templates in `references/vision-template.md` and `references/principles-template.md`
 3. Ask the user targeted questions to fill in each section (batch questions, don't ask one at a time)
-4. Write `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`
+4. Write `docs/VISION.json` and `docs/DESIGN_PRINCIPLES.json`
 
 #### Phase 2: Project initialization
 
-5. Invoke `/project-init` to generate `CLAUDE.md`, `docs/ARCHITECTURE.md`, and `Makefile`. Since VISION.md now exists, project-init can reference it for better ARCHITECTURE.md generation.
+5. Invoke `/project-init` to generate `CLAUDE.md`, `docs/ARCHITECTURE.md`, and `Makefile`. Since VISION.json now exists, project-init can reference it for better ARCHITECTURE.md generation.
 
 #### Phase 3: Roadmap generation
 
-6. Invoke `/sprint roadmap` to generate `docs/ROADMAP.md` from VISION + ARCHITECTURE.
+6. Invoke `/sprint roadmap` to generate `docs/ROADMAP.json` from VISION + ARCHITECTURE.
    - The generated roadmap includes `[MILESTONE]` markers at natural review points.
 
 ---
 
 ### Existing project flow
 
-When `docs/ROADMAP.md` already exists with defined Sprints (typical for projects already using sprint).
+When `docs/ROADMAP.json` already exists with defined Sprints (typical for projects already using sprint).
 
 #### Phase 1: VISION and DESIGN_PRINCIPLES
 
-1. Read the existing codebase, `CLAUDE.md`, `docs/ARCHITECTURE.md`, and `docs/ROADMAP.md` to understand the project context
+1. Read the existing codebase, `CLAUDE.md`, `docs/ARCHITECTURE.md`, and `docs/ROADMAP.json` to understand the project context
 2. Read the templates in `references/vision-template.md` and `references/principles-template.md`
 3. Ask the user targeted questions, but **pre-fill answers where possible** from existing documentation:
    - Tech stack → from CLAUDE.md / ARCHITECTURE.md
-   - Project purpose → from ROADMAP.md sprint descriptions and README
+   - Project purpose → from ROADMAP.json sprint descriptions and README
    - Existing patterns → from codebase conventions already established
-4. Write `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`
+4. Write `docs/VISION.json` and `docs/DESIGN_PRINCIPLES.json`
 
 #### Phase 2: Project initialization → Skip
 
@@ -88,7 +88,7 @@ Existing project already has `CLAUDE.md` and `docs/ARCHITECTURE.md`. Skip this p
 
 #### Phase 3: Roadmap generation → Skip
 
-Existing project already has a populated `docs/ROADMAP.md`. Do NOT regenerate it.
+Existing project already has a populated `docs/ROADMAP.json`. Do NOT regenerate it.
 
 #### Phase 4: Alignment check (existing projects only)
 
@@ -97,7 +97,7 @@ Existing project already has a populated `docs/ROADMAP.md`. Do NOT regenerate it
    - Flag any VISION goals that have no corresponding Sprint
    - Present findings to the user and ask if adjustments are needed
 
-8. **Milestone injection**: Check if `docs/ROADMAP.md` has `[MILESTONE]` markers.
+8. **Milestone injection**: Check if `docs/ROADMAP.json` has `[MILESTONE]` markers.
    - If no milestones exist, propose milestone placements based on the Milestone Detection rules (dependency boundaries, every 3 sprints) and apply them
    - Present proposed milestones to the user for confirmation
 
@@ -108,11 +108,11 @@ Existing project already has a populated `docs/ROADMAP.md`. Do NOT regenerate it
 ### Result
 
 After `autopilot setup` completes, the project is ready for `/autopilot start`. All prerequisites are satisfied:
-- `docs/VISION.md` ✓
-- `docs/DESIGN_PRINCIPLES.md` ✓
+- `docs/VISION.json` ✓
+- `docs/DESIGN_PRINCIPLES.json` ✓
 - `CLAUDE.md` ✓
 - `docs/ARCHITECTURE.md` ✓
-- `docs/ROADMAP.md` ✓ (with Sprints, Stories, milestones)
+- `docs/ROADMAP.json` ✓ (with Sprints, Stories, milestones)
 
 ## `autopilot start`
 
@@ -139,9 +139,9 @@ For each Sprint until the next milestone boundary:
 
 1. Launch an Agent to invoke `sprint auto` via the Skill tool. The agent prompt must include:
    - The Sprint ID to execute
-   - The full contents of `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`
+   - The full contents of `docs/VISION.json` and `docs/DESIGN_PRINCIPLES.json`
    - Instruction to return: completion status, decision summary, and any warnings
-2. When the agent completes, read the decision log (`docs/sprint-logs/{SprintID}/decisions.md`)
+2. When the agent completes, read the decision log (`docs/sprint-logs/{SprintID}/decisions.json`)
 3. **Drift check**: Review the decisions against VISION and DESIGN_PRINCIPLES. If any decision contradicts these documents, flag it but continue (it will be reviewed at the milestone demo)
 4. **Failure handling**: If `sprint auto` returns `partial` or `needs_human`:
    - `partial` with fix Sprint inserted → execute the fix Sprint next (it was added to the roadmap by sprint auto), then retry the incomplete Stories from the original Sprint
@@ -181,8 +181,8 @@ When autopilot finishes (all milestones reached, user stops, or error):
 
 A milestone boundary is any of the following (checked in order, use the earliest match):
 
-1. **Explicit milestone marker** in ROADMAP.md: A Sprint description or comment containing `[MILESTONE]` or `[マイルストーン]`
-2. **Dependency boundary**: Read the Dependencies section of ROADMAP.md. If the next Sprint has no dependency on the current Sprint (i.e., a new independent track begins), treat the current Sprint as a milestone. This is determined by the explicit dependency declarations, not by inference.
+1. **Explicit milestone marker** in ROADMAP.json: A Sprint with `"milestone": true`
+2. **Dependency boundary**: Read the `dependencies` object in ROADMAP.json. If the next Sprint has no dependency on the current Sprint (i.e., a new independent track begins), treat the current Sprint as a milestone. This is determined by the explicit dependency declarations, not by inference.
 3. **Every 3 Sprints** as a fallback if no explicit milestones or dependency boundaries are found — prevents unbounded execution
 4. **End of roadmap**: All Sprints complete
 
@@ -190,8 +190,8 @@ A milestone boundary is any of the following (checked in order, use the earliest
 
 Show the state of the most recent autopilot run. This command reads logs — it does not require an active autopilot session.
 
-1. Read `docs/ROADMAP.md` to determine overall progress
-2. Find the most recent `docs/sprint-logs/*/decisions.md` files
+1. Read `docs/ROADMAP.json` to determine overall progress
+2. Find the most recent `docs/sprint-logs/*/decisions.json` files
 3. **Check for active locks**: List any `.claude/autopilot-*.lock` files. If found, show which branches have active (or stale) autopilot sessions.
 4. **List worktrees**: Run `git worktree list` and show any worktrees matching `autopilot/*`. Flag orphaned worktrees (no active session) for cleanup.
 5. Present:
@@ -200,7 +200,7 @@ Show the state of the most recent autopilot run. This command reads logs — it 
    - Active autopilot sessions (from lock files) and their branches
    - Remaining worktrees and their merge status
    - Next milestone boundary (based on current roadmap state)
-   - Key decisions from the latest `decisions.md`
+   - Key decisions from the latest `decisions.json`
    - Any drift warnings or failure logs
 
 ## Important Behaviors
@@ -217,5 +217,7 @@ Show the state of the most recent autopilot run. This command reads logs — it 
 ## Reference Files
 
 - `references/getting-started.md` — New project setup guide (with specs / without specs / existing project)
-- `references/vision-template.md` — VISION.md template and guidelines
-- `references/principles-template.md` — DESIGN_PRINCIPLES.md template and guidelines
+- `references/VISION_SCHEMA.json` — VISION.json schema and example
+- `references/DESIGN_PRINCIPLES_SCHEMA.json` — DESIGN_PRINCIPLES.json schema and example
+- `references/vision-template.md` — VISION setup guidelines (question prompts)
+- `references/principles-template.md` — DESIGN_PRINCIPLES setup guidelines (question prompts)

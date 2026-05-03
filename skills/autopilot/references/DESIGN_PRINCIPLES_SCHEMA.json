@@ -1,0 +1,22 @@
+{
+  "$comment": "Schema and example for docs/DESIGN_PRINCIPLES.json. Priority rules guide autonomous decisions. Forbidden rules are hard constraints.",
+  "priority_rules": [
+    {
+      "priority": 1,
+      "rule": "Short rule statement (A > B format recommended)",
+      "detail": "When and how to apply this rule"
+    }
+  ],
+  "coding_conventions": [
+    "Convention that applies to all code in this project"
+  ],
+  "ui_ux": [
+    "UI/UX guideline for frontend work"
+  ],
+  "architecture": [
+    "Architectural decision or constraint"
+  ],
+  "forbidden": [
+    "Action Claude must never take autonomously"
+  ]
+}

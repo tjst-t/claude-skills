@@ -6,8 +6,8 @@ This command is designed to be called by the `autopilot` skill for multi-sprint 
 
 ## Prerequisites
 
-- `docs/ROADMAP.md` must exist with at least one unfinished Sprint
-- `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md` should exist (read them if present — they guide autonomous decisions). If missing, **fall back to interactive mode**: run the normal `sprint plan` → `sprint run` → `sprint verify` → `sprint done` sequence instead, which asks the user for decisions. Log a warning explaining why auto mode was downgraded.
+- `docs/ROADMAP.json` must exist with at least one unfinished Sprint
+- `docs/VISION.json` and `docs/DESIGN_PRINCIPLES.json` should exist (read them if present — they guide autonomous decisions). If missing, **fall back to interactive mode**: run the normal `sprint plan` → `sprint run` → `sprint verify` → `sprint done` sequence instead, which asks the user for decisions. Log a warning explaining why auto mode was downgraded.
 
 ## Execution Flow
 
@@ -24,13 +24,13 @@ Create a dedicated branch for this Sprint's autonomous work:
 ### 1. Autonomous Plan
 
 Same as `sprint plan` but fully autonomous:
-- Read `docs/ROADMAP.md`, `docs/VISION.md`, `docs/DESIGN_PRINCIPLES.md`
+- Read `docs/ROADMAP.json`, `docs/VISION.json`, `docs/DESIGN_PRINCIPLES.json`
 - Identify the next unfinished Sprint
 - Validate and rewrite user stories autonomously
 - Evaluate story granularity — if a Story is overloaded, split it autonomously based on VISION and DESIGN_PRINCIPLES guidance
 - Run `gui-spec` in **autonomous mode** (see gui-spec SKILL.md "Autonomous Mode" section — all scenarios are derived and confirmed without user interaction)
-- Log all planning decisions to `docs/sprint-logs/{SprintID}/decisions.md`
-- Update `docs/ROADMAP.md` with any changes
+- Log all planning decisions to `docs/sprint-logs/{SprintID}/decisions.json`
+- Update `docs/ROADMAP.json` with any changes
 
 **No user confirmation.** All decisions are logged.
 
@@ -38,7 +38,7 @@ Same as `sprint plan` but fully autonomous:
 
 Same as `sprint run` but:
 - All technical and architectural decisions are made autonomously
-- Decisions that would normally be escalated to the user are instead decided by consulting `docs/VISION.md` and `docs/DESIGN_PRINCIPLES.md`, then logged to `docs/sprint-logs/{SprintID}/decisions.md` with rationale
+- Decisions that would normally be escalated to the user are instead decided by consulting `docs/VISION.json` and `docs/DESIGN_PRINCIPLES.json`, then logged to `docs/sprint-logs/{SprintID}/decisions.json` with rationale
 - Out-of-scope issues are automatically added to the Backlog section (no user approval needed)
 
 ### 3. Autonomous Verify
@@ -72,7 +72,7 @@ Autonomous execution cannot ask the user for help. The default behavior is **kee
 **When the fix is outside the current Sprint's scope:**
 
 If the root cause is in code that belongs to a different Sprint (e.g., missing DB migration, incomplete API from a prior Sprint, infrastructure not yet set up):
-1. Create a new fix Story in the Backlog of `docs/ROADMAP.md` with a clear description of what needs to be fixed and why
+1. Create a new fix Story in the Backlog of `docs/ROADMAP.json` with a clear description of what needs to be fixed and why
 2. Insert a new Sprint (or add the fix Story to the next unfinished Sprint) in the execution order, **before** the current Sprint
 3. Mark the current Story as `[ ]` with a dependency note: `Depends on: {fix Story ID}`
 4. Mark the current Sprint as `partial` and return — autopilot will execute the fix Sprint next, then retry the current Sprint
@@ -84,8 +84,8 @@ This ensures scope-external problems are resolved autonomously rather than escal
 - The fix requires human judgment on a real-world constraint that has no representation in code, VISION, or DESIGN_PRINCIPLES (e.g., legal compliance question, business rule that was never documented)
 
 When escalating:
-- Log the full diagnosis to `docs/sprint-logs/{SprintID}/failures.md`: what was tried, why each attempt failed, and why Claude Code cannot resolve it
-- Mark the Story as incomplete: add `⚠️ NEEDS_HUMAN: {reason}` to the Story entry in ROADMAP.md
+- Log the full diagnosis to `docs/sprint-logs/{SprintID}/failures.json`: what was tried, why each attempt failed, and why Claude Code cannot resolve it
+- Mark the Story as incomplete: add `⚠️ NEEDS_HUMAN: {reason}` to the Story entry in ROADMAP.json
 - The milestone review will surface this to the user
 
 ### Other failures
@@ -106,13 +106,13 @@ When escalating:
 When a Sprint completes as `partial`:
 - Completed Stories remain marked `[x]`
 - Incomplete Stories remain `[ ]` with dependency notes or `⚠️ NEEDS_HUMAN`
-- Failure details logged to `docs/sprint-logs/{SprintID}/failures.md`
+- Failure details logged to `docs/sprint-logs/{SprintID}/failures.json`
 - The Sprint status stays `[IN PROGRESS]`, not `[DONE]`
 - The calling skill (autopilot) checks if a fix Sprint was inserted — if so, execute it next, then retry the incomplete Stories
 
 ## Decision Logging
 
-All autonomous decisions MUST be logged to `docs/sprint-logs/{SprintID}/decisions.md` in this format:
+All autonomous decisions MUST be logged to `docs/sprint-logs/{SprintID}/decisions.json` in this format:
 
 ```markdown
 # Sprint {SprintID} — Autonomous Decisions
@@ -122,7 +122,7 @@ All autonomous decisions MUST be logged to `docs/sprint-logs/{SprintID}/decision
 - **GUI spec: login form entry point**: Auto-selected direct URL `/login` — standard pattern, no ambiguity.
 
 ## Implementation Decisions
-- **Auth middleware approach**: Chose JWT over session cookies. Rationale: VISION.md specifies stateless API, DESIGN_PRINCIPLES prefers "existing library > custom".
+- **Auth middleware approach**: Chose JWT over session cookies. Rationale: VISION.json specifies stateless API, DESIGN_PRINCIPLES prefers "existing library > custom".
 - **Backlog added**: "Refactor legacy error handler" — found during Story S001-2 implementation.
 
 ## Review Decisions

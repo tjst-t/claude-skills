@@ -2,7 +2,7 @@
 
 Demonstrate the Sprint's deliverables to the user by running the actual program. Run this after `sprint verify`.
 
-1. Read `docs/ROADMAP.md` and identify the current Sprint
+1. Read `docs/ROADMAP.json` and identify the current Sprint
 2. Read the Sprint's Stories and Tasks to understand what was built
 3. Read `docs/ARCHITECTURE.md` and `CLAUDE.md` to determine the startup command
 

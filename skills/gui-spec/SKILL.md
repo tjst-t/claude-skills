@@ -14,10 +14,10 @@ Elicits GUI specifications through structured dialogue, then generates Playwrigh
 - **Auto-decide, then confirm once**: Reason through all aspects autonomously, auto-select when recommendations are clear, and present a single summary for user confirmation. Only ask individual questions when a design decision is genuinely ambiguous with meaningful trade-offs.
 - **Diagram before tests**: Present the state diagram as part of the scenario summary. Tests derived from an unconfirmed diagram will likely be wrong.
 - **Two test files per Story**: E2E tests (real server, acceptance criteria) and mock tests (error/edge cases). Never mix them in the same file.
-- **E2E tests trace to acceptance criteria**: Every E2E test name must start with `[AC-{StoryID}-{N}]` matching an acceptance criterion in ROADMAP.md. Every acceptance criterion must have at least one E2E test.
+- **E2E tests trace to acceptance criteria**: Every E2E test name must start with `[AC-{StoryID}-{N}]` matching an acceptance criterion in ROADMAP.json. Every acceptance criterion must have at least one E2E test.
 - **data-testid is mandatory**: If the implementation doesn't have `data-testid` attributes, Playwright tests become fragile. This is a non-negotiable convention.
 - **Short-circuit if no GUI**: If no Stories in the Sprint involve GUI, skip immediately and return to `sprint plan`.
-- **Autonomous mode**: When invoked from `sprint auto`, skip all user confirmation steps. Auto-decide every aspect, write the spec document, and log decisions.
+- **Autonomous mode**: When invoked from `sprint auto`, skip all user confirmation steps. Auto-decide every aspect, write the spec document, and log decisions to `decisions.json`.
 - **Read the handler, not the type name**: Always read the actual backend handler for response field names. Never infer from type names or frontend conventions.
 - **Assert POST bodies in mock tests**: For every mutation, inspect `route.request().postDataJSON()` and assert required fields. In E2E tests, verify via GET that the mutation persisted instead.
 
@@ -53,7 +53,7 @@ For each GUI Story, reason through the following aspects and **auto-select the r
 
 Present the complete scenario summary (auto-decided items + any questions) to the user for a single confirmation pass, rather than iterating through each item individually.
 
-**Autonomous mode** (when called from `sprint auto`): Skip the user confirmation pass entirely. Auto-decide all aspects, generate the state diagram and tests, and log all decisions to the Sprint's `decisions.md`. The scenario summary is still written to the spec document for post-hoc review, but no user interaction occurs.
+**Autonomous mode** (when called from `sprint auto`): Skip the user confirmation pass entirely. Auto-decide all aspects, generate the state diagram and tests, and log all decisions to the Sprint's `decisions.json`. The scenario summary is still written to the spec document for post-hoc review, but no user interaction occurs.
 
 ### Phase 3: Generate State Transition Diagram
 
@@ -116,36 +116,41 @@ For examples, see [references/test-examples.md](references/test-examples.md).
 
 ### Phase 4.5: Endpoint contract table
 
-For each GUI Story, produce a contract table and include it in the spec document (`docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.md`):
+For each GUI Story, produce an endpoint contract and include it in the spec JSON file (`docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json`). The structure follows `endpoint_contracts` in SPRINT_LOGS_SCHEMA.json:
 
-| Endpoint | Method | Router registration confirmed | Request fields (from handler) | Response fields (from handler) |
-|---|---|---|---|---|
-| `/api/v1/auth/verify` | POST | ✓ / ✗ | — | `status: string` |
-| `/api/v1/organizations` | GET | ✓ / ✗ | — | `items: Organization[], next_cursor: string` |
-
-**How to fill this table**:
-- Read the project's router file (e.g., `internal/api/router.go` for Go, `config/routes.rb` for Rails, `src/routes/` for Express) to confirm each endpoint is registered. Mark ✗ if missing.
-- Read the corresponding handler function to extract the exact field names from serialization annotations (Go JSON struct tags, Python serializer fields, etc.).
-- The frontend API types **must** match the "Response fields" column exactly.
-
-For each row where Method is POST/PUT/PATCH, the "Request fields" column defines what the Playwright test's mock handler **must** assert via `route.request().postDataJSON()`. Populate this column before writing tests — if it is left blank, the tests cannot verify the frontend is sending the correct body.
-
-If any row has ✗ in "Router registration confirmed", flag it to `sprint plan` as a missing backend task before implementation begins.
-
-### Phase 5: Update Roadmap
-
-For each GUI Story, append the following to its entry in `docs/ROADMAP.md`:
-
-```markdown
-**Acceptance Criteria (GUI):**
-- [ ] State diagram confirmed (see sprint-logs/{SprintID}/gui-spec-{StoryID}.md)
-- [ ] Mock tests pass: `npx playwright test {story-slug}.mock.spec.ts`
-- [ ] E2E tests pass: `npx playwright test {story-slug}.e2e.spec.ts` (run during sprint verify)
-- [ ] All interactive elements have `data-testid` attributes
-- [ ] Every acceptance criterion has a corresponding `[AC-*]` tagged E2E test
+```json
+{
+  "endpoint_contracts": [
+    {
+      "path": "/api/v1/vms",
+      "method": "GET",
+      "registered": true,
+      "request_fields": null,
+      "response_fields": {"items": "VM[]", "next_cursor": "string"}
+    }
+  ]
+}
 ```
 
-Write the full spec output (state diagram + test code) to `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.md`.
+**How to fill**:
+- Read the project's router file (e.g., `internal/api/router.go` for Go, `config/routes.rb` for Rails, `src/routes/` for Express) to confirm each endpoint is registered.
+- Read the corresponding handler function to extract the exact field names from serialization annotations.
+- The frontend API types **must** match `response_fields` exactly.
+
+For POST/PUT/PATCH, `request_fields` defines what mock tests **must** assert via `route.request().postDataJSON()`. If left null, tests cannot verify the request body.
+
+If any endpoint has `"registered": false`, flag it to `sprint plan` as a missing backend task.
+
+### Phase 5: Update Roadmap and Write Spec
+
+1. **Update `docs/ROADMAP.json`**: Add GUI-specific acceptance criteria to each GUI Story's `acceptance_criteria` array:
+   - State diagram confirmed
+   - Mock tests pass
+   - E2E tests pass (during sprint verify)
+   - All interactive elements have `data-testid` attributes
+   - Every AC has a corresponding `[AC-*]` tagged E2E test
+
+2. **Write spec file**: Write the full spec output to `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json` following the `gui_spec` structure in SPRINT_LOGS_SCHEMA.json. This includes: state diagram (Mermaid string), scenarios, endpoint contracts, and test file paths.
 
 Create the sprint-logs directory if it doesn't exist.
 
@@ -155,8 +160,8 @@ This skill produces:
 1. Confirmed Mermaid state diagram per GUI Story
 2. E2E test file at `tests/e2e/{story-slug}.e2e.spec.ts` — real server tests for acceptance criteria
 3. Mock test file at `tests/e2e/{story-slug}.mock.spec.ts` — error/edge case tests with mocks
-4. Spec document at `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.md`
-5. Updated acceptance criteria in `docs/ROADMAP.md`
+4. Spec document at `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json`
+5. Updated acceptance criteria in `docs/ROADMAP.json`
 
 `sprint run` implementation sub-agents must:
 - Add `data-testid` to every interactive element
