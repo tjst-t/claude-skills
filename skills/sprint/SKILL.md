@@ -1,7 +1,7 @@
 ---
 name: sprint
 description: Manages Agile Sprint lifecycle — plan, prototype, run, verify, demo, refine, done. Generates roadmaps, executes sprints autonomously, and tracks progress via docs/ROADMAP.json.
-when_to_use: Use for sprint commands (plan/run/verify/demo/done/refine/prototype/auto/roadmap/propose/init), story/task workflows, roadmap management. Also triggers on "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して", "機能追加したい", "こういうの欲しい", "モック見せて", "プロトタイプ".
+when_to_use: Use for sprint commands (plan/run/verify/demo/done/refine/prototype/hotfix/auto/roadmap/propose/init), story/task workflows, roadmap management. Also triggers on "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して", "機能追加したい", "こういうの欲しい", "モック見せて", "プロトタイプ", "ちょっと直して", "バグ修正".
 allowed-tools: Read Grep Glob Bash(git *) Bash(make *)
 ---
 
@@ -25,6 +25,7 @@ The roadmap file is always at `docs/ROADMAP.json` in the project root. If it doe
 | `sprint demo` | Demonstrate deliverables by running the program | See `references/sprint-demo.md` |
 | `sprint refine` | Interactive UI/UX refinement with user | See `references/sprint-refine.md` |
 | `sprint done` | Finalize and commit the sprint | See `references/sprint-done.md` |
+| `sprint hotfix` | Quick fix without full sprint ceremony | See `references/sprint-hotfix.md` |
 | `sprint auto` | Execute one sprint fully autonomously | See `references/sprint-auto.md` |
 | `sprint propose` | Discuss and add new features to roadmap | See `references/sprint-propose.md` |
 | `sprint roadmap` | Generate full roadmap from VISION | See `references/sprint-roadmap.md` |
@@ -66,6 +67,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - `references/sprint-demo.md` — demo command details
 - `references/sprint-refine.md` — refine (interactive UI/UX adjustment) command details
 - `references/sprint-done.md` — done command details
+- `references/sprint-hotfix.md` — hotfix (quick fix without sprint ceremony) command details
 - `references/sprint-auto.md` — auto (fully autonomous single sprint) command details
 - `references/sprint-propose.md` — propose (add new features to roadmap) command details
 - `references/sprint-roadmap.md` — roadmap generation from VISION command details
