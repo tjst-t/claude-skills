@@ -26,6 +26,7 @@ The roadmap file is always at `docs/ROADMAP.json` in the project root. If it doe
 | `sprint refine` | Interactive UI/UX refinement with user | See `references/sprint-refine.md` |
 | `sprint done` | Finalize and commit the sprint | See `references/sprint-done.md` |
 | `sprint hotfix` | Quick fix without full sprint ceremony | See `references/sprint-hotfix.md` |
+| `sprint help` | Show command list and usage guide | See `references/sprint-help.md` |
 | `sprint auto` | Execute one sprint fully autonomously | See `references/sprint-auto.md` |
 | `sprint propose` | Discuss and add new features to roadmap | See `references/sprint-propose.md` |
 | `sprint roadmap` | Generate full roadmap from VISION | See `references/sprint-roadmap.md` |
@@ -68,6 +69,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - `references/sprint-refine.md` — refine (interactive UI/UX adjustment) command details
 - `references/sprint-done.md` — done command details
 - `references/sprint-hotfix.md` — hotfix (quick fix without sprint ceremony) command details
+- `references/sprint-help.md` — help (command list and usage guide)
 - `references/sprint-auto.md` — auto (fully autonomous single sprint) command details
 - `references/sprint-propose.md` — propose (add new features to roadmap) command details
 - `references/sprint-roadmap.md` — roadmap generation from VISION command details
