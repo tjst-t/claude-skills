@@ -73,11 +73,11 @@ After user approval:
 
 ```json
 {
-  "sprint_range": ["S003", "S004", "S005"],
+  "sprint_range": ["Sc7d2a1", "Sd9b2f1", "Se8a4c3"],
   "screens": [
     {
       "file": "prototype/dashboard.html",
-      "story": "S003-1",
+      "story": "Sc7d2a1-1",
       "feedback_rounds": 2,
       "approved": true
     }
@@ -108,5 +108,5 @@ When called from autopilot (no user present for review):
 - **Plain HTML only**: No build tools, no frameworks, no npm. The prototype must be viewable by opening the HTML file directly.
 - **Realistic data**: Use sample data that matches the endpoint contract tables from gui-spec. Don't use "Lorem ipsum" for data fields — use plausible values.
 - **data-testid alignment**: The prototype establishes the `data-testid` contract. Implementation and Playwright tests must match these.
-- **Prototype is disposable**: The `prototype/` directory is a design reference, not production code. It is not deployed. Add `prototype/` to `.gitignore` after the milestone is complete if desired.
+- **Prototype is a design reference, not production code**: The `prototype/` directory is not deployed. Once a Sprint completes, its prototype files are archived to `prototype/old/{SprintID}/` by `sprint done` (see `sprint-done.md`). This keeps the top of `prototype/` focused on screens still pending implementation, while preserving past designs as a viewable reference.
 - **Design quality matters**: Use `/frontend-design` skill. The prototype should look like a real product, not a wireframe. This is what the user is approving.
