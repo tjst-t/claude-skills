@@ -2,9 +2,13 @@
 
 Finalize the Sprint and update tracking.
 
-1. Read `docs/ROADMAP.json`
-2. Mark the current Sprint as complete (change status to `[DONE]`)
-3. Update all Stories and Tasks to `[x]` if not already
+1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):
+   ```bash
+   jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
+   ```
+   The full slice is needed here because step 5 will snapshot it.
+2. Mark the current Sprint as complete via `jq` mutation (change status to `done`)
+3. Update all Stories and Tasks to `done` if not already (in-place `jq` mutations — do not rewrite the whole file)
 4. **Update the Progress section** at the top of the roadmap (counts, progress bar, current marker in Execution Order)
 5. **Snapshot and compact the completed Sprint in ROADMAP.json.** Done Sprints accumulate in ROADMAP.json and inflate the file Claude reads on every sprint command. To keep ROADMAP.json focused on active work without losing any historical detail:
    1. **Snapshot first (mandatory before compaction).** Write `docs/sprint-logs/{SprintID}/sprint.json` containing the full Sprint entry exactly as it was in ROADMAP.json — title, description, milestone flag, every story with its user_story / acceptance_criteria (with statuses) / tasks, plus the matching `dependencies[SprintID]` entry if one exists. Use the `sprint` schema in `references/SPRINT_LOGS_SCHEMA.json`. If writing the snapshot fails for any reason (disk error, permission, validation), STOP — do not proceed to compaction. Data preservation is non-negotiable.

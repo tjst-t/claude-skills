@@ -2,7 +2,11 @@
 
 Execute the current Sprint. Stories are parallelized where dependencies allow, using sub-agents with worktree isolation.
 
-1. Read `docs/ROADMAP.json` and identify the current Sprint (same logic as `sprint plan`)
+1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):
+   ```bash
+   jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
+   ```
+   This returns the Sprint with all its Stories, AC, and Tasks — do NOT Read the entire ROADMAP.json.
 
 2. **Analyze Story dependencies and build execution waves:**
    - Parse any inter-Story dependencies (explicit in the Dependencies section or implicit from Task descriptions)
@@ -38,7 +42,7 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
    **Step 4 — Merge and complete:**
    - The main agent merges each Story's worktree branch into the current branch (e.g., `git merge --no-ff {branch}`)
    - Resolve any merge conflicts (if parallel Stories touched the same files, fix conflicts and re-run tests)
-   - Mark each Story and its Tasks as `[x]` in `docs/ROADMAP.json`, with the following additional gate for GUI Stories:
+   - Mark each Story and its Tasks as `[x]` in `docs/ROADMAP.json` via in-place `jq` mutation (see SKILL.md "Roadmap Reading Patterns" — use `.sprints[$s].stories[$st].status = "done"` style writes, not full-file rewrites), with the following additional gate for GUI Stories:
      - Mock tests pass (`*.mock.spec.ts`) ✓
    - **For non-GUI Stories with acceptance criteria**: Verify that acceptance test files exist and pass. If no test file exists, the sub-agent must generate one before marking `[x]`.
    - Log the review results to `docs/sprint-logs/{SprintID}/`

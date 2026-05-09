@@ -24,13 +24,18 @@ Create a dedicated branch for this Sprint's autonomous work:
 ### 1. Autonomous Plan
 
 Same as `sprint plan` but fully autonomous:
-- Read `docs/ROADMAP.json`, `docs/VISION.json`, `docs/DESIGN_PRINCIPLES.json`
+- Read `docs/VISION.json`, `docs/DESIGN_PRINCIPLES.json` (full files — these are short)
+- Read only the slice you need from `docs/ROADMAP.json` (see SKILL.md "Roadmap Reading Patterns"): top-level structure to find the next unfinished Sprint, then that Sprint's slice
+  ```bash
+  jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone}))}' docs/ROADMAP.json
+  jq --arg id "<NextSprintID>" '.sprints[$id]' docs/ROADMAP.json
+  ```
 - Identify the next unfinished Sprint
 - Validate and rewrite user stories autonomously
 - Evaluate story granularity — if a Story is overloaded, split it autonomously based on VISION and DESIGN_PRINCIPLES guidance
 - Run `gui-spec` in **autonomous mode** (see gui-spec SKILL.md "Autonomous Mode" section — all scenarios are derived and confirmed without user interaction)
 - Log all planning decisions to `docs/sprint-logs/{SprintID}/decisions.json`
-- Update `docs/ROADMAP.json` with any changes
+- Update `docs/ROADMAP.json` with any changes via in-place `jq` mutations (see SKILL.md)
 
 **No user confirmation.** All decisions are logged.
 

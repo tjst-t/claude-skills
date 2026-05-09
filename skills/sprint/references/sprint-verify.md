@@ -4,7 +4,10 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
 
 ## Phase 1: Completeness check
 
-1. Read `docs/ROADMAP.json` and identify the current Sprint
+1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):
+   ```bash
+   jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
+   ```
 2. Use a subagent to perform a comprehensive review:
    - Compare every Task in the Sprint against the actual code changes and test logs in `docs/sprint-logs/{SprintID}/`
    - Check for any Tasks marked incomplete or missing implementation
@@ -35,7 +38,7 @@ Perform the following before invoking `/review`:
 
 ### Step 3: Acceptance criteria traceability check
 
-6. For each Story in the Sprint, read its acceptance criteria from `docs/ROADMAP.json`
+6. For each Story in the Sprint, read its acceptance criteria from `docs/ROADMAP.json` (already loaded from the slice above; if a re-read is needed, use the AC-only pattern from SKILL.md to avoid a full-file read)
 7. For each acceptance criterion, verify a corresponding test exists:
    - GUI Stories: look for `[AC-{StoryID}-{N}]` tagged tests in `*.e2e.spec.ts`
    - Non-GUI Stories: look for test functions named with the acceptance criterion reference
@@ -74,4 +77,4 @@ Collect any out-of-scope issues discovered during the completeness check, smoke 
 
 ## Phase 3: Finalize
 
-8. Update `docs/ROADMAP.json` to reflect the verified state (including any backlog items approved in Phase 2.5)
+8. Update `docs/ROADMAP.json` to reflect the verified state via in-place `jq` mutations (see SKILL.md "Roadmap Reading Patterns"), including any backlog items approved in Phase 2.5

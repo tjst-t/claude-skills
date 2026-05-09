@@ -52,7 +52,11 @@ Present the Stories to the user for feedback:
 
 ### 4. Place in roadmap
 
-Read `docs/ROADMAP.json` and determine where to insert the new work:
+Read the top-level structure (no Sprint bodies) — see SKILL.md "Roadmap Reading Patterns":
+```bash
+jq '{progress, execution_order, dependencies, backlog, sprints: (.sprints | map_values({title, status, milestone}))}' docs/ROADMAP.json
+```
+This is enough to decide placement. If a specific Sprint's body is needed for closer inspection, fetch that Sprint by ID separately. Determine where to insert the new work:
 
 **Analyze dependencies:**
 - Does the new work depend on existing Stories/Sprints?

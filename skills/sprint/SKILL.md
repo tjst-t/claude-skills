@@ -2,7 +2,7 @@
 name: sprint
 description: Manages Agile Sprint lifecycle — plan, prototype, run, verify, demo, refine, done. Generates roadmaps, executes sprints autonomously, and tracks progress via docs/ROADMAP.json.
 when_to_use: Use for sprint commands (plan/run/verify/demo/done/refine/prototype/hotfix/auto/roadmap/propose/init/compact), story/task workflows, roadmap management. Also triggers on "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して", "機能追加したい", "こういうの欲しい", "モック見せて", "プロトタイプ", "ちょっと直して", "バグ修正", "ROADMAP圧縮", "過去のスプリントをまとめて圧縮".
-allowed-tools: Read Grep Glob Bash(git *) Bash(make *)
+allowed-tools: Read Grep Glob Bash(git *) Bash(make *) Bash(jq *)
 ---
 
 # Sprint Runner
@@ -58,6 +58,36 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Acceptance criteria traceability**: Every acceptance criterion in ROADMAP.json must have a corresponding test tagged with `[AC-{StoryID}-{N}]`. sprint verify checks this mapping and creates missing tests.
 - **Auto mode logs all decisions**: During `sprint auto`, every decision (planning, implementation, review) must be logged to `docs/sprint-logs/{SprintID}/decisions.json` with rationale referencing VISION.json or DESIGN_PRINCIPLES.json. Work happens on an `autopilot/{base-branch}/{SprintID}` branch, not directly on the base branch.
 - **All data files are JSON**: ROADMAP, VISION, DESIGN_PRINCIPLES, and all sprint-logs use JSON format. See `references/ROADMAP_SCHEMA.json` and `references/SPRINT_LOGS_SCHEMA.json` for structure. ARCHITECTURE.md and CLAUDE.md remain Markdown.
+
+## Roadmap Reading Patterns
+
+To minimize tokens, sprint commands MUST read only the slice they need from `docs/ROADMAP.json` via `jq` (Bash tool), NOT the whole file via Read. Reading the entire ROADMAP just to look at one Sprint is the single largest source of avoidable token waste in this skill.
+
+| Pattern | Command | Use cases |
+|---|---|---|
+| Current Sprint slice | `jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json` | sprint run / verify / demo / refine / done / prototype / auto |
+| Sprint by ID | `jq --arg id "<SprintID>" '.sprints[$id]' docs/ROADMAP.json` | targeted lookups (dependencies, history) |
+| Top-level structure (no Sprint bodies) | `jq '{progress, execution_order, dependencies, sprints: (.sprints \| map_values({title, status, milestone}))}' docs/ROADMAP.json` | sprint plan (initial scan), sprint propose (placement decision) |
+| Backlog only | `jq '.backlog' docs/ROADMAP.json` | backlog operations (sprint hotfix, propose) |
+| Single Story | `jq --arg s "<SprintID>" --arg st "<StoryID>" '.sprints[$s].stories[$st]' docs/ROADMAP.json` | single-Story workflows |
+| Acceptance criteria of current Sprint | `jq '.sprints[.progress.current_sprint].stories \| to_entries[] \| {story: .key, ac: .value.acceptance_criteria}' docs/ROADMAP.json` | sprint verify Phase 1.5 traceability |
+| Whole file (legitimate) | Read tool | sprint init / roadmap / compact only — these rewrite the whole file |
+
+**Writes**: prefer in-place `jq` mutation; do not Read the whole file just to modify one field.
+
+```bash
+# Mark a Task done (no full read needed)
+jq --arg s "$SPRINT" --arg st "$STORY" --arg t "$TASK" \
+  '.sprints[$s].stories[$st].tasks[$t].status = "done"' \
+  docs/ROADMAP.json > /tmp/roadmap.json && mv /tmp/roadmap.json docs/ROADMAP.json
+
+# Replace a whole Sprint entry (read slice → modify → write slice back)
+jq --arg s "$SPRINT" --argjson new "$NEW_ENTRY_JSON" \
+  '.sprints[$s] = $new' \
+  docs/ROADMAP.json > /tmp/roadmap.json && mv /tmp/roadmap.json docs/ROADMAP.json
+```
+
+When a reference file says "Read `docs/ROADMAP.json`", interpret it as "Read the relevant slice via the appropriate pattern above".
 
 ## Reference Files
 

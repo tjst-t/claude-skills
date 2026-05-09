@@ -2,8 +2,11 @@
 
 Demonstrate the Sprint's deliverables to the user by running the actual program. Run this after `sprint verify`.
 
-1. Read `docs/ROADMAP.json` and identify the current Sprint
-2. Read the Sprint's Stories and Tasks to understand what was built
+1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):
+   ```bash
+   jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
+   ```
+2. The slice already contains Stories and Tasks — no further reads needed
 3. Read `docs/ARCHITECTURE.md` and `CLAUDE.md` to determine the startup command
 
 ## Determine the startup command (in priority order)

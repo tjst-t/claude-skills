@@ -47,16 +47,11 @@ The user describes what to fix. No story format needed, no acceptance criteria â
 
 ### 5. Optional: Log to ROADMAP
 
-If the user wants tracking, add an entry to the `backlog` array in `docs/ROADMAP.json` with `"status": "done"`:
+If the user wants tracking, append an entry to the `backlog` array in `docs/ROADMAP.json` with an in-place `jq` mutation (see SKILL.md "Roadmap Reading Patterns" â€” do not Read the whole ROADMAP for this):
 
-```json
-{
-  "title": "Fix login button size",
-  "description": "Increased padding and font-size per user feedback",
-  "added_in": "hotfix",
-  "reason": "User request",
-  "status": "done"
-}
+```bash
+jq --argjson new '{"title":"Fix login button size","description":"Increased padding and font-size per user feedback","added_in":"hotfix","reason":"User request","status":"done"}' \
+  '.backlog += [$new]' docs/ROADMAP.json > /tmp/roadmap.json && mv /tmp/roadmap.json docs/ROADMAP.json
 ```
 
 Only do this if the user asks for it. Most hotfixes don't need tracking.

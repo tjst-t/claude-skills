@@ -13,7 +13,10 @@ This phase is **always interactive**. It cannot run in auto mode. During autopil
 
 ### 1. Start the refinement session
 
-1. Read `docs/ROADMAP.json` to identify the current Sprint and its Stories
+1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):
+   ```bash
+   jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
+   ```
 2. Confirm the server is running. If not, start it.
 3. Tell the user:
    - Which URL(s) to visit

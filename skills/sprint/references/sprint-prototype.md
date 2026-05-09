@@ -17,7 +17,16 @@ Generate a clickable HTML prototype of all GUI Stories up to the next milestone.
 
 ### 1. Identify GUI scope
 
-1. Read `docs/ROADMAP.json`
+1. Read only the slice you need (see SKILL.md "Roadmap Reading Patterns"):
+   - Standalone invocation: current Sprint slice
+     ```bash
+     jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
+     ```
+   - Autopilot invocation (multiple Sprints up to next milestone): top-level structure to find the milestone boundary, then per-Sprint slices for Sprints in scope
+     ```bash
+     jq '{progress, execution_order, sprints: (.sprints | map_values({title, status, milestone}))}' docs/ROADMAP.json
+     ```
+     then for each in-scope Sprint: `jq --arg id "<SprintID>" '.sprints[$id]' docs/ROADMAP.json`
 2. Determine the scope:
    - If called from autopilot: collect all GUI Stories from the current Sprint up to the next milestone
    - If called standalone: collect GUI Stories from the current Sprint only

@@ -2,7 +2,15 @@
 
 Prepare the next sprint. This is a collaborative phase with the user.
 
-1. Read `docs/ROADMAP.json`
+1. **Read only what is needed from `docs/ROADMAP.json`** (see SKILL.md "Roadmap Reading Patterns"):
+   - Top-level structure to find the next Sprint and check dependencies:
+     ```bash
+     jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone}))}' docs/ROADMAP.json
+     ```
+   - Then the slice of the next unfinished Sprint:
+     ```bash
+     jq --arg id "<NextSprintID>" '.sprints[$id]' docs/ROADMAP.json
+     ```
 2. Identify the next unfinished Sprint according to the **Execution Order** (not document order or ID order)
 3. Present to the user:
    - The Sprint's goal and scope (Stories and Tasks to execute)
@@ -27,5 +35,5 @@ Prepare the next sprint. This is a collaborative phase with the user.
    - If GUI Stories are found, it conducts dialogue with the user to elicit scenarios, generate a state diagram, and produce Playwright acceptance tests.
    - If no GUI Stories are found, it returns immediately and `sprint plan` continues.
    - Do NOT skip this step even if the Sprint seems straightforward — let `gui-spec` make the determination.
-7. After all items are resolved, update `docs/ROADMAP.json` if any changes were agreed upon (scope changes, task additions, acceptance criteria added by `gui-spec`, etc.)
+7. After all items are resolved, update `docs/ROADMAP.json` if any changes were agreed upon (scope changes, task additions, acceptance criteria added by `gui-spec`, etc.). Use targeted `jq` mutations (see SKILL.md) — do not rewrite the whole file just to update one Sprint's entry.
 8. **Update the Progress section** if any changes were made.
