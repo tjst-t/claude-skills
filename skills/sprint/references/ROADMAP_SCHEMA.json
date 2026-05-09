@@ -13,8 +13,7 @@
       "acceptance_criteria": ["pass", "fail", "pending", "no_test"]
     },
     "progress_rules": "Only one sprint can be in_progress at a time. A story is done only when all tasks are done. A sprint is done only when all stories are done.",
-    "milestone": "Set to true at natural review points. sprint plan and sprint roadmap manage milestone placement.",
-    "compaction": "When a Sprint reaches status `done`, `sprint done` first writes the full Sprint entry to `docs/sprint-logs/{SprintID}/sprint.json` (see SPRINT_LOGS_SCHEMA.json `sprint`), then replaces the entry in this file with the compact form: {title, status, milestone, snapshot, stories: {<StoryID>: {title, status}, ...}}. Description, user_story, acceptance_criteria, tasks are dropped from ROADMAP.json — they live in the snapshot. This keeps ROADMAP.json focused on active work without losing any history. Sprints with status `partial`/`blocked`/`needs_human` are NOT compacted."
+    "milestone": "Set to true at natural review points. sprint plan and sprint roadmap manage milestone placement."
   },
   "project": "Project Name",
   "description": "One-line project description",
@@ -29,20 +28,34 @@
   "execution_order": ["Sa3f9c2", "Sb1e4d8", "Sc7d2a1"],
   "sprints": {
     "Sa3f9c2": {
-      "$comment": "Compact form. status=done Sprints are stored this way after sprint done compacts them. Full body lives at the snapshot path.",
       "title": "Sprint title",
       "status": "done",
+      "description": "What this sprint achieves and why",
       "milestone": false,
-      "snapshot": "docs/sprint-logs/Sa3f9c2/sprint.json",
       "stories": {
         "Sa3f9c2-1": {
           "title": "Story title",
-          "status": "done"
+          "status": "done",
+          "user_story": "{役割}として、{やりたいこと}をしたい。なぜなら、{理由}だから。",
+          "acceptance_criteria": [
+            {
+              "id": "AC-Sa3f9c2-1-1",
+              "description": "Verifiable behavior in user terms",
+              "test": "[AC-Sa3f9c2-1-1] in story-slug.e2e.spec.ts",
+              "status": "pass"
+            }
+          ],
+          "tasks": {
+            "Sa3f9c2-1-1": {
+              "title": "Task title",
+              "description": "What to implement",
+              "status": "done"
+            }
+          }
         }
       }
     },
     "Sb1e4d8": {
-      "$comment": "Full form. in_progress / pending / partial / blocked Sprints keep all fields. Compaction happens only at sprint done.",
       "title": "Second sprint",
       "status": "in_progress",
       "description": "Description",
