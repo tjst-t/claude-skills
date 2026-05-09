@@ -11,6 +11,7 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
    - Check for any Tasks that were implemented but not marked complete
    - **For GUI Stories**: Verify that `npx playwright test` passes for each Story's test file. If any tests are failing, treat this as an incomplete Task and execute the missing work immediately.
    - **API mock contract check**: For GUI Stories, compare the data shapes returned by Playwright test mocks against the actual backend handler implementations. Pay special attention to pagination response wrappers (`items` wrapper presence/absence). If mocks diverge from the real API, fix the tests immediately.
+   - **Time-domain AC check**: For each AC whose `description` contains the `[time-domain]` tag, the linked test must contain (a) a progression sampler that captures state at multiple ms offsets inside `page.evaluate`, AND (b) a final-state assertion. A test that consists only of `await page.waitForTimeout(...)` followed by a single state assertion is rejected as the **forbidden pattern** (see gui-spec SKILL Phase 4C) — replace it with a progression-sampling test before continuing. This is non-negotiable: time-domain regressions routinely pass final-state-only tests while the user-visible motion is broken.
 3. If gaps are found, execute the missing work immediately
 
 ## Phase 1.5: E2E tests and acceptance criteria verification
@@ -45,9 +46,9 @@ Perform the following before invoking `/review`:
 ```markdown
 | Story | Acceptance Criterion | Test | Status |
 |-------|---------------------|------|--------|
-| S002-1 | AC-1: VM list displays after login | [AC-S002-1-1] in vm-list.e2e.spec.ts | ✅ Pass |
-| S002-1 | AC-2: VM can be started | [AC-S002-1-2] in vm-list.e2e.spec.ts | ✅ Pass |
-| S002-2 | AC-1: User can create organization | test_create_org in acceptance_test.go | ✅ Pass |
+| Sb1e4d8-1 | AC-1: VM list displays after login | [AC-Sb1e4d8-1-1] in vm-list.e2e.spec.ts | ✅ Pass |
+| Sb1e4d8-1 | AC-2: VM can be started | [AC-Sb1e4d8-1-2] in vm-list.e2e.spec.ts | ✅ Pass |
+| Sb1e4d8-2 | AC-1: User can create organization | test_create_org in acceptance_test.go | ✅ Pass |
 ```
 
 > **Why this step exists**: Mock tests (run during sprint-run) verify frontend behavior in isolation. E2E tests verify the full stack works together. The acceptance criteria traceability check ensures nothing was forgotten — every requirement has a test, and every test passes.

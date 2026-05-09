@@ -20,6 +20,7 @@ Elicits GUI specifications through structured dialogue, then generates Playwrigh
 - **Autonomous mode**: When invoked from `sprint auto`, skip all user confirmation steps. Auto-decide every aspect, write the spec document, and log decisions to `decisions.json`.
 - **Read the handler, not the type name**: Always read the actual backend handler for response field names. Never infer from type names or frontend conventions.
 - **Assert POST bodies in mock tests**: For every mutation, inspect `route.request().postDataJSON()` and assert required fields. In E2E tests, verify via GET that the mutation persisted instead.
+- **Time-domain AC require progression sampling**: An AC about animation, smooth scroll, transition, debounce/throttle, or async layout coordination (`[time-domain]` tag) cannot be verified by a final-state-only assertion. See Phase 4C.
 
 ## When to Use
 
@@ -87,7 +88,7 @@ Real end-to-end tests that run against the actual server (no mocks). These verif
 - Use `data-testid` attributes for all selectors (never CSS classes or text content)
 - **No `page.route()` mocks** — tests hit the real backend
 - Cover: happy path and every acceptance criterion from the ROADMAP
-- **Name tests with acceptance criterion reference**: `[AC-{StoryID}-{N}] {description}` (e.g., `[AC-S002-1-1] should show VM list after login`). This enables traceability from acceptance criteria → test.
+- **Name tests with acceptance criterion reference**: `[AC-{StoryID}-{N}] {description}` (e.g., `[AC-Sb1e4d8-1-1] should show VM list after login`). This enables traceability from acceptance criteria → test.
 - Each test must set up its own test data via API calls in `test.beforeEach()` and clean up in `test.afterEach()`
 - Tests assume the server is already running (`make serve`) — do not start the server within tests
 - Use a dedicated test user/token for authentication (documented in CLAUDE.md)
@@ -113,6 +114,50 @@ Frontend-only tests using `page.route()` mocks. These verify UI behavior for sta
 For examples, see [references/test-examples.md](references/test-examples.md).
 
 **When mock tests run**: During `sprint run` (per-Story, fast feedback loop).
+
+#### 4C: Time-domain AC tests
+
+Some acceptance criteria are about WHAT happens DURING an action, not just the final state — animation, smooth scroll, transition, debounce/throttle behavior, or interaction with async layout (Shiki / mermaid / image loading). For these, asserting only the final state is insufficient: a mid-flight regression (animation stops short, transition stutters, debounced action fires twice) can pass a final-state assertion if some later mechanism (instant pin, retry, fallback) ends up at the right state anyway. The user sees the broken motion; the test doesn't.
+
+**When to mark an AC as time-domain**
+
+Trigger words in the AC: animation, smooth scroll, transition, debounce, throttle, lazy render, fade, slide, progression. If the AC is about a static result (button click → modal appears, form submit → URL changes), it is NOT time-domain — final-state testing is fine.
+
+**AC schema for time-domain**
+
+Tag the AC `description` field with `[time-domain]` and break the requirement into three parts:
+
+- **trigger**: the user action under test (click, scroll, focus, ...)
+- **progression**: the time series the assertion is *about* (sampled state at fixed ms offsets, monotonic constraints, threshold by t=N ms, etc.)
+- **final**: the steady-state condition
+
+Example:
+
+> `AC-Sb1e4d8-1-3 [time-domain]`: **trigger**: 500-turn conversation, click ↓ button (smooth scroll). **progression**: `scrollTop` sampled every 100ms must be monotonically non-decreasing during 0–1500ms; at t=500ms `scrollTop` must exceed 50% of final `scrollTop` (proves animation actually progresses, not stuck). **final**: at t=2500ms, `scrollHeight − scrollTop − clientHeight < 4`.
+
+**Playwright probe template**
+
+Time-domain tests include a progression sampler in addition to the final assertion. The sampler runs INSIDE `page.evaluate` (in the browser, not from Node) so the loop does not pay Playwright IPC latency between samples — otherwise a 100ms cadence drifts to 200–300ms and the time domain shifts under you.
+
+For a working example, see [references/test-examples.md](references/test-examples.md) "Time-domain Test Example".
+
+**Forbidden pattern**
+
+A time-domain AC must NOT be tested only as:
+
+```typescript
+await page.getByTestId('scroll-to-bottom').click();
+await page.waitForTimeout(5000);  // generous final wait
+const gap = await page.evaluate(() => {
+  const el = document.querySelector('[data-testid="scroll-container"]')!;
+  return el.scrollHeight - el.scrollTop - el.clientHeight;
+});
+expect(gap).toBeLessThan(4);
+```
+
+This passes even when the smooth animation stalls mid-way and a later fallback (interval pin, instant snap, retry) ends up at the right state. The user-visible motion remains broken. `sprint verify` rejects this pattern (see sprint-verify Phase 1).
+
+**When time-domain tests run**: Same as E2E tests — during `sprint verify` against the real server.
 
 ### Phase 4.5: Endpoint contract table
 
