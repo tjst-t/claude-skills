@@ -1,5 +1,40 @@
 {
   "$comment": "Schema and examples for all sprint log JSON files under docs/sprint-logs/{SprintID}/",
+  "sprint": {
+    "$file": "sprint.json",
+    "$comment": "Full snapshot of the Sprint entry from ROADMAP.json, written by `sprint done` BEFORE compacting the ROADMAP entry. This is the authoritative historical record of what the Sprint contained — descriptions, user stories, acceptance criteria, tasks. Compacting ROADMAP.json must NEVER lose any information that is not also present here.",
+    "id": "Sb1e4d8",
+    "title": "Sprint title",
+    "status": "done",
+    "description": "What this sprint achieved and why",
+    "milestone": true,
+    "stories": {
+      "Sb1e4d8-1": {
+        "title": "Story title",
+        "status": "done",
+        "user_story": "{役割}として、{やりたいこと}をしたい。なぜなら、{理由}だから。",
+        "acceptance_criteria": [
+          {
+            "id": "AC-Sb1e4d8-1-1",
+            "description": "Verifiable behavior in user terms",
+            "test": "[AC-Sb1e4d8-1-1] in story-slug.e2e.spec.ts",
+            "status": "pass"
+          }
+        ],
+        "tasks": {
+          "Sb1e4d8-1-1": {
+            "title": "Task title",
+            "description": "What was implemented",
+            "status": "done"
+          }
+        }
+      }
+    },
+    "dependencies": {
+      "depends_on": ["Sa3f9c2"],
+      "reason": "Sb1e4d8 builds on the API from Sa3f9c2"
+    }
+  },
   "decisions": {
     "$file": "decisions.json",
     "$comment": "Autonomous decisions made during the sprint",
