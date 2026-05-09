@@ -163,7 +163,11 @@ For each Sprint until the next milestone boundary:
    - `partial` without fix Sprint → continue to next Sprint, log incomplete Stories
    - `needs_human` → stop and trigger milestone demo early so the user can address the blocker
 5. Merge the Sprint's `autopilot/{base-branch}/{SprintID}` branch into the working branch
-6. Proceed to the next Sprint
+6. **Delete the merged Sprint branch** (local + remote) — once successfully merged, the branch is no longer needed for recovery:
+   - Local: `git branch -d autopilot/{base-branch}/{SprintID}` (use `-d` lowercase, NOT `-D`; git refuses to delete unmerged branches, which is the safety net)
+   - Remote: `git push origin --delete autopilot/{base-branch}/{SprintID}` (skip silently if the branch was never pushed or is already gone)
+   - If `-d` refuses because git considers the branch unmerged (e.g., the merge produced no commit due to fast-forward edge cases), verify the merge actually landed in the working branch's history (`git log --oneline {working-branch} | grep {SprintID}` or `git merge-base --is-ancestor`). Only if confirmed merged, proceed with deletion; otherwise leave the branch and log a warning.
+7. Proceed to the next Sprint
 
 ### Step 3: Milestone demo and refine
 
@@ -191,6 +195,7 @@ When autopilot finishes (all milestones reached, user stops, or error):
 
 1. **Release branch lock**: Delete `.claude/autopilot-{branch-sanitized}.lock`
 2. **Final worktree cleanup**: Run `git worktree list` and remove any remaining worktrees from this autopilot session that were already merged
+3. **Sweep merged Sprint branches**: List autopilot branches matching `autopilot/{base-branch-sanitized}/*` (local: `git branch --list 'autopilot/{base}/*'`; remote: `git branch -r --list 'origin/autopilot/{base}/*'`). For each, attempt `git branch -d` (local) and `git push origin --delete` (remote). `-d` (lowercase) leaves unmerged branches alone, so this is safe — anything still present after the sweep is genuinely unmerged work that needs the user's attention. Report the list of unmerged-and-kept branches at the end so the user can decide whether to merge or discard them.
 
 ## Milestone Detection
 
@@ -224,7 +229,7 @@ Show the state of the most recent autopilot run. This command reads logs — it 
 - **Never skip milestones**: Even if everything looks fine, always stop at milestone boundaries. The user's review is the alignment mechanism.
 - **Drift logging, not drift blocking**: If a decision seems to conflict with VISION/PRINCIPLES, log the concern but don't stop execution. The milestone review handles corrections.
 - **Preserve user agency**: The user can always interrupt autopilot. If the user sends any message during execution, pause and respond before continuing.
-- **Incremental commits**: Each Sprint is committed and pushed on its own `autopilot/{base-branch}/{SprintID}` branch. If autopilot is interrupted, all completed Sprints are preserved and can be merged independently.
+- **Incremental commits**: Each Sprint is committed and pushed on its own `autopilot/{base-branch}/{SprintID}` branch. If autopilot is interrupted before merging, completed-but-unmerged Sprints are preserved and can be merged manually. **Once a Sprint branch is successfully merged into the working branch, it is deleted** (local + remote) — the merge commit is the recovery point; the branch is no longer load-bearing. Only unmerged branches should ever survive an autopilot run.
 - **Context management**: Each Sprint runs in a dedicated sub-agent to prevent context window exhaustion. The main autopilot conversation only tracks Sprint-level status, decision summaries, and drift flags — it does not accumulate implementation details.
 - **Branch-level locking**: Only one autopilot session per branch. Multiple branches can run autopilot concurrently — they are isolated by branch-namespaced worktree paths and branch names (`autopilot/{base-branch}/{SprintID}`).
 - **Always release the lock**: On normal completion, interruption, or error, delete the lock file. If the lock is stale (process no longer running), allow override.
