@@ -35,7 +35,7 @@ Same as `sprint plan` but fully autonomous:
 - Evaluate story granularity — if a Story is overloaded, split it autonomously based on VISION and DESIGN_PRINCIPLES guidance
 - Run `gui-spec` in **autonomous mode** (see gui-spec SKILL.md "Autonomous Mode" section — all scenarios are derived and confirmed without user interaction)
 - Log all planning decisions to `docs/sprint-logs/{SprintID}/decisions.json`
-- Update `docs/ROADMAP.json` with any changes via in-place `jq` mutations (see SKILL.md)
+- Update `docs/ROADMAP.json` with any changes via in-place `jq` mutations — see SKILL.md "Writes" for the named filters (Mark Sprint/Story/Task/AC status, Recompute progress, Add new Sprint, Append to execution_order, Add dependency, Append to backlog, etc.)
 
 **No user confirmation.** All decisions are logged.
 
@@ -77,10 +77,13 @@ Autonomous execution cannot ask the user for help. The default behavior is **kee
 **When the fix is outside the current Sprint's scope:**
 
 If the root cause is in code that belongs to a different Sprint (e.g., missing DB migration, incomplete API from a prior Sprint, infrastructure not yet set up):
-1. Create a new fix Story in the Backlog of `docs/ROADMAP.json` with a clear description of what needs to be fixed and why
-2. Insert a new Sprint (or add the fix Story to the next unfinished Sprint) in the execution order, **before** the current Sprint
-3. Mark the current Story as `[ ]` with a dependency note: `Depends on: {fix Story ID}`
-4. Mark the current Sprint as `partial` and return — autopilot will execute the fix Sprint next, then retry the current Sprint
+1. Append a fix description to the Backlog of `docs/ROADMAP.json` via the "Append to backlog" filter (see SKILL.md "Writes"):
+   ```bash
+   jq --argjson item "$ITEM" '.backlog += [$item]' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
+   ```
+2. Insert a new Sprint (or add the fix Story to the next unfinished Sprint) in the execution order, **before** the current Sprint, using the "Add new Sprint" + "Insert into execution_order at index" filters from SKILL.md.
+3. Mark the current Story as `pending` with a dependency note: `--arg s --arg st --arg dep '.sprints[$s].stories[$st].status = "pending" | .sprints[$s].stories[$st].depends_on = $dep'`
+4. Mark the current Sprint as `partial` (`.sprints[$s].status = "partial"` filter) and return — autopilot will execute the fix Sprint next, then retry the current Sprint
 
 This ensures scope-external problems are resolved autonomously rather than escalated to the user.
 
@@ -90,7 +93,12 @@ This ensures scope-external problems are resolved autonomously rather than escal
 
 When escalating:
 - Log the full diagnosis to `docs/sprint-logs/{SprintID}/failures.json`: what was tried, why each attempt failed, and why Claude Code cannot resolve it
-- Mark the Story as incomplete: add `⚠️ NEEDS_HUMAN: {reason}` to the Story entry in ROADMAP.json
+- Mark the Story as incomplete via in-place `jq` mutation:
+  ```bash
+  jq --arg s "$SPRINT" --arg st "$STORY" --arg r "$REASON" \
+    '.sprints[$s].stories[$st].status = "blocked" | .sprints[$s].stories[$st].needs_human = $r' \
+    docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
+  ```
 - The milestone review will surface this to the user
 
 ### Other failures

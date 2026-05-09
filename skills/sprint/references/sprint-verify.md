@@ -72,9 +72,15 @@ This is a final review of the entire Sprint's changes as a whole. Story-level re
 Collect any out-of-scope issues discovered during the completeness check, smoke test, or code review that are NOT bugs in the current Sprint but warrant future attention (e.g., tech debt, missing tests in unrelated modules, performance concerns, refactoring opportunities). Present them to the user:
 - For each item, provide a short title and one-line description
 - Ask the user which items to add to the Backlog section of `docs/ROADMAP.json`
-- Only add items the user approves
+- For each approved item, use the "Append to backlog" filter from SKILL.md:
+  ```bash
+  jq --argjson item "$ITEM" '.backlog += [$item]' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
+  ```
 - If no out-of-scope issues were found, skip this step
 
 ## Phase 3: Finalize
 
-8. Update `docs/ROADMAP.json` to reflect the verified state via in-place `jq` mutations (see SKILL.md "Roadmap Reading Patterns"), including any backlog items approved in Phase 2.5
+8. Update `docs/ROADMAP.json` to reflect the verified state via in-place `jq` mutations (see SKILL.md "Writes"). Concrete filters:
+   - **Mark each AC pass/fail**: "Mark AC status" filter, one invocation per AC
+   - **Mark Stories that completed verification as `done`**: "Mark Story status" filter
+   - Backlog items approved in Phase 2.5 already appended above

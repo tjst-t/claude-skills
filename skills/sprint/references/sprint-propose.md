@@ -80,13 +80,32 @@ Present the proposed placement with rationale:
 
 After the user confirms:
 
-1. **Generate a Sprint ID if creating a new Sprint.** Run `openssl rand -hex 3` and prepend `S` (e.g., output `a3f9c2` → ID `Sa3f9c2`). Random IDs prevent collisions when multiple worktrees create Sprints in parallel — never reuse a sequential `S001` style number for new Sprints. Verify the generated ID does not already exist in `ROADMAP.json` (collision probability is ~1 in 16M, but check anyway); regenerate if it does.
-2. Add the new Stories (and new Sprint if applicable) to `docs/ROADMAP.json`. Story IDs follow `{SprintID}-{number}`, Task IDs follow `{SprintID}-{story_number}-{task_number}`.
-3. Update the **Execution Order** section (the `execution_order` array is the source of truth for ordering — IDs are unordered)
-4. Update the **Dependencies** section
-5. Update the **Progress** section (total sprint count, progress bar)
-6. Add `[MILESTONE]` markers if the new work creates a natural review boundary
-7. If any existing Sprint references were shifted, verify consistency
+All updates use in-place `jq` mutations (see SKILL.md "Writes") — never Read or rewrite the whole file.
+
+1. **Generate a Sprint ID if creating a new Sprint.** Run `openssl rand -hex 3` and prepend `S` (e.g., output `a3f9c2` → ID `Sa3f9c2`). Verify uniqueness via `jq --arg id "$NEW" '.sprints | has($id)' docs/ROADMAP.json`; regenerate if `true`.
+2. **Add the new Sprint** (if applicable) using the "Add new Sprint" filter:
+   ```bash
+   jq --arg s "$NEW" --argjson body "$BODY" '.sprints[$s] = $body' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
+   ```
+   `$BODY` is the full Sprint object (title, description, status: "pending", milestone, stories with their AC and tasks). Story IDs follow `{SprintID}-{number}`, Task IDs follow `{SprintID}-{story_number}-{task_number}`.
+   For adding Stories to an existing Sprint, replace just that Sprint's `stories` map (or append individual stories with `--arg s --arg sid --argjson story '.sprints[$s].stories[$sid] = $story'`).
+3. **Update execution_order** with the "Insert into execution_order at index" filter (use `index` to find the insertion point relative to a known Sprint), or "Append to execution_order" for end placement.
+4. **Update dependencies** with the "Add a dependency" filter:
+   ```bash
+   jq --arg s "$NEW" --argjson dep '{"depends_on":["..."],"reason":"..."}' '.dependencies[$s] = $dep' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
+   ```
+5. **Update Progress**: combine "Update progress total" and "Recompute progress counts" filters in one jq invocation:
+   ```bash
+   jq '
+     .progress.total = (.sprints | length)
+     | .progress.done = ([.sprints[] | select(.status == "done")] | length)
+     | .progress.in_progress = ([.sprints[] | select(.status == "in_progress")] | length)
+     | .progress.remaining = (.progress.total - .progress.done - .progress.in_progress)
+     | .progress.percentage = (if .progress.total > 0 then (.progress.done * 100 / .progress.total | floor) else 0 end)
+   ' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
+   ```
+6. **Set milestone flag** if the new work creates a natural review boundary: `jq --arg s "$NEW" '.sprints[$s].milestone = true' ...`
+7. If any existing Sprint references were shifted, verify consistency by re-reading `execution_order` and the `dependencies` map.
 
 ### 6. GUI spec (if applicable)
 

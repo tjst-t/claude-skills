@@ -35,5 +35,10 @@ Prepare the next sprint. This is a collaborative phase with the user.
    - If GUI Stories are found, it conducts dialogue with the user to elicit scenarios, generate a state diagram, and produce Playwright acceptance tests.
    - If no GUI Stories are found, it returns immediately and `sprint plan` continues.
    - Do NOT skip this step even if the Sprint seems straightforward — let `gui-spec` make the determination.
-7. After all items are resolved, update `docs/ROADMAP.json` if any changes were agreed upon (scope changes, task additions, acceptance criteria added by `gui-spec`, etc.). Use targeted `jq` mutations (see SKILL.md) — do not rewrite the whole file just to update one Sprint's entry.
-8. **Update the Progress section** if any changes were made.
+7. After all items are resolved, update `docs/ROADMAP.json` with the agreed changes via targeted `jq` mutations (see SKILL.md "Writes"). Concrete filters depending on what changed:
+   - **Story rewritten**: `--arg s --arg st --argjson body '.sprints[$s].stories[$st] = $body'`
+   - **Story split into N**: replace the original story with the new ones using a single jq with `del` + multiple `=`, then increment any task numbering as needed
+   - **Tasks added**: "Add Task to a Story" filter
+   - **AC added by gui-spec**: "Append AC to a Story" filter (per Story)
+   - Do NOT Read the whole file then rewrite it.
+8. **Update the Progress section** if Sprint count or status changed: use the "Recompute progress counts" filter (and "Update progress total" if `total` itself changed).

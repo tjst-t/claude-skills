@@ -42,7 +42,14 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
    **Step 4 — Merge and complete:**
    - The main agent merges each Story's worktree branch into the current branch (e.g., `git merge --no-ff {branch}`)
    - Resolve any merge conflicts (if parallel Stories touched the same files, fix conflicts and re-run tests)
-   - Mark each Story and its Tasks as `[x]` in `docs/ROADMAP.json` via in-place `jq` mutation (see SKILL.md "Roadmap Reading Patterns" — use `.sprints[$s].stories[$st].status = "done"` style writes, not full-file rewrites), with the following additional gate for GUI Stories:
+   - Mark each Story and its Tasks as `done` in `docs/ROADMAP.json` via in-place `jq` mutation (see SKILL.md "Writes"). Concrete filter — combine Story + all Tasks of that Story in one jq invocation:
+     ```bash
+     jq --arg s "$SPRINT" --arg st "$STORY" '
+       .sprints[$s].stories[$st].status = "done"
+       | .sprints[$s].stories[$st].tasks |= map_values(.status = "done")
+     ' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
+     ```
+     For GUI Stories, the additional gate before marking done:
      - Mock tests pass (`*.mock.spec.ts`) ✓
    - **For non-GUI Stories with acceptance criteria**: Verify that acceptance test files exist and pass. If no test file exists, the sub-agent must generate one before marking `[x]`.
    - Log the review results to `docs/sprint-logs/{SprintID}/`
@@ -50,6 +57,10 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
 4. **Backlog proposals**: After all waves are complete, collect any out-of-scope issues discovered during implementation or review (e.g., tech debt, missing error handling in unrelated code, potential improvements noticed by sub-agents). Sub-agents should return these as a separate "out-of-scope findings" list alongside their implementation results. Present them to the user as backlog candidates:
    - For each item, provide a short title and one-line description
    - Ask the user which items to add to the Backlog section of `docs/ROADMAP.json`
+   - For each approved item, append via the "Append to backlog" filter from SKILL.md:
+     ```bash
+     jq --argjson item "$ITEM" '.backlog += [$item]' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
+     ```
    - Only add items the user approves
    - If no out-of-scope issues were found, skip this step
 
