@@ -3,7 +3,7 @@
   "decisions": {
     "$file": "decisions.json",
     "$comment": "Autonomous decisions made during the sprint",
-    "sprint": "S002",
+    "sprint": "Sb1e4d8",
     "decisions": [
       {
         "timestamp": "2026-05-01T14:32:00Z",
@@ -17,14 +17,14 @@
   "acceptance_matrix": {
     "$file": "acceptance-matrix.json",
     "$comment": "Traceability from acceptance criteria to tests",
-    "sprint": "S002",
+    "sprint": "Sb1e4d8",
     "matrix": {
-      "S002-1": [
+      "Sb1e4d8-1": [
         {
-          "criterion": "AC-S002-1-1",
+          "criterion": "AC-Sb1e4d8-1-1",
           "description": "User can see VM list after login",
           "test_file": "vm-list.e2e.spec.ts",
-          "test_name": "[AC-S002-1-1] should display VM list after login",
+          "test_name": "[AC-Sb1e4d8-1-1] should display VM list after login",
           "status": "pass",
           "error": null
         }
@@ -34,7 +34,7 @@
   "e2e_results": {
     "$file": "e2e-results.json",
     "$comment": "E2E and acceptance test execution results",
-    "sprint": "S002",
+    "sprint": "Sb1e4d8",
     "run_at": "2026-05-01T16:00:00Z",
     "server_command": "make serve",
     "summary": {
@@ -45,7 +45,7 @@
     },
     "tests": [
       {
-        "name": "[AC-S002-1-1] should display VM list",
+        "name": "[AC-Sb1e4d8-1-1] should display VM list",
         "file": "vm-list.e2e.spec.ts",
         "status": "pass",
         "duration_ms": 1200,
@@ -56,7 +56,7 @@
   "refine": {
     "$file": "refine.json",
     "$comment": "Interactive refinement changes from user feedback",
-    "sprint": "S002",
+    "sprint": "Sb1e4d8",
     "refinements": [
       {
         "id": 1,
@@ -71,10 +71,10 @@
   "failures": {
     "$file": "failures.json",
     "$comment": "Unresolved failures and blockers",
-    "sprint": "S002",
+    "sprint": "Sb1e4d8",
     "failures": [
       {
-        "story": "S002-3",
+        "story": "Sb1e4d8-3",
         "type": "needs_human",
         "summary": "LDAP credentials required",
         "attempts": [
@@ -90,8 +90,8 @@
   "gui_spec": {
     "$file": "gui-spec-{StoryID}.json",
     "$comment": "GUI specification for a Story — state diagram + endpoint contracts",
-    "sprint": "S002",
-    "story": "S002-1",
+    "sprint": "Sb1e4d8",
+    "story": "Sb1e4d8-1",
     "state_diagram": "stateDiagram-v2\n    [*] --> Empty: page load (no data)\n    Empty --> Loading: user clicks Add\n    Loading --> Populated: API success\n    Loading --> Error: API failure",
     "scenarios": {
       "entry_point": "Direct URL /vms",

@@ -69,19 +69,20 @@ Read `docs/ROADMAP.json` and determine where to insert the new work:
 | **Append at the end** | No dependencies on existing work, can wait |
 
 Present the proposed placement with rationale:
-- "I recommend creating Sprint S005 after S003 because it depends on the API from S003 but is independent of S004. Here's the updated execution order: S001 → S002 → S003 → **S005** → S004"
+- "I recommend creating a new Sprint (proposed ID `Sd9b2f1`) after `Sc7d2a1` because it depends on the API from `Sc7d2a1` but is independent of `Sb1e4d8`. Here's the updated execution order: `Sa3f9c2` → `Sb1e4d8` → `Sc7d2a1` → **`Sd9b2f1`** → ..."
 - Ask the user to confirm or adjust
 
 ### 5. Update ROADMAP.json
 
 After the user confirms:
 
-1. Add the new Stories (and new Sprint if applicable) to `docs/ROADMAP.json`
-2. Update the **Execution Order** section
-3. Update the **Dependencies** section
-4. Update the **Progress** section (total sprint count, progress bar)
-5. Add `[MILESTONE]` markers if the new work creates a natural review boundary
-6. If any existing Sprint references were shifted, verify consistency
+1. **Generate a Sprint ID if creating a new Sprint.** Run `openssl rand -hex 3` and prepend `S` (e.g., output `a3f9c2` → ID `Sa3f9c2`). Random IDs prevent collisions when multiple worktrees create Sprints in parallel — never reuse a sequential `S001` style number for new Sprints. Verify the generated ID does not already exist in `ROADMAP.json` (collision probability is ~1 in 16M, but check anyway); regenerate if it does.
+2. Add the new Stories (and new Sprint if applicable) to `docs/ROADMAP.json`. Story IDs follow `{SprintID}-{number}`, Task IDs follow `{SprintID}-{story_number}-{task_number}`.
+3. Update the **Execution Order** section (the `execution_order` array is the source of truth for ordering — IDs are unordered)
+4. Update the **Dependencies** section
+5. Update the **Progress** section (total sprint count, progress bar)
+6. Add `[MILESTONE]` markers if the new work creates a natural review boundary
+7. If any existing Sprint references were shifted, verify consistency
 
 ### 6. GUI spec (if applicable)
 

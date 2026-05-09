@@ -16,7 +16,7 @@ This command is designed to be called by the `autopilot` skill for multi-sprint 
 Create a dedicated branch for this Sprint's autonomous work:
 - Determine the current base branch name: `git branch --show-current` (e.g., `main`, `feature/auth`)
 - Sanitize the branch name for use in paths: replace `/` with `-` (e.g., `feature/auth` → `feature-auth`)
-- `git checkout -b autopilot/{base-branch-sanitized}/{SprintID}` from the current branch (e.g., `autopilot/main/S003`, `autopilot/feature-auth/S003`)
+- `git checkout -b autopilot/{base-branch-sanitized}/{SprintID}` from the current branch (e.g., `autopilot/main/Sc7d2a1`, `autopilot/feature-auth/Sc7d2a1`)
 - All commits during this Sprint happen on this branch
 - The branch is merged back into the base branch during `sprint done` or at the autopilot milestone review
 - This naming convention prevents branch collisions when multiple autopilot sessions run on different branches simultaneously
@@ -118,12 +118,12 @@ All autonomous decisions MUST be logged to `docs/sprint-logs/{SprintID}/decision
 # Sprint {SprintID} — Autonomous Decisions
 
 ## Planning Decisions
-- **Story S001-3 split**: Split into S001-3 and S001-4 because the original had CRUD + search in one story. Guided by DESIGN_PRINCIPLES: "one story = one user-facing behavior".
+- **Story Sa3f9c2-3 split**: Split into Sa3f9c2-3 and Sa3f9c2-4 because the original had CRUD + search in one story. Guided by DESIGN_PRINCIPLES: "one story = one user-facing behavior".
 - **GUI spec: login form entry point**: Auto-selected direct URL `/login` — standard pattern, no ambiguity.
 
 ## Implementation Decisions
 - **Auth middleware approach**: Chose JWT over session cookies. Rationale: VISION.json specifies stateless API, DESIGN_PRINCIPLES prefers "existing library > custom".
-- **Backlog added**: "Refactor legacy error handler" — found during Story S001-2 implementation.
+- **Backlog added**: "Refactor legacy error handler" — found during Story Sa3f9c2-2 implementation.
 
 ## Review Decisions
 - **Naming convention fix**: Renamed `getData` to `fetchOrganizations` — specificity rule from DESIGN_PRINCIPLES.

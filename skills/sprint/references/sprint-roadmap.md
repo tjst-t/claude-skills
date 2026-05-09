@@ -52,10 +52,12 @@ Based on VISION and ARCHITECTURE, design a roadmap following these principles:
 
 Write `docs/ROADMAP.json` using the format defined in `references/ROADMAP_SCHEMA.json`. Include:
 - Progress section (initial state: all sprints at 0%)
-- Execution order with milestone markers
+- Execution order with milestone markers (the `execution_order` array is the source of truth for ordering — IDs themselves are random and unordered)
 - All Sprints with Stories and Tasks
 - Dependencies section
 - Backlog section (include any items from existing ROADMAP if present, plus anything that's in-scope but not yet prioritized)
+
+**Sprint ID generation**: For each new Sprint, generate a random ID with `openssl rand -hex 3` and prepend `S` (e.g., `Sa3f9c2`). Random IDs prevent collisions when multiple worktrees create Sprints in parallel. Verify each generated ID is unique within the roadmap before using it. If migrating from an existing ROADMAP that uses sequential IDs (S001, S002...), keep those IDs unchanged — only generate random IDs for newly created Sprints.
 
 ### 4. Present for review
 

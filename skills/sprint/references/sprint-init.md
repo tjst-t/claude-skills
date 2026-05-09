@@ -12,7 +12,8 @@ Initialize or migrate a project's roadmap to the standard format.
    - Map sub-items → Tasks under the appropriate Story
    - Items that don't clearly belong to a sprint go into the Backlog section
    - Preserve all existing information — do not silently drop items
-4. If no existing roadmap is found, create a blank template at `docs/ROADMAP.json`
+   - **Sprint IDs**: If the source uses sequential IDs (S001, S002, ...) keep them as-is — they are valid and permanent. If the source has no Sprint IDs, generate random ones using `openssl rand -hex 3` (prepend `S`, e.g., `Sa3f9c2`). Do not renumber existing IDs.
+4. If no existing roadmap is found, create a blank template at `docs/ROADMAP.json`. Generate any new Sprint IDs with `openssl rand -hex 3` (prepend `S`).
 5. Use the schema defined in `references/ROADMAP_SCHEMA.json`
 6. Create the `docs/` directory if it doesn't exist
 7. Add `docs/sprint-logs/` to `.gitignore` if not already present (logs are ephemeral)
