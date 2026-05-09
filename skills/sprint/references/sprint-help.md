@@ -12,6 +12,7 @@ Present the following table:
 【セットアップ】
   sprint init       ロードマップの初期化・既存mdからの移行
   sprint roadmap    VISIONからロードマップを一括生成
+  sprint compact    過去の完了スプリントをROADMAPから一括圧縮（移行用）
 
 【スプリントの実行（順番に実行）】
   sprint plan       次のスプリントを計画する
