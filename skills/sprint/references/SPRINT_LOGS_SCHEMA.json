@@ -45,7 +45,26 @@
         "duration_ms": 850,
         "error": "Timeout waiting for [data-testid=vm-status-vm-1]"
       }
-    ]
+    ],
+    "diff_coverage": {
+      "$comment": "Rule 6 — user-observable additions in this Sprint's diff and how each is covered. Resolution is one of: covered (test exists), added_test (new test added during verify), reverted (out-of-scope, removed), needs_human (escalated).",
+      "surfaces": [
+        {
+          "type": "api",
+          "identifier": "POST /api/v1/vms",
+          "introduced_in_files": ["internal/api/vm_handler.go", "internal/api/router.go"],
+          "resolution": "covered",
+          "test": "[AC-Sb1e4d8-1-1] should display VM list after login"
+        },
+        {
+          "type": "cli",
+          "identifier": "--verbose flag on `vm status`",
+          "introduced_in_files": ["cmd/myapp/vm/status.go"],
+          "resolution": "added_test",
+          "test": "TestAC_Sb1e4d8_2_3_VerboseOutput"
+        }
+      ]
+    }
   },
   "refine": {
     "$file": "refine.json",

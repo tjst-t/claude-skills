@@ -2,10 +2,11 @@
 
 Finalize the Sprint and update tracking.
 
-0. **Test execution gate (mandatory)** — enforces `references/test-discipline.md` Rules 3 and 5:
+0. **Test execution gate (mandatory)** — enforces `references/test-discipline.md` Rules 3, 5, and 6:
    - `verification-results.json` exists with `summary.skip == 0` and `summary.fail == 0`. Missing file → verify did not complete; refuse to proceed.
    - Every AC of every Story in the Sprint is listed in `acceptance_criteria` of at least one test entry whose `status` is `pass`. Any AC without such an entry blocks `sprint done`.
    - Every Story has a scenario artifact (`scenario-{StoryID}.json` or `gui-spec-{StoryID}.json`) whose scenarios' `linked_ac` are all covered by passing tests in `verification-results.json`.
+   - `verification-results.json` contains a `diff_coverage` block (Rule 6) with every entry's `resolution` set to `covered` or `added_test`. Any entry with `resolution: "needs_human"` or absent block `sprint done`.
    - On failure: surface the specific gap, do NOT downgrade or fabricate, stop. User decides between escalating as `needs_human` or fixing the gap.
 
 1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):

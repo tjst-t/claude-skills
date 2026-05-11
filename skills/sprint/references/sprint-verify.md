@@ -39,6 +39,28 @@ All test-shape rules live in `references/test-discipline.md`. This phase applies
 6. Read acceptance criteria for each Story from `docs/ROADMAP.json`.
 7. For every AC, verify at least one test in `verification-results.json` lists it in `acceptance_criteria` AND has `status: "pass"`. Naming convention for the test: GUI uses `[AC-{StoryID}-{N}]` in `*.e2e.spec.ts`; non-GUI uses test functions named with the AC reference.
 8. Missing test → create, run, and ensure it appears in `verification-results.json`. Failing test → fix and re-run. Skipped / pending / not-actually-executed → treat as failure (Rule 3); never claim `pass` for a test that did not run (Rule 5).
+
+### Step 3.5: Diff coverage scan (Rule 6)
+
+Verify that everything **implemented** in this Sprint — not just what was **declared** — is exercised by a passing test.
+
+10. Compute the Sprint's diff against its base branch: `git diff --name-status {base}..HEAD` plus per-file content diffs as needed.
+11. Collect the "user-observable additions" reports from each implementation sub-agent (returned during `sprint run` — Rule 6). Treat them as a starting list, not the final list.
+12. Independently enumerate user-observable surfaces added in the diff (per `test-discipline.md` Rule 6 categories):
+    - **API**: grep for new route registrations (`router.{get,post,put,patch,delete}(`, `app.{get,post,...}(`, `@app.route`, `routes.{get,...}`, etc.) and new request/response fields; compare against base branch.
+    - **CLI**: scan command/flag definitions (e.g., `cobra.Command`, `argparse.add_argument`, `commander.option`, `clap`) for new entries.
+    - **GUI**: scan route definitions (`<Route path=...>`, file-based routing additions under `pages/` or `app/`) and new interactive components (`data-testid` additions on actionable elements).
+    - **Library**: scan new exported names in the package's public surface (e.g., `export function`, capital-letter names in Go, new `__all__` entries in Python).
+13. For each enumerated surface, confirm at least one test in `verification-results.json` exercises it. The match rule is shape-specific:
+    - API route → a test whose name or `file` indicates it issues a request to that exact `{method} {path}`
+    - CLI flag/subcommand → a test that spawns the binary with that flag/subcommand in its `action` step
+    - GUI screen/component → a real-browser test that navigates to the route / interacts with the component's `data-testid`
+    - Library export → a consumer-style test that imports and calls the symbol
+14. **For every untested addition**, choose one resolution and apply it now:
+    - **Add coverage**: write an AC + scenario step + test, run it, update `verification-results.json`. Preferred when the addition is intentional and in scope.
+    - **Revert**: remove the addition from the diff. Use when it's scope creep that wasn't approved.
+    - **Escalate**: if neither (a) nor (b) is feasible, log to `failures.json` with the surface name and why it can't be tested, mark the Story `partial` / `needs_human`, and stop. The user decides.
+15. Log the diff coverage scan results (enumerated additions and their resolution status) to `verification-results.json` under a top-level `diff_coverage` field, so `sprint done` can confirm it ran.
 9. For human readability, render a markdown traceability table at the end of the verify summary (derived from `verification-results.json`, not stored as a separate file):
 
 ```markdown

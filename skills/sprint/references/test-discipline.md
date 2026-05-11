@@ -2,7 +2,7 @@
 
 The single source of truth for what counts as a valid test in this skill. `sprint plan`, `sprint run`, `sprint verify`, `sprint done`, `sprint auto`, and `gui-spec` all defer to this document. When something here changes, no other file needs to change.
 
-## The Five Rules
+## The Six Rules
 
 ### 1. Every Story has a user scenario
 
@@ -58,6 +58,30 @@ Any hit on the network surface in an `*.e2e.spec.ts` is rejected.
 
 Writing `pass` / `done` for tests that did not actually run in this Sprint is forbidden. `verification-results.json` is a record of executed verifications, not an aspirational checklist.
 
+### 6. What you ship is what you test
+
+Rules 1–5 ensure that everything *declared* (AC, scenarios) is tested. Rule 6 ensures that everything *implemented* is tested — including behaviors a sub-agent added "for completeness" without an AC. The Sprint's diff is the source of truth for what was implemented; every user-observable surface added in that diff must be exercised by a passing test in this Sprint's `verification-results.json`.
+
+A "user-observable surface" added in the Sprint is anything a user could reach through their entry point. Examples:
+
+- **API**: a new HTTP route registered in the router (`GET /api/v1/foo`, `POST /api/v1/bar`), or a new field added to an existing route's request/response
+- **CLI**: a new subcommand, a new flag, a new positional argument, or a new output mode (verbose, json, etc.)
+- **GUI**: a new screen / page route, a new interactive component (button, form, modal, drawer), a new visible state (empty / error / loading variants exposed to the user)
+- **Library**: a new exported function, type, or constant
+
+Internal helpers (unexported functions, private classes, internal modules not reachable from a user entry point) are NOT individually required to have dedicated tests — they're covered transitively by the tests that drive the user surface.
+
+**During `sprint verify`**, scan the Sprint's diff against its base branch and enumerate every user-observable surface added. For each, confirm at least one passing test in `verification-results.json` exercises it:
+
+- API route: a test issues a real HTTP request to that exact path+method
+- CLI flag: a test spawns the binary with that flag and asserts on the resulting output
+- GUI screen / component: a real-browser test navigates to it / clicks it
+- Library export: a consumer-style test imports and calls it
+
+If an addition is untested, the resolution is **one of**: (a) add an AC + scenario step + test in this Sprint, (b) revert the addition as out-of-scope, or (c) escalate as `needs_human` if Claude Code genuinely cannot decide. Silently shipping untested user-observable behavior is forbidden.
+
+**During `sprint run`**, each implementation sub-agent must report a "user-observable additions" list alongside its results, so `sprint verify` has a head start instead of rediscovering everything from scratch.
+
 ## What disqualifies a test
 
 A test does not count toward Sprint completion if it:
@@ -70,7 +94,11 @@ A test does not count toward Sprint completion if it:
 - Bypasses auth, routing, middleware, or serialization that real consumers must go through (Rule 2)
 - For CLI: invokes via `go run` or chained build steps that bypass the produced artifact in a way the user wouldn't (Rule 2)
 
-If the only feasible way to make a test pass is to violate one of these, escalate as `needs_human` — do not weaken the test.
+A Sprint also fails the gate if (Rule 6):
+
+- The Sprint's diff introduces a user-observable surface (new route, new flag, new screen, new export) that no test in `verification-results.json` exercises
+
+If the only feasible way to make a test pass — or to cover an addition — is to violate one of these, escalate as `needs_human`. Do not weaken the test, do not silently ship the untested addition.
 
 ## Escalation
 
