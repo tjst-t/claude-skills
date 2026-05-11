@@ -65,6 +65,15 @@ Same as `sprint done` but:
 
 Autonomous execution cannot ask the user for help. The default behavior is **keep trying until fixed**. Only give up when further attempts cannot possibly succeed.
 
+### Prohibited shortcuts
+
+Auto mode runs without a human in the loop, so silently degrading verification means the user discovers the regression later. **All five rules in `references/test-discipline.md` apply identically under auto mode** — no exceptions for "the Sprint needs to complete". In addition:
+
+- **Do not delete or weaken an acceptance criterion** to make the implementation match. AC are user-facing intent — only the user drops them.
+- **Do not reclassify a GUI Story as non-GUI** to escape the Playwright requirement (see `gui-spec` Phase 1).
+
+If a test cannot pass within these rules, escalate per `test-discipline.md` "Escalation". The temptation to bypass a rule is itself the signal to escalate.
+
 ### Test failures (mock tests, E2E tests, acceptance tests)
 
 **Loop until fixed:**

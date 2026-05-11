@@ -87,6 +87,35 @@
       }
     ]
   },
+  "scenario": {
+    "$file": "scenario-{StoryID}.json",
+    "$comment": "User scenario for a non-GUI Story (CLI, API, library). GUI Stories use gui-spec-{StoryID}.json instead. See sprint/references/story-scenarios.md for the full taxonomy and rules.",
+    "story": "Sb1e4d8-2",
+    "story_type": "cli",
+    "user_role": "operator running deploys from their laptop",
+    "entry_point": "myapp binary on $PATH",
+    "scenarios": [
+      {
+        "id": "scenario-1",
+        "linked_ac": ["AC-Sb1e4d8-2-1", "AC-Sb1e4d8-2-2"],
+        "description": "Operator starts a stopped VM and confirms it is running",
+        "preconditions": ["A VM named vm-123 exists in stopped state"],
+        "steps": [
+          {
+            "n": 1,
+            "action": "user runs `myapp vm start vm-123`",
+            "expected": "exit code 0; stdout contains `started vm-123`"
+          },
+          {
+            "n": 2,
+            "action": "user runs `myapp vm status vm-123`",
+            "expected": "exit code 0; stdout contains `state: running`"
+          }
+        ],
+        "cleanup": ["stop vm-123"]
+      }
+    ]
+  },
   "gui_spec": {
     "$file": "gui-spec-{StoryID}.json",
     "$comment": "GUI specification for a Story — state diagram + endpoint contracts",

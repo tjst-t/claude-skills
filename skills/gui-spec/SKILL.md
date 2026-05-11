@@ -13,7 +13,7 @@ Elicits GUI specifications through structured dialogue, then generates Playwrigh
 
 - **Auto-decide, then confirm once**: Reason through all aspects autonomously, auto-select when recommendations are clear, and present a single summary for user confirmation. Only ask individual questions when a design decision is genuinely ambiguous with meaningful trade-offs.
 - **Diagram before tests**: Present the state diagram as part of the scenario summary. Tests derived from an unconfirmed diagram will likely be wrong.
-- **Two test files per Story**: E2E tests (real server, acceptance criteria) and mock tests (error/edge cases). Never mix them in the same file.
+- **Two test files per Story**: E2E tests (real server, acceptance criteria) and mock tests (error/edge cases). Never mix them in the same file. The E2E shape is governed by `sprint/references/test-discipline.md` Rules 2 and 4 (real browser, real backend, no network mocks, UI-state assertions).
 - **E2E tests trace to acceptance criteria**: Every E2E test name must start with `[AC-{StoryID}-{N}]` matching an acceptance criterion in ROADMAP.json. Every acceptance criterion must have at least one E2E test.
 - **data-testid is mandatory**: If the implementation doesn't have `data-testid` attributes, Playwright tests become fragile. This is a non-negotiable convention.
 - **Short-circuit if no GUI**: If no Stories in the Sprint involve GUI, skip immediately and return to `sprint plan`.
@@ -30,12 +30,20 @@ Called from `sprint plan` when one or more Stories involve GUI work. Do **not** 
 
 ### Phase 1: Detect GUI Stories
 
-Analyze the Sprint's Stories and Tasks. A Story involves GUI if it mentions:
-- Component, screen, page, view, form, modal, dialog, drawer, panel
-- UI, UX, frontend, React, htmx
-- "display", "show", "render", "interact", "click", "input"
+Analyze the Sprint's Stories and Tasks. A Story involves GUI if **any** of the following holds:
 
-If no GUI Stories are found, skip this skill entirely and return to `sprint plan`.
+1. **Project-level signal (default-on rule)**: The project has a frontend stack — i.e., `package.json` lists React / Vue / Svelte / Solid / Preact / Angular / Next / Nuxt / Remix / Astro, OR the codebase contains `htmx` / Hotwire / Phoenix LiveView / similar server-rendered interactive templates. **In such projects, any Story that exposes a feature a user can observe in a browser is a GUI Story by default**, even if the wording focuses on backend behavior. The only exceptions are Stories that are *exclusively* CLI / batch / internal-API / library work with no user-visible browser surface.
+2. **Story wording**: Mentions component, screen, page, view, form, modal, dialog, drawer, panel; UI, UX, frontend, React, htmx; or verbs like "display", "show", "render", "interact", "click", "input".
+3. **Acceptance criteria**: An AC describes something a user sees or does in a browser (e.g., "user sees X", "the list updates", "a toast appears").
+
+**Classifying a Story as non-GUI is a high-cost decision** — it removes the Playwright E2E requirement and the user has explicitly asked for end-to-end frontend↔backend verification. Do not use the non-GUI label as an escape hatch for "I'd rather just curl the API". If the project has a frontend AND the feature will eventually be reachable from the UI, treat it as GUI.
+
+When you do classify a Story as non-GUI, log a decision entry to `docs/sprint-logs/{SprintID}/decisions.json` with:
+- The Story ID and title
+- The reason it has no browser-observable surface (be specific: "this is a cron job that writes to S3, no UI consumes it in this Sprint")
+- A reference to the codebase / VISION justifying the classification
+
+If no GUI Stories remain after applying the rules above, skip this skill entirely and return to `sprint plan`.
 
 ### Phase 2: Derive Scenarios (one Story at a time)
 
@@ -82,17 +90,15 @@ Generate **two separate test files** per GUI Story. Each serves a different purp
 
 #### 4A: E2E Tests — `tests/e2e/{story-slug}.e2e.spec.ts`
 
-Real end-to-end tests that run against the actual server (no mocks). These verify that the full stack works together.
+Real end-to-end tests that run a real browser against the real running backend. The full shape (real browser, no network mocks, UI-affordance interactions, UI-state assertions, real-login auth) is defined by `sprint/references/test-discipline.md` Rules 2 and 4 — that document is the authority; this section adds only what is specific to writing the file:
 
-**Rules for E2E tests:**
 - Use `data-testid` attributes for all selectors (never CSS classes or text content)
-- **No `page.route()` mocks** — tests hit the real backend
-- Cover: happy path and every acceptance criterion from the ROADMAP
-- **Name tests with acceptance criterion reference**: `[AC-{StoryID}-{N}] {description}` (e.g., `[AC-Sb1e4d8-1-1] should show VM list after login`). This enables traceability from acceptance criteria → test.
-- Each test must set up its own test data via API calls in `test.beforeEach()` and clean up in `test.afterEach()`
-- Tests assume the server is already running (`make serve`) — do not start the server within tests
-- Use a dedicated test user/token for authentication (documented in CLAUDE.md)
-- For mutations (POST/PUT/PATCH), verify the change persisted by reading back via GET
+- Cover the happy path and every acceptance criterion from ROADMAP.json
+- **Name tests** with the AC reference: `[AC-{StoryID}-{N}] {description}` (e.g., `[AC-Sb1e4d8-1-1] should show VM list after login`)
+- Each test sets up its own test data via API calls in `test.beforeEach()` and cleans up in `test.afterEach()` — these setup/cleanup hooks are the only place a test may bypass the UI
+- Tests assume the server is already running (`make serve`); do not start the server inside the test
+- Use a dedicated test user/token documented in CLAUDE.md
+- For mutations, verify persistence by reading back **through the UI** (navigate, confirm the item appears), not via direct API or DB query
 
 For examples, see [references/test-examples.md](references/test-examples.md).
 

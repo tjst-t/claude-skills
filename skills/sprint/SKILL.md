@@ -53,7 +53,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Prototype before implementation**: For GUI Stories, run `sprint prototype` after `sprint plan` and before `sprint run`. The approved HTML prototype in `prototype/` is the visual reference for implementation sub-agents. In autopilot, prototyping covers all GUI Stories up to the next milestone.
 - **Two-tier testing**: GUI Stories produce two test files — mock tests (`*.mock.spec.ts`) for error/edge cases, E2E tests (`*.e2e.spec.ts`) for acceptance criteria against the real server. Non-GUI Stories produce acceptance tests in `tests/acceptance/`.
 - **Mock tests gate Story completion in sprint run**: A GUI Story cannot be marked `[x]` in sprint run unless its mock tests pass. E2E tests run later in sprint verify.
-- **E2E tests gate Sprint completion in sprint verify**: All E2E tests and acceptance tests must pass against the real server before the Sprint can proceed to done.
+- **Test discipline is the source of truth**: All five rules — every Story has a user scenario, tests drive the user's entry point (CLI subprocess / real HTTP client / real-browser Playwright / library public API), no silent skips, GUI E2E observes UI state through the real backend, status reflects reality — live in `references/test-discipline.md`. plan / run / verify / done / auto all defer to it. When something feels ambiguous about what a test must look like, read that file.
 - **Acceptance criteria traceability**: Every acceptance criterion in ROADMAP.json must have a corresponding test tagged with `[AC-{StoryID}-{N}]`. sprint verify checks this mapping and creates missing tests.
 - **Auto mode logs all decisions**: During `sprint auto`, every decision (planning, implementation, review) must be logged to `docs/sprint-logs/{SprintID}/decisions.json` with rationale referencing VISION.json or DESIGN_PRINCIPLES.json. Work happens on an `autopilot/{base-branch}/{SprintID}` branch, not directly on the base branch.
 - **All data files are JSON**: ROADMAP, VISION, DESIGN_PRINCIPLES, and all sprint-logs use JSON format. See `references/ROADMAP_SCHEMA.json` and `references/SPRINT_LOGS_SCHEMA.json` for structure. ARCHITECTURE.md and CLAUDE.md remain Markdown.
@@ -140,5 +140,7 @@ When a reference file says "Read `docs/ROADMAP.json`", interpret it as "Read the
 - `references/sprint-auto.md` — auto (fully autonomous single sprint) command details
 - `references/sprint-propose.md` — propose (add new features to roadmap) command details
 - `references/sprint-roadmap.md` — roadmap generation from VISION command details
+- `references/test-discipline.md` — **canonical rules** for tests: user scenarios, entry-point-driven testing, no-silent-skip, real-browser GUI E2E, status truthfulness. Shared by plan / run / verify / done / auto.
+- `references/story-scenarios.md` — user scenario taxonomy and templates (CLI / API / GUI / library), referenced from `test-discipline.md` Rule 1
 - `references/ROADMAP_SCHEMA.json` — roadmap JSON schema and example
-- `references/SPRINT_LOGS_SCHEMA.json` — sprint log JSON schemas (decisions, e2e-results, acceptance-matrix, refine, failures, gui-spec)
+- `references/SPRINT_LOGS_SCHEMA.json` — sprint log JSON schemas (decisions, e2e-results, acceptance-matrix, refine, failures, scenario, gui-spec)

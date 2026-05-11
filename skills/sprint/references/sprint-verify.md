@@ -12,39 +12,33 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
    - Compare every Task in the Sprint against the actual code changes and test logs in `docs/sprint-logs/{SprintID}/`
    - Check for any Tasks marked incomplete or missing implementation
    - Check for any Tasks that were implemented but not marked complete
-   - **For GUI Stories**: Verify that `npx playwright test` passes for each Story's test file. If any tests are failing, treat this as an incomplete Task and execute the missing work immediately.
+   - **Scenario file presence** (`test-discipline.md` Rule 1): every Story has `scenario-{StoryID}.json` (non-GUI) or `gui-spec-{StoryID}.json` (GUI). Missing → derive it now per `story-scenarios.md` before continuing.
+   - **For GUI Stories**: Verify that `npx playwright test` passes for each Story's test file. Failing tests are incomplete Tasks — execute the missing work immediately.
    - **API mock contract check**: For GUI Stories, compare the data shapes returned by Playwright test mocks against the actual backend handler implementations. Pay special attention to pagination response wrappers (`items` wrapper presence/absence). If mocks diverge from the real API, fix the tests immediately.
    - **Time-domain AC check**: For each AC whose `description` contains the `[time-domain]` tag, the linked test must contain (a) a progression sampler that captures state at multiple ms offsets inside `page.evaluate`, AND (b) a final-state assertion. A test that consists only of `await page.waitForTimeout(...)` followed by a single state assertion is rejected as the **forbidden pattern** (see gui-spec SKILL Phase 4C) — replace it with a progression-sampling test before continuing. This is non-negotiable: time-domain regressions routinely pass final-state-only tests while the user-visible motion is broken.
 3. If gaps are found, execute the missing work immediately
 
 ## Phase 1.5: E2E tests and acceptance criteria verification
 
-Perform the following before invoking `/review`:
+All test-shape rules live in `references/test-discipline.md`. This phase applies them.
 
 ### Step 1: Start the real server
 
 1. Run `make serve` (or the project's startup command) to bring up the real server
 2. **Login gate**: Verify that the authentication endpoint the frontend uses exists and returns 200 for the dev token. If it does not exist, create it immediately.
 
-### Step 2: Run E2E tests
+### Step 2: Run tests and validate test shape
 
-3. **For GUI Stories**: Run all E2E test files: `npx playwright test *.e2e.spec.ts`
-   - These tests hit the real server (no mocks) and verify the full stack works together
-   - If any E2E tests fail: analyze the root cause (frontend, backend, or integration), fix, and re-run. **Loop until all tests pass.** If the fix requires changes outside the current Sprint's scope, create a fix Story in the roadmap (sprint auto will handle scheduling). Only escalate to the user (`⚠️ NEEDS_HUMAN`) if the issue genuinely cannot be resolved by Claude Code (missing credentials, undocumented business rules, etc.).
-4. **For non-GUI Stories**: Run backend acceptance tests (e.g., `go test ./tests/acceptance/...` or equivalent)
-   - If no acceptance tests exist for a Story, this is a gap — create them now
-   - If tests fail, follow the same loop-until-fixed approach as GUI E2E tests
-5. Document test results in `docs/sprint-logs/{SprintID}/e2e-results.json`
+3. **For GUI Stories**: Run `npx playwright test *.e2e.spec.ts`. For each `*.e2e.spec.ts`, validate against `test-discipline.md` Rules 2 and 4: real browser, no network mocks (grep `page.route(`, `MSW`, `setupServer`, `fetch.mockImplementation`, `vi.mock`, `jest.mock`), user-affordance interactions, UI-state assertions, real-login auth. Mock tests are **never** a substitute. Any failure or shape violation: fix it, loop, escalate per `test-discipline.md` "Escalation" only if Claude Code genuinely cannot resolve.
+4. **For non-GUI Stories**: Run the project's acceptance test runner. For each test file, validate against `test-discipline.md` Rule 2 by the Story's `story_type` (subprocess for `cli`, real HTTP client for `api`, public API only for `library`). Confirm every scenario step in `scenario-{StoryID}.json` has a corresponding action+assertion. Re-check classification — if the deliverable is browser-observable, it's a GUI Story (Rule 4 applies). Missing tests are a gap; fix now.
+5. Document results in `docs/sprint-logs/{SprintID}/e2e-results.json`. **Gate** (Rule 3): if `summary.skip > 0` or `summary.fail > 0`, the Sprint cannot proceed past Phase 1.5.
 
 ### Step 3: Acceptance criteria traceability check
 
-6. For each Story in the Sprint, read its acceptance criteria from `docs/ROADMAP.json` (already loaded from the slice above; if a re-read is needed, use the AC-only pattern from SKILL.md to avoid a full-file read)
-7. For each acceptance criterion, verify a corresponding test exists:
-   - GUI Stories: look for `[AC-{StoryID}-{N}]` tagged tests in `*.e2e.spec.ts`
-   - Non-GUI Stories: look for test functions named with the acceptance criterion reference
-8. **If any acceptance criterion has no corresponding test**: create the missing test and run it
-9. **If any acceptance criterion's test is failing**: fix the implementation and re-run
-10. Log the traceability matrix to `docs/sprint-logs/{SprintID}/acceptance-matrix.json`:
+6. Read acceptance criteria for each Story from `docs/ROADMAP.json`.
+7. Verify each AC has a corresponding test: GUI Stories use `[AC-{StoryID}-{N}]` tagged tests in `*.e2e.spec.ts`; non-GUI Stories use test functions named with the AC reference.
+8. Missing test → create and run it. Failing test → fix and re-run. Skipped / pending / not-actually-executed → treat as failure (Rule 3); never write `pass` in the matrix for a test that did not run (Rule 5).
+9. Log the traceability matrix to `docs/sprint-logs/{SprintID}/acceptance-matrix.json`:
 
 ```markdown
 | Story | Acceptance Criterion | Test | Status |
