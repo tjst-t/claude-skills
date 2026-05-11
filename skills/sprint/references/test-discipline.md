@@ -26,13 +26,13 @@ Layer-internal tests (unit tests against an internal handler, a fake transport, 
 
 ### 3. No silent skips
 
-Every acceptance criterion's test must complete with status `pass` in the most recent run. The following all count as **NOT executed** and block the Sprint:
+Every acceptance criterion's test must complete with status `pass` in the most recent `verification-results.json`. The following all count as **NOT executed** and block the Sprint:
 
 - `test.skip(...)` / `it.skip(...)` / conditional skip annotations
 - File excluded from the run config
 - Test marked `pending`
 - "Verified manually" / "tested with curl" / "inspected the diff" — none of these are tests
-- Any AC without a corresponding test
+- Any AC without a corresponding test entry in `verification-results.json`
 
 If a test genuinely cannot run (missing credentials, undocumented business rule, environment Claude Code cannot provision), this is a `needs_human` escalation logged to `failures.json`. It is **never** an autonomous decision to skip.
 
@@ -53,10 +53,10 @@ Any hit on the network surface in an `*.e2e.spec.ts` is rejected.
 ### 5. Status reflects reality
 
 - A Story's `status: "done"` requires all its scenario steps to have been executed in a passing test in the most recent run.
-- An AC's `status: "pass"` in `acceptance-matrix.json` requires the linked test to have actually executed and passed in this Sprint's verify run.
-- A Sprint's `status: "done"` requires all of the above for every Story it contains, plus `summary.skip == 0` and `summary.fail == 0` in `e2e-results.json`.
+- An AC's `status: "pass"` in ROADMAP.json requires at least one passing test entry in `verification-results.json` that lists the AC in its `acceptance_criteria` field.
+- A Sprint's `status: "done"` requires all of the above for every Story it contains, plus `summary.skip == 0` and `summary.fail == 0` in `verification-results.json`.
 
-Writing `pass` / `done` for tests that did not actually run in this Sprint is forbidden. The matrix is a record of executed verifications, not an aspirational checklist.
+Writing `pass` / `done` for tests that did not actually run in this Sprint is forbidden. `verification-results.json` is a record of executed verifications, not an aspirational checklist.
 
 ## What disqualifies a test
 

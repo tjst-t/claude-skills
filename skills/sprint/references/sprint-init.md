@@ -33,8 +33,7 @@ Similarly migrate if found:
 - `docs/VISION.md` → `docs/VISION.json` (following VISION_SCHEMA.json from autopilot skill)
 - `docs/DESIGN_PRINCIPLES.md` → `docs/DESIGN_PRINCIPLES.json` (following DESIGN_PRINCIPLES_SCHEMA.json from autopilot skill)
 - `docs/sprint-logs/{SprintID}/decisions.md` → `decisions.json`
-- `docs/sprint-logs/{SprintID}/acceptance-matrix.md` → `acceptance-matrix.json`
-- `docs/sprint-logs/{SprintID}/e2e-results.md` → `e2e-results.json`
+- `docs/sprint-logs/{SprintID}/{e2e-results,acceptance-matrix}.md` → consolidated `verification-results.json` (merge content; the schema is documented in `references/SPRINT_LOGS_SCHEMA.json`)
 - `docs/sprint-logs/{SprintID}/refine.md` → `refine.json`
 - `docs/sprint-logs/{SprintID}/failures.md` → `failures.json`
 - `docs/sprint-logs/{SprintID}/gui-spec-*.md` → `gui-spec-*.json`

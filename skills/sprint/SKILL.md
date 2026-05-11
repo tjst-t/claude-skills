@@ -143,4 +143,4 @@ When a reference file says "Read `docs/ROADMAP.json`", interpret it as "Read the
 - `references/test-discipline.md` — **canonical rules** for tests: user scenarios, entry-point-driven testing, no-silent-skip, real-browser GUI E2E, status truthfulness. Shared by plan / run / verify / done / auto.
 - `references/story-scenarios.md` — user scenario taxonomy and templates (CLI / API / GUI / library), referenced from `test-discipline.md` Rule 1
 - `references/ROADMAP_SCHEMA.json` — roadmap JSON schema and example
-- `references/SPRINT_LOGS_SCHEMA.json` — sprint log JSON schemas (decisions, e2e-results, acceptance-matrix, refine, failures, scenario, gui-spec)
+- `references/SPRINT_LOGS_SCHEMA.json` — sprint log JSON schemas (decisions, verification-results, refine, failures, scenario, gui-spec)

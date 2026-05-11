@@ -15,7 +15,8 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
    - **Scenario file presence** (`test-discipline.md` Rule 1): every Story has `scenario-{StoryID}.json` (non-GUI) or `gui-spec-{StoryID}.json` (GUI). Missing → derive it now per `story-scenarios.md` before continuing.
    - **For GUI Stories**: Verify that `npx playwright test` passes for each Story's test file. Failing tests are incomplete Tasks — execute the missing work immediately.
    - **API mock contract check**: For GUI Stories, compare the data shapes returned by Playwright test mocks against the actual backend handler implementations. Pay special attention to pagination response wrappers (`items` wrapper presence/absence). If mocks diverge from the real API, fix the tests immediately.
-   - **Time-domain AC check**: For each AC whose `description` contains the `[time-domain]` tag, the linked test must contain (a) a progression sampler that captures state at multiple ms offsets inside `page.evaluate`, AND (b) a final-state assertion. A test that consists only of `await page.waitForTimeout(...)` followed by a single state assertion is rejected as the **forbidden pattern** (see gui-spec SKILL Phase 4C) — replace it with a progression-sampling test before continuing. This is non-negotiable: time-domain regressions routinely pass final-state-only tests while the user-visible motion is broken.
+   - **Time-domain AC check**: For each AC tagged `[time-domain]`, the linked test must satisfy the progression-sampler shape defined in `gui-spec/references/time-domain-tests.md`. The forbidden `page.waitForTimeout` + final-state-only pattern is rejected. Replace with a progression sampler before continuing.
+   - **Prototype drift check** (GUI Sprints only): If `prototype/` contains HTML files for this Sprint's Stories, extract every `data-testid` value from those files. For each testid, confirm it appears in the implementation source (frontend components / templates). Missing testids mean the implementation diverged from the approved prototype layout — surface the list to the user and either update the implementation to match or update the prototype to reflect an intentional change. Do not silently accept drift.
 3. If gaps are found, execute the missing work immediately
 
 ## Phase 1.5: E2E tests and acceptance criteria verification
@@ -31,24 +32,23 @@ All test-shape rules live in `references/test-discipline.md`. This phase applies
 
 3. **For GUI Stories**: Run `npx playwright test *.e2e.spec.ts`. For each `*.e2e.spec.ts`, validate against `test-discipline.md` Rules 2 and 4: real browser, no network mocks (grep `page.route(`, `MSW`, `setupServer`, `fetch.mockImplementation`, `vi.mock`, `jest.mock`), user-affordance interactions, UI-state assertions, real-login auth. Mock tests are **never** a substitute. Any failure or shape violation: fix it, loop, escalate per `test-discipline.md` "Escalation" only if Claude Code genuinely cannot resolve.
 4. **For non-GUI Stories**: Run the project's acceptance test runner. For each test file, validate against `test-discipline.md` Rule 2 by the Story's `story_type` (subprocess for `cli`, real HTTP client for `api`, public API only for `library`). Confirm every scenario step in `scenario-{StoryID}.json` has a corresponding action+assertion. Re-check classification — if the deliverable is browser-observable, it's a GUI Story (Rule 4 applies). Missing tests are a gap; fix now.
-5. Document results in `docs/sprint-logs/{SprintID}/e2e-results.json`. **Gate** (Rule 3): if `summary.skip > 0` or `summary.fail > 0`, the Sprint cannot proceed past Phase 1.5.
+5. Document results in `docs/sprint-logs/{SprintID}/verification-results.json` (schema: `verification_results` in SPRINT_LOGS_SCHEMA.json). Each test entry includes its `story` and `acceptance_criteria` fields so traceability is derivable from this single file. **Gate** (Rule 3): if `summary.skip > 0` or `summary.fail > 0`, the Sprint cannot proceed past Phase 1.5.
 
 ### Step 3: Acceptance criteria traceability check
 
 6. Read acceptance criteria for each Story from `docs/ROADMAP.json`.
-7. Verify each AC has a corresponding test: GUI Stories use `[AC-{StoryID}-{N}]` tagged tests in `*.e2e.spec.ts`; non-GUI Stories use test functions named with the AC reference.
-8. Missing test → create and run it. Failing test → fix and re-run. Skipped / pending / not-actually-executed → treat as failure (Rule 3); never write `pass` in the matrix for a test that did not run (Rule 5).
-9. Log the traceability matrix to `docs/sprint-logs/{SprintID}/acceptance-matrix.json`:
+7. For every AC, verify at least one test in `verification-results.json` lists it in `acceptance_criteria` AND has `status: "pass"`. Naming convention for the test: GUI uses `[AC-{StoryID}-{N}]` in `*.e2e.spec.ts`; non-GUI uses test functions named with the AC reference.
+8. Missing test → create, run, and ensure it appears in `verification-results.json`. Failing test → fix and re-run. Skipped / pending / not-actually-executed → treat as failure (Rule 3); never claim `pass` for a test that did not run (Rule 5).
+9. For human readability, render a markdown traceability table at the end of the verify summary (derived from `verification-results.json`, not stored as a separate file):
 
 ```markdown
 | Story | Acceptance Criterion | Test | Status |
 |-------|---------------------|------|--------|
 | Sb1e4d8-1 | AC-1: VM list displays after login | [AC-Sb1e4d8-1-1] in vm-list.e2e.spec.ts | ✅ Pass |
-| Sb1e4d8-1 | AC-2: VM can be started | [AC-Sb1e4d8-1-2] in vm-list.e2e.spec.ts | ✅ Pass |
 | Sb1e4d8-2 | AC-1: User can create organization | test_create_org in acceptance_test.go | ✅ Pass |
 ```
 
-> **Why this step exists**: Mock tests (run during sprint-run) verify frontend behavior in isolation. E2E tests verify the full stack works together. The acceptance criteria traceability check ensures nothing was forgotten — every requirement has a test, and every test passes.
+> **Why this step exists**: Mock tests (run during sprint-run) verify frontend behavior in isolation. E2E tests verify the full stack works together. The traceability check ensures every requirement has a passing test in this Sprint's run.
 
 ## Phase 2: Sprint-level code review via /review
 

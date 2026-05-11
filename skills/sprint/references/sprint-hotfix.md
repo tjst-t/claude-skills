@@ -58,19 +58,7 @@ Only do this if the user asks for it. Most hotfixes don't need tracking.
 
 ## Time-domain UI hotfix
 
-If the bug involves animation, smooth scroll, transition, debounce/throttle, or async-render coordination (Shiki / mermaid / images / debounced input), the regular Flow above is insufficient — final-state-only tests routinely pass while the user-visible motion is broken. Override the Flow as follows:
-
-1. **Mark the AC as `[time-domain]`** — see gui-spec SKILL Phase 4C for the schema (trigger / progression / final). If the AC doesn't exist yet, write it first; if it exists without the tag, add the tag and break it into the three parts.
-2. **Write the progression-sampling Playwright test BEFORE touching the implementation.** The test must assert both:
-   - **intermediate progression** — state captured at multiple ms offsets inside `page.evaluate` (monotonic constraint, threshold by t=N ms, etc.), AND
-   - **final convergence** — the steady-state condition.
-
-   See [gui-spec test-examples.md "Time-domain Test Example"](../../gui-spec/references/test-examples.md) for the template.
-3. **Verify the new test FAILS against the broken implementation.** If it passes against the broken state, the test is wrong (likely a final-state-only assertion that lets the bug slip through). Iterate on the test until it reproduces the user-visible regression.
-4. **Implement the fix.** Iterate until the test passes.
-5. Continue with the regular Flow steps 4 (Commit) and 5 (Optional: Log to ROADMAP).
-
-This workflow exists because UI time-domain regressions (animation stops short, scroll lands in the wrong place, transition stutters) routinely pass final-state-only tests — past incidents needed 10+ iterations to root-cause when the test gap was filled only at the end. A 100ms-cadence sampler reveals stuck states at first sight.
+If the bug involves animation, smooth scroll, transition, debounce/throttle, or async-render coordination, the regular Flow above is insufficient. Follow the "Hotfix workflow for time-domain bugs" in [gui-spec/references/time-domain-tests.md](../../gui-spec/references/time-domain-tests.md) instead: tag the AC `[time-domain]`, write the progression-sampling test FIRST and confirm it fails, then implement the fix and confirm it passes. Continue with this file's Step 4 (Commit) and Step 5 (Optional: Log to ROADMAP).
 
 ## Important Behaviors
 

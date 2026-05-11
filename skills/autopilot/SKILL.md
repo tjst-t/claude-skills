@@ -120,17 +120,10 @@ After `autopilot setup` completes, the project is ready for `/autopilot start`. 
 ### Step 1: Pre-flight check
 
 1. Verify prerequisites (ROADMAP, VISION, DESIGN_PRINCIPLES)
-2. **Branch lock**: Determine the current branch (`git branch --show-current`). Check if a lock file exists at `.claude/autopilot-{branch-sanitized}.lock`. If it does, read the lock file — it contains the PID and start time. Warn the user that another autopilot session may be active on this branch and ask whether to proceed (the previous session may have crashed). If no lock exists, create one with the current PID and timestamp.
-3. **Orphan worktree cleanup**: Run `git worktree list` and identify any worktrees matching the pattern `autopilot/{current-branch-sanitized}/*`. For each:
-   - If the worktree's branch has been merged into the current branch → remove it (`git worktree remove`, `git branch -d`)
-   - If unmerged but no active Claude Code session is using it (check PID files or process list) → warn the user and offer to remove or keep
-   - Log cleanup actions to console
-4. Read all three documents
-5. Count remaining unfinished Sprints
-6. Identify milestone boundaries (see Milestone Detection below)
-7. Present a brief execution plan to the user:
-   - "Will execute Sprints {list} autonomously, stopping at milestone: {milestone description}"
-   - Ask for confirmation before starting
+2. **Acquire branch lock** and **clean up orphan worktrees** per `references/autopilot-operations.md`
+3. Read all three documents, count remaining unfinished Sprints, identify the next milestone boundary (see Milestone Detection below)
+4. Present a brief execution plan and ask for confirmation:
+   > "Will execute Sprints {list} autonomously, stopping at milestone: {milestone description}"
 
 ### Step 1.5: Prototype review (GUI Stories only)
 
@@ -163,39 +156,37 @@ For each Sprint until the next milestone boundary:
    - `partial` without fix Sprint → continue to next Sprint, log incomplete Stories
    - `needs_human` → stop and trigger milestone demo early so the user can address the blocker
 5. Merge the Sprint's `autopilot/{base-branch}/{SprintID}` branch into the working branch
-6. **Delete the merged Sprint branch** (local + remote) — once successfully merged, the branch is no longer needed for recovery:
-   - Local: `git branch -d autopilot/{base-branch}/{SprintID}` (use `-d` lowercase, NOT `-D`; git refuses to delete unmerged branches, which is the safety net)
-   - Remote: `git push origin --delete autopilot/{base-branch}/{SprintID}` (skip silently if the branch was never pushed or is already gone)
-   - If `-d` refuses because git considers the branch unmerged (e.g., the merge produced no commit due to fast-forward edge cases), verify the merge actually landed in the working branch's history (`git log --oneline {working-branch} | grep {SprintID}` or `git merge-base --is-ancestor`). Only if confirmed merged, proceed with deletion; otherwise leave the branch and log a warning.
+6. **Delete the merged Sprint branch** (local + remote) per `references/autopilot-operations.md` — the merge commit is the recovery point
 7. Proceed to the next Sprint
 
 ### Step 3: Milestone demo and refine
 
 When a milestone boundary is reached:
 
-1. Invoke `sprint demo` for the most recently completed Sprint (this shows the cumulative state)
-2. Present a **milestone summary**:
+1. **Run milestone health checks** per `references/autopilot-operations.md` "Milestone health checks":
+   - **Documentation staleness**: compare ARCHITECTURE.md / CLAUDE.md against current codebase, flag drift
+   - **VISION drift**: scan recent `decisions.json` files for decisions without VISION/PRINCIPLES rationale, warn if >30%
+   These are advisory — they surface to the user at the milestone summary but never block.
+2. Invoke `sprint demo` for the most recently completed Sprint (this shows the cumulative state)
+3. Present a **milestone summary**:
    - Sprints completed in this autopilot run
    - Key decisions made (from all decision logs)
-   - Any drift warnings flagged during the run
+   - Any drift warnings flagged during the run (including doc-staleness and VISION-drift from health checks)
    - Backlog items added
    - Current state of the roadmap progress
-3. **Refine phase**: Invoke `sprint refine`. The user interacts with the running application and requests adjustments. This is the user's opportunity to fine-tune UI, UX, spacing, colors, wording, and other visual/interactive details that only human eyes can judge. The refine loop continues until the user is satisfied.
-4. After refine, ask the user:
+4. **Refine phase**: Invoke `sprint refine`. The user interacts with the running application and requests adjustments. This is the user's opportunity to fine-tune UI, UX, spacing, colors, wording, and other visual/interactive details that only human eyes can judge. The refine loop continues until the user is satisfied.
+5. After refine, ask the user:
    - "Are there any decisions you want to revise?"
-   - "Do you want to update VISION or DESIGN_PRINCIPLES based on what you see?"
+   - "Do you want to update VISION or DESIGN_PRINCIPLES based on what you see?" (especially if VISION drift was flagged in step 1)
+   - "Do you want to update ARCHITECTURE.md / CLAUDE.md?" (especially if doc staleness was flagged in step 1)
    - "Continue to next milestone, or stop here?"
-5. If the user wants to revise decisions: make the changes, then re-verify affected code if needed
-6. If the user updates VISION/PRINCIPLES: re-read them before continuing
-7. If continuing: return to Step 2 for the next batch of Sprints
+6. If the user wants to revise decisions: make the changes, then re-verify affected code if needed
+7. If the user updates VISION/PRINCIPLES or ARCHITECTURE.md/CLAUDE.md: re-read them before continuing
+8. If continuing: return to Step 2 for the next batch of Sprints
 
 ### Step 4: Cleanup
 
-When autopilot finishes (all milestones reached, user stops, or error):
-
-1. **Release branch lock**: Delete `.claude/autopilot-{branch-sanitized}.lock`
-2. **Final worktree cleanup**: Run `git worktree list` and remove any remaining worktrees from this autopilot session that were already merged
-3. **Sweep merged Sprint branches**: List autopilot branches matching `autopilot/{base-branch-sanitized}/*` (local: `git branch --list 'autopilot/{base}/*'`; remote: `git branch -r --list 'origin/autopilot/{base}/*'`). For each, attempt `git branch -d` (local) and `git push origin --delete` (remote). `-d` (lowercase) leaves unmerged branches alone, so this is safe — anything still present after the sweep is genuinely unmerged work that needs the user's attention. Report the list of unmerged-and-kept branches at the end so the user can decide whether to merge or discard them.
+When autopilot finishes (all milestones reached, user stops, or error), run the "Final cleanup" procedure in `references/autopilot-operations.md`: release the branch lock, sweep merged worktrees, delete merged Sprint branches (local + remote), and report any unmerged branches that survived.
 
 ## Milestone Detection
 
@@ -208,35 +199,26 @@ A milestone boundary is any of the following (checked in order, use the earliest
 
 ## `autopilot status`
 
-Show the state of the most recent autopilot run. This command reads logs — it does not require an active autopilot session.
+Show the state of the most recent autopilot run. Read-only — no active session required.
 
-1. Read `docs/ROADMAP.json` to determine overall progress
-2. Find the most recent `docs/sprint-logs/*/decisions.json` files
-3. **Check for active locks**: List any `.claude/autopilot-*.lock` files. If found, show which branches have active (or stale) autopilot sessions.
-4. **List worktrees**: Run `git worktree list` and show any worktrees matching `autopilot/*`. Flag orphaned worktrees (no active session) for cleanup.
-5. Present:
-   - Last completed Sprint and its status
-   - Total Sprints completed in the most recent autopilot run
-   - Active autopilot sessions (from lock files) and their branches
-   - Remaining worktrees and their merge status
-   - Next milestone boundary (based on current roadmap state)
-   - Key decisions from the latest `decisions.json`
-   - Any drift warnings or failure logs
+1. Read `docs/ROADMAP.json` for overall progress
+2. Read the most recent `docs/sprint-logs/*/decisions.json` files
+3. Inspect `.claude/autopilot-*.lock` files and `git worktree list | grep autopilot/` per `references/autopilot-operations.md`
+4. Present: last completed Sprint, total Sprints in the run, active sessions, remaining worktrees + merge status, next milestone, key decisions, any drift warnings or failure logs
 
 ## Important Behaviors
 
-- **VISION and PRINCIPLES are the authority**: Every autonomous decision must be justifiable by referencing one of these documents. If neither document addresses the question, default to the simplest approach and log why.
-- **Never skip milestones**: Even if everything looks fine, always stop at milestone boundaries. The user's review is the alignment mechanism.
-- **Drift logging, not drift blocking**: If a decision seems to conflict with VISION/PRINCIPLES, log the concern but don't stop execution. The milestone review handles corrections.
-- **Preserve user agency**: The user can always interrupt autopilot. If the user sends any message during execution, pause and respond before continuing.
-- **Incremental commits**: Each Sprint is committed and pushed on its own `autopilot/{base-branch}/{SprintID}` branch. If autopilot is interrupted before merging, completed-but-unmerged Sprints are preserved and can be merged manually. **Once a Sprint branch is successfully merged into the working branch, it is deleted** (local + remote) — the merge commit is the recovery point; the branch is no longer load-bearing. Only unmerged branches should ever survive an autopilot run.
-- **Context management**: Each Sprint runs in a dedicated sub-agent to prevent context window exhaustion. The main autopilot conversation only tracks Sprint-level status, decision summaries, and drift flags — it does not accumulate implementation details.
-- **Branch-level locking**: Only one autopilot session per branch. Multiple branches can run autopilot concurrently — they are isolated by branch-namespaced worktree paths and branch names (`autopilot/{base-branch}/{SprintID}`).
-- **Always release the lock**: On normal completion, interruption, or error, delete the lock file. If the lock is stale (process no longer running), allow override.
+- **VISION and PRINCIPLES are the authority**: Every autonomous decision must be justifiable by referencing one of these documents. If neither addresses the question, default to the simplest approach and log why.
+- **Never skip milestones**: Always stop at milestone boundaries. The user's review is the alignment mechanism.
+- **Drift logging, not drift blocking**: Log decisions that seem to conflict with VISION/PRINCIPLES; surface them at milestone review. Doc-staleness and VISION-drift health checks (operations.md) are advisory at milestone, never blocking.
+- **Preserve user agency**: The user can always interrupt autopilot. Pause and respond before continuing.
+- **Context management**: Each Sprint runs in a dedicated sub-agent to prevent context exhaustion. The main autopilot conversation tracks only Sprint-level status, decision summaries, and drift flags.
+- **Incremental commits + branch lifecycle**: Each Sprint on `autopilot/{base-branch}/{SprintID}`; merged branches are deleted (local + remote). Only unmerged branches survive. Per-branch locking lets multiple branches run concurrently. Full procedure: `references/autopilot-operations.md`.
 
 ## Reference Files
 
 - `references/getting-started.md` — New project setup guide (with specs / without specs / existing project)
+- `references/autopilot-operations.md` — branch locking, worktree cleanup, sprint branch deletion, milestone health checks (doc staleness, VISION drift)
 - `references/VISION_SCHEMA.json` — VISION.json schema and example
 - `references/DESIGN_PRINCIPLES_SCHEMA.json` — DESIGN_PRINCIPLES.json schema and example
 - `references/vision-template.md` — VISION setup guidelines (question prompts)

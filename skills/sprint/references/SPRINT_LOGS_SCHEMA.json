@@ -14,26 +14,9 @@
       }
     ]
   },
-  "acceptance_matrix": {
-    "$file": "acceptance-matrix.json",
-    "$comment": "Traceability from acceptance criteria to tests",
-    "sprint": "Sb1e4d8",
-    "matrix": {
-      "Sb1e4d8-1": [
-        {
-          "criterion": "AC-Sb1e4d8-1-1",
-          "description": "User can see VM list after login",
-          "test_file": "vm-list.e2e.spec.ts",
-          "test_name": "[AC-Sb1e4d8-1-1] should display VM list after login",
-          "status": "pass",
-          "error": null
-        }
-      ]
-    }
-  },
-  "e2e_results": {
-    "$file": "e2e-results.json",
-    "$comment": "E2E and acceptance test execution results",
+  "verification_results": {
+    "$file": "verification-results.json",
+    "$comment": "Combined test execution + AC traceability. Replaces the older split between e2e-results.json and acceptance-matrix.json. Each test entry carries its linked story/AC so traceability is derivable from this single file.",
     "sprint": "Sb1e4d8",
     "run_at": "2026-05-01T16:00:00Z",
     "server_command": "make serve",
@@ -45,11 +28,22 @@
     },
     "tests": [
       {
-        "name": "[AC-Sb1e4d8-1-1] should display VM list",
+        "name": "[AC-Sb1e4d8-1-1] should display VM list after login",
         "file": "vm-list.e2e.spec.ts",
+        "story": "Sb1e4d8-1",
+        "acceptance_criteria": ["AC-Sb1e4d8-1-1"],
         "status": "pass",
         "duration_ms": 1200,
         "error": null
+      },
+      {
+        "name": "[AC-Sb1e4d8-1-2] should start VM and show running status",
+        "file": "vm-list.e2e.spec.ts",
+        "story": "Sb1e4d8-1",
+        "acceptance_criteria": ["AC-Sb1e4d8-1-2"],
+        "status": "fail",
+        "duration_ms": 850,
+        "error": "Timeout waiting for [data-testid=vm-status-vm-1]"
       }
     ]
   },
