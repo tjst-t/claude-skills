@@ -9,8 +9,9 @@ Unlike `sprint init` (which creates a blank template or migrates existing files)
 - `docs/VISION.json` must exist (provides the "what" and "why")
 - `docs/ARCHITECTURE.md` should exist (provides technical context for task breakdown)
 - `docs/DESIGN_PRINCIPLES.json` should exist (guides granularity and priority decisions)
+- `docs/DESIGN/` is optional but **strongly recommended** for complex systems. When present, its contents shape the Sprint structure.
 
-If VISION.json does not exist, refuse to proceed and suggest running `autopilot setup` first.
+If VISION.json does not exist, refuse to proceed and suggest running `design start` (for complex systems) or `autopilot setup` (for simpler ones) first.
 
 ## Execution Flow
 
@@ -20,6 +21,10 @@ Read the following files:
 - `docs/VISION.json` — product goals, target users, scope, constraints
 - `docs/ARCHITECTURE.md` — system components, tech stack, data flow (if exists)
 - `docs/DESIGN_PRINCIPLES.json` — priority rules, constraints (if exists)
+- `docs/DESIGN/system.json` — intended component structure (if exists). When present, this is more authoritative than ARCHITECTURE.md for *planning* purposes (ARCHITECTURE.md describes current code; system.json describes intended design).
+- `docs/DESIGN/domain.json` — entity vocabulary (if exists). Use these names in Story descriptions for consistency.
+- `docs/DESIGN/non-functional.json` — non-functional targets (if exists). These may require dedicated Stories (perf testing, observability setup).
+- `docs/DESIGN/adr/*.json` — accepted ADRs (if exist). Treat as constraints; the roadmap must not produce Sprints that violate accepted ADRs.
 - `docs/ROADMAP.json` — check if one already exists (may have backlog items to preserve)
 
 ### 2. Design the sprint structure

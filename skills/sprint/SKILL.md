@@ -57,6 +57,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - **Acceptance criteria traceability**: Every acceptance criterion in ROADMAP.json must have a corresponding test tagged with `[AC-{StoryID}-{N}]`. sprint verify checks this mapping and creates missing tests.
 - **Auto mode logs all decisions**: During `sprint auto`, every decision (planning, implementation, review) must be logged to `docs/sprint-logs/{SprintID}/decisions.json` with rationale referencing VISION.json or DESIGN_PRINCIPLES.json. Work happens on an `autopilot/{base-branch}/{SprintID}` branch, not directly on the base branch.
 - **All data files are JSON**: ROADMAP, VISION, DESIGN_PRINCIPLES, and all sprint-logs use JSON format. See `references/ROADMAP_SCHEMA.json` and `references/SPRINT_LOGS_SCHEMA.json` for structure. ARCHITECTURE.md and CLAUDE.md remain Markdown.
+- **DESIGN/ is binding when present**: `docs/DESIGN/` is managed by the `design` skill. When the directory exists, sprint plan / run / roadmap must read the relevant ADRs and respect them as constraints. Accepted ADRs are not negotiable in sprint commands — if a Sprint needs to contradict one, escalate to the user via `design adr` (amend / supersede) before proceeding. Tentative ADRs are advisory.
 
 ## Roadmap Reading Patterns
 

@@ -11,6 +11,20 @@ Prepare the next sprint. This is a collaborative phase with the user.
      ```bash
      jq --arg id "<NextSprintID>" '.sprints[$id]' docs/ROADMAP.json
      ```
+
+1.5. **Consult `docs/DESIGN/` if it exists** (skip this step if the directory is absent):
+   - List ADRs that affect any of the upcoming Sprint's Stories. An ADR is relevant if its `affects` field overlaps with the Sprint's components (often inferable from Story titles + `system.json`) or if `affects` is `["*"]`.
+     ```bash
+     # Quick scan: list ADR titles and their affects field
+     for f in docs/DESIGN/adr/*.json; do
+       jq -r '"\(.id) [\(.status)] \(.title) — affects: \(.affects | join(", "))"' "$f"
+     done
+     ```
+   - For each relevant ADR with status `accepted` or `tentative`: read the full ADR and treat it as a constraint on the Sprint plan.
+   - Also read `docs/DESIGN/domain.json` (for entity vocabulary) and `docs/DESIGN/system.json` (for component boundaries) to ensure Story descriptions use consistent terms.
+   - If the Sprint plan needs to violate an ADR, **stop and escalate to the user** — either revise the Sprint or amend the ADR via `design adr` before proceeding.
+   - If a load-bearing decision comes up during planning that isn't in any ADR, suggest creating one via `design adr` before sprint run.
+
 2. Identify the next unfinished Sprint according to the **Execution Order** (not document order or ID order)
 3. Present to the user:
    - The Sprint's goal and scope (Stories and Tasks to execute)

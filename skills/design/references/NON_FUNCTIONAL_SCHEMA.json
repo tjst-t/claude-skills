@@ -1,0 +1,66 @@
+{
+  "$comment": "Schema and example for docs/DESIGN/non-functional.json. Performance, availability, consistency, scalability, security, compliance, and operational targets. Empty arrays are fine — better than fabricated targets.",
+  "performance": [
+    {
+      "metric": "What's being measured (e.g., 'API P99 latency')",
+      "target": "Measurable target (e.g., '< 200ms')",
+      "rationale": "Why this target",
+      "confidence": "high | medium | low",
+      "drives_adr": ["ADR-NNNN that this target drove (optional)"]
+    }
+  ],
+  "availability": [
+    {
+      "metric": "Availability metric",
+      "target": "Measurable target",
+      "rationale": "Why",
+      "confidence": "high | medium | low",
+      "drives_adr": []
+    }
+  ],
+  "consistency": [
+    {
+      "metric": "Consistency/durability metric",
+      "target": "Measurable target",
+      "rationale": "Why",
+      "confidence": "high | medium | low",
+      "drives_adr": []
+    }
+  ],
+  "scalability": [
+    {
+      "metric": "Scalability metric (concurrent users, ops/sec, data volume)",
+      "target": "Measurable target with time horizon",
+      "rationale": "Why",
+      "confidence": "high | medium | low",
+      "drives_adr": []
+    }
+  ],
+  "security": [
+    {
+      "metric": "Security metric (authn, authz, data classification)",
+      "target": "Concrete requirement",
+      "rationale": "Why",
+      "confidence": "high | medium | low",
+      "drives_adr": []
+    }
+  ],
+  "compliance": [
+    {
+      "metric": "Compliance requirement (GDPR, SOC2, HIPAA, etc.)",
+      "target": "Specific obligations",
+      "rationale": "Why this applies",
+      "confidence": "high | medium | low",
+      "drives_adr": []
+    }
+  ],
+  "operational": [
+    {
+      "metric": "Operational metric (deploy frequency, observability, runbooks)",
+      "target": "Concrete target",
+      "rationale": "Why",
+      "confidence": "high | medium | low",
+      "drives_adr": []
+    }
+  ]
+}

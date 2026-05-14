@@ -1,0 +1,42 @@
+{
+  "$comment": "Schema and example for docs/DESIGN/system.json. Prospective system architecture (not auto-generated description of existing code). Read by sprint roadmap and design refresh.",
+  "components": [
+    {
+      "name": "Component name",
+      "responsibility": "Single-sentence description of what this component owns",
+      "language_or_stack": "Language + key frameworks/libraries (e.g., 'Go + chi')",
+      "deploys_as": "How this is deployed: 'single binary' | 'container' | 'in-process module' | 'serverless function' | etc.",
+      "key_interfaces": [
+        {
+          "kind": "http | grpc | function | event | cli",
+          "summary": "Short description of the interface (not full spec)"
+        }
+      ],
+      "depends_on": ["Other component names this calls or relies on"],
+      "notes": "Additional context (optional)"
+    }
+  ],
+  "boundaries": [
+    {
+      "between": ["Component A", "Component B"],
+      "justification": "Why these are separate components"
+    }
+  ],
+  "data_flows": [
+    {
+      "name": "Flow name (e.g., 'User login', 'Order placement')",
+      "steps": [
+        "Step 1: what happens",
+        "Step 2: what happens next"
+      ]
+    }
+  ],
+  "external_dependencies": [
+    {
+      "name": "External service or library name",
+      "purpose": "What it's used for",
+      "swappable": true,
+      "notes": "Abstraction notes if applicable (optional)"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   "$comment": "Schema and examples for all sprint log JSON files under docs/sprint-logs/{SprintID}/",
   "decisions": {
     "$file": "decisions.json",
-    "$comment": "Autonomous decisions made during the sprint",
+    "$comment": "Autonomous decisions made during the sprint. adr_ref links the decision to a load-bearing ADR when applicable.",
     "sprint": "Sb1e4d8",
     "decisions": [
       {
@@ -10,7 +10,9 @@
         "category": "planning",
         "title": "Short decision title",
         "detail": "What was decided and why",
-        "reference": "VISION/DESIGN_PRINCIPLES section that guided this"
+        "reference": "VISION/DESIGN_PRINCIPLES section that guided this",
+        "adr_ref": "ADR-0003 (or null if no relevant ADR)",
+        "drift_flag": "none | adr_contradicts | adr_missing"
       }
     ]
   },

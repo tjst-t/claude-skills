@@ -1,0 +1,25 @@
+{
+  "$comment": "Schema and example for docs/DESIGN/adr/ADR-NNNN-*.json. One file per load-bearing decision. Read by sprint plan (consultation) and design refresh (consistency check).",
+  "id": "ADR-NNNN",
+  "title": "Short title describing the decision",
+  "status": "proposed | accepted | tentative | superseded",
+  "date": "YYYY-MM-DD",
+  "context": "1-2 paragraphs of prose describing the forces at play. What problem are we solving? What constraints exist? Why is this decision needed now?",
+  "alternatives": [
+    {
+      "name": "Alternative option name",
+      "tradeoff": "One-line description of why this alternative was or wasn't chosen"
+    }
+  ],
+  "decision": "One sentence describing what was chosen, clearly and unambiguously",
+  "consequences": [
+    "+ Positive consequence",
+    "- Negative consequence or limitation",
+    "Note about something that follows from this decision"
+  ],
+  "reversibility_cost": "low | medium | high | one_way_door",
+  "affects": ["Component name from system.json", "or '*' if truly cross-cutting"],
+  "supersedes": "ADR-NNNN that this replaces, or null",
+  "superseded_by": "ADR-NNNN that replaces this, or null",
+  "notes": "Anything else worth recording (optional). Often: 'Revisit if X happens.'"
+}

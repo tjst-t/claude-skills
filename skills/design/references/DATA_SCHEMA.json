@@ -1,0 +1,53 @@
+{
+  "$comment": "Schema and example for docs/DESIGN/data.json. Optional — only written when the system has persistent state, public API, or external protocol contracts. Sketches schemas and contracts, NOT full DDL or OpenAPI.",
+  "datastores": [
+    {
+      "name": "Datastore identifier (e.g., 'PostgreSQL primary')",
+      "purpose": "What data lives here",
+      "consistency": "Consistency model (strong | eventual | tunable)",
+      "backup": "Backup and recovery approach"
+    }
+  ],
+  "schemas": [
+    {
+      "entity": "Entity name from domain.json",
+      "stored_in": "Datastore name",
+      "table": "Physical table or collection name",
+      "fields": [
+        {"name": "field_name", "type": "type", "notes": "optional notes"}
+      ],
+      "invariants": [
+        "Business rule the data structure must uphold"
+      ]
+    }
+  ],
+  "design_indexes": [
+    {
+      "name": "Index identifier",
+      "purpose": "Why this index exists (architectural, not query-tuning)",
+      "kind": "btree | hash | gist | unique | exclusion | etc.",
+      "note": "Implementation detail"
+    }
+  ],
+  "api_contracts": [
+    {
+      "group": "API group name",
+      "base_path": "URL base path",
+      "summary": "What this API is for",
+      "endpoints": [
+        {"method": "GET|POST|PUT|DELETE|PATCH", "path": "/path/{param}", "summary": "What it does"}
+      ]
+    }
+  ],
+  "event_contracts": [
+    {
+      "name": "Event type name",
+      "producer": "Component that emits this event",
+      "consumers": ["Components that consume"],
+      "payload_sketch": "High-level shape of the payload",
+      "ordering": "ordered_within_partition | unordered",
+      "idempotency": "How consumers should handle duplicates"
+    }
+  ],
+  "versioning_policy": "How breaking changes to contracts are handled"
+}

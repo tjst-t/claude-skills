@@ -38,7 +38,7 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
    **Step 3 — Fix (SendMessage to implementation agent, sonnet):**
    - For each review that returned auto-fixable findings, use SendMessage to the original implementation agent (which still has its worktree context) with the list of findings to fix
    - The implementation agent fixes all auto-fixable findings in its worktree
-   - For findings that involve technical decisions: if there is a clear best practice or obvious recommendation, the agent makes the decision autonomously and proceeds. Only escalate to the user when the decision has significant architectural impact (e.g., changing data models, introducing new dependencies, altering public APIs, or fundamentally changing the approach agreed upon in sprint plan)
+   - For findings that involve technical decisions: if there is a clear best practice or obvious recommendation, the agent makes the decision autonomously and proceeds. **Before deciding, the agent must check whether the decision touches anything in `docs/DESIGN/` (if present)** — if an accepted ADR governs the decision, the ADR is binding; if the proposed fix would contradict an ADR, escalate. Only escalate to the user when the decision has significant architectural impact (e.g., changing data models, introducing new dependencies, altering public APIs, or fundamentally changing the approach agreed upon in sprint plan).
    - After fixes, send another review cycle (Step 2 → Step 3) until no more findings remain
 
    **Step 4 — Merge and complete:**

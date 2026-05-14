@@ -6,13 +6,19 @@ Reusable [Claude Code](https://code.claude.com/docs/en/overview) skills for stan
 
 | Skill | Purpose | Trigger |
 |---|---|---|
+| **design** | Front-load load-bearing architectural decisions through dialogue | `design start`, `design adr` |
 | **project-init** | Project documentation & environment setup | `project init` |
-| **sprint-runner** | Agile Sprint lifecycle management | `sprint plan`, `sprint run`, `sprint verify`, `sprint done` |
+| **sprint** | Agile Sprint lifecycle management | `sprint plan`, `sprint run`, `sprint verify`, `sprint done` |
+| **autopilot** | Multi-sprint autonomous execution | `autopilot start`, `autopilot setup` |
+| **gui-spec** | Derive GUI scenarios and Playwright tests from UI Stories | invoked by `sprint plan` |
 
 ## How They Work Together
 
-1. **`project init`** — Run once at project start. Generates `CLAUDE.md`, `docs/ARCHITECTURE.md`, integrates portman, and calls `sprint init` to create `docs/ROADMAP.md`.
-2. **`sprint plan` → `sprint run` → `sprint verify` → `sprint done`** — Repeat each Sprint. `sprint done` auto-updates `docs/ARCHITECTURE.md` when architectural changes are detected.
+1. **`design start`** — (Optional, recommended for complex systems.) Run first. Guided dialogue from fuzzy idea to a structured `docs/DESIGN/` set: VISION, DESIGN_PRINCIPLES, domain model, system architecture, ADRs, non-functional requirements.
+2. **`autopilot setup`** — Detects `docs/DESIGN/`. If present, skips its VISION/PRINCIPLES question phase. Otherwise asks targeted questions to create them.
+3. **`project init`** — Run once at project start. Generates `CLAUDE.md`, `docs/ARCHITECTURE.md`, integrates portman, and calls `sprint init` to create `docs/ROADMAP.json`.
+4. **`sprint plan` → `sprint run` → `sprint verify` → `sprint done`** — Repeat each Sprint. `sprint plan` consults `docs/DESIGN/adr/` for any ADR affecting upcoming Stories.
+5. **`design adr`** — Add new ADRs when load-bearing decisions emerge during sprint planning.
 
 ## Document Hierarchy
 
@@ -22,8 +28,16 @@ These skills establish a standard documentation structure optimized for Claude C
 {project-root}/
 ├── CLAUDE.md                    # Layer 1: Always in context. Minimal tokens.
 └── docs/
-    ├── ARCHITECTURE.md          # Layer 2: System design. Read on demand.
-    ├── ROADMAP.md               # Layer 2: Sprint tracking. Managed by sprint-runner.
+    ├── VISION.json              # Layer 2: Product intent (design / autopilot setup).
+    ├── DESIGN_PRINCIPLES.json   # Layer 2: Judgment rules.
+    ├── DESIGN/                  # Layer 2: Load-bearing design (managed by design skill)
+    │   ├── domain.json          #   Entities, relationships, glossary
+    │   ├── system.json          #   Components, boundaries, interfaces
+    │   ├── non-functional.json  #   Performance/availability/security targets
+    │   ├── data.json            #   (optional) Schemas, API/event contracts
+    │   └── adr/                 #   ADR-NNNN-*.json — one per load-bearing decision
+    ├── ARCHITECTURE.md          # Layer 2: Auto-generated snapshot of current code.
+    ├── ROADMAP.json             # Layer 2: Sprint tracking. Managed by sprint.
     └── sprint-logs/             # Sprint execution logs.
         └── {SprintID}/
 ```
@@ -53,7 +67,7 @@ In a Claude Code session:
 What skills are available?
 ```
 
-You should see `project-init` and `sprint-runner` in the list.
+You should see `design`, `project-init`, `sprint`, `autopilot`, and `gui-spec` in the list.
 
 ### Custom install path
 
@@ -72,7 +86,15 @@ Symlinks ensure all projects pick up changes immediately. No reinstall needed.
 
 ## Usage
 
-### First-time project setup
+### First-time project setup (complex system — recommended)
+
+```
+design start       # Discuss the idea, produce docs/DESIGN/, VISION, PRINCIPLES
+autopilot setup    # CLAUDE.md, ARCHITECTURE.md, ROADMAP.json (skips VISION ?qs)
+autopilot start    # Begin autonomous execution
+```
+
+### First-time project setup (simple project)
 
 ```
 project init

@@ -1,0 +1,33 @@
+{
+  "$comment": "Schema and example for docs/DESIGN/domain.json. Captures the vocabulary of the system: entities, relationships, and glossary. Read by sprint plan, sprint roadmap, and design refresh.",
+  "entities": [
+    {
+      "name": "Entity name in the user's domain vocabulary",
+      "definition": "One-sentence definition a domain expert would agree with",
+      "identity": "Field or concept that identifies one instance (e.g., 'order_id')",
+      "lifecycle": ["state1", "state2", "state3"],
+      "owns": ["Other entity names this aggregate owns (optional)"],
+      "notes": "Anything else worth recording (optional)"
+    }
+  ],
+  "value_objects": [
+    {
+      "name": "Value object name",
+      "definition": "What it represents and why it's a value (not an entity)"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "Entity A",
+      "to": "Entity B",
+      "kind": "one_to_one | one_to_many | many_to_one | many_to_many",
+      "label": "Human-readable description of the relationship"
+    }
+  ],
+  "glossary": [
+    {
+      "term": "Domain term",
+      "definition": "What it means in this domain, especially if non-obvious"
+    }
+  ]
+}
