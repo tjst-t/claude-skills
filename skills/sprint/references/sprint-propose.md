@@ -44,6 +44,7 @@ Convert the idea into one or more user stories. For each Story:
 2. Define acceptance criteria (concrete, verifiable behaviors)
 3. Break into Tasks (implementation steps for sub-agents)
 4. Check granularity — each Story should be independently deliverable
+5. **Identify touched ADRs**: If `docs/DESIGN/adr/` (or `docs/design/adr/`) exists, list every ADR ID that the Story's implementation will touch (via `affects` field overlap, or by inspection of the components involved). These IDs will be written to `touched_adrs` in `decisions.json` at Sprint plan time, and Guard 7 (ADR conformance grep) will run each touched ADR's `machine_check:` section against the Sprint's diff during verify. Surfacing this at propose time prevents Stories from being scoped without their ADR constraints in mind.
 
 Present the Stories to the user for feedback:
 - "Here's how I'd break this down. Does this match what you had in mind?"

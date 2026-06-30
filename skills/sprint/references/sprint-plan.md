@@ -24,6 +24,7 @@ Prepare the next sprint. This is a collaborative phase with the user.
    - Also read `docs/DESIGN/domain.json` (for entity vocabulary) and `docs/DESIGN/system.json` (for component boundaries) to ensure Story descriptions use consistent terms.
    - If the Sprint plan needs to violate an ADR, **stop and escalate to the user** — either revise the Sprint or amend the ADR via `design adr` before proceeding.
    - If a load-bearing decision comes up during planning that isn't in any ADR, suggest creating one via `design adr` before sprint run.
+   - **Record `touched_adrs` in decisions.json**: Once the relevant ADRs are identified, list their IDs (e.g., `["ADR-0014", "ADR-0027"]`) under `touched_adrs` at the top level of `docs/sprint-logs/{SprintID}/decisions.json`. This list is the **input to Guard 7 (ADR conformance grep)** during `sprint verify` / `sprint done` — verify reads each touched ADR's `machine_check:` section and runs its forbidden_grep / required_grep against the Sprint's diff. Missing `touched_adrs` means Guard 7 falls back to a fixed set of "always check" ADRs (ADR-0014, ADR-0033, ADR-0034), so explicit listing is required for any Sprint that touches `docs/design/adr/`-defined invariants outside that fallback set.
 
 2. Identify the next unfinished Sprint according to the **Execution Order** (not document order or ID order)
 3. Present to the user:

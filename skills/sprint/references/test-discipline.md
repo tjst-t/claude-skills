@@ -2,7 +2,7 @@
 
 The single source of truth for what counts as a valid test in this skill. `sprint plan`, `sprint run`, `sprint verify`, `sprint done`, `sprint auto`, and `gui-spec` all defer to this document. When something here changes, no other file needs to change.
 
-## The Six Rules
+## The Eight Rules
 
 ### 1. Every Story has a user scenario
 
@@ -82,6 +82,45 @@ If an addition is untested, the resolution is **one of**: (a) add an AC + scenar
 
 **During `sprint run`**, each implementation sub-agent must report a "user-observable additions" list alongside its results, so `sprint verify` has a head start instead of rediscovering everything from scratch.
 
+### 7. 実機検証は本番モードで
+
+priority_rule 9 「dev VM 実機 deploy + smoke test」要件を満たすテストは、本番と同じモード/フラグ/設定で実行されなければならない。
+
+許容されない fake/mock:
+- `MOCK=true` 環境変数
+- `--fake-core` / `--mock-*` CLI フラグ
+- `DRY_RUN=1` (実 destructive コマンド回避以外の用途で使うのは禁止)
+- `proxy_fuse_fake_core: true` / `*_fake_*: true` 等の Ansible defaults
+- in-process FakeCore / InMemoryStore (本番では CloudNativePG-backed 等が前提)
+
+許容される dry-run:
+- backup script (`meta-snapshot-export.sh DRY_RUN=1` で「実行するコマンドを echo するだけ」) を **smoke test の verify 用に呼ぶ** こと自体は OK
+- ただしそれが「本番 backup が動いた証拠」にはならない。実 destructive コマンドが実行された証跡 (snapshot ファイル生成、S3 bucket への upload 等) が別途必要
+
+priority_rule 9 例外条項を主張する Story は、`review_reason` に以下の障害シナリオ識別子の **いずれか** を含むこと:
+
+`kill-9` / `停電` / `power-loss` / `ネットワーク遮断` / `network-partition` / `Shamir-unseal` / `disk-full` / `OOM` / `プロセスクラッシュ` / `process-crash`
+
+これらのいずれも含まない `review_reason` は例外条項の不正適用であり、通常の実機 smoke 要件を課す。
+
+由来: 2026-05-17 監査で Sprint 7 が `DRY_RUN=1` の harness 通過を「DR 訓練 done」と判定していたケースが Rule 7 違反として摘発された (`docs/audit/2026-05-17-phase1-readiness.md`)。
+
+### 8. Data path Sprint は destructive multi-version scenario を必須化
+
+「データロス禁止」 (priority_rule 1) を機械的に検証するため、data path (`internal/server/`, `internal/proxyfuse/`, `cmd/storage-core/`, `cmd/proxy-fuse/`, `cmd/workflow-worker/`, `internal/workflow/`, `internal/identity/`) を touch する Sprint は、以下 3 つの destructive scenario test を **最低 1 件** 持たねばならない:
+
+| シナリオ | 期待される verification |
+|---|---|
+| **write x2 で v1/v2 独立** | 同一 (tenant, key) に 2 回 write を行い、それぞれ独立した version_no = 1, version_no = 2 として物理的に保存されることを確認 (同一物理キー上書き禁止 — ADR-0014 違反検出) |
+| **Demote → Recall byte verify** | hot+cold な object を Demote → cold-only にし、その後 Recall して、Recall 直後の GetObject の sha256 / bytes.Equal が write 時と一致することを verify (cold tier round-trip でのデータ corruption 検出) |
+| **Restart 整合** | proxy-fuse / storage-core のいずれかを `kill -9` / `systemctl restart` し、再起動後に state (committed objects / WAL replay 結果) が再起動前と一致することを verify (in-memory state の永続化漏れ検出) |
+
+`tests/acceptance/devvm/multi_version_destructive_test.go` および同 dir 配下の test がこの責務を担う。
+
+由来: 2026-05-23 audit RC-5 で「ADR-0014 違反 (write x2 → 同一物理キー上書き) が Sprint 2 から約 7 sprint silent 残置」が摘発された。原因は write x2 → v1/v2 独立性を verify する自動テストが欠如していたこと。Sprint 完了ゲート Guard 8 (`sprint-done-judgment.md`) と連動し、data path Sprint で destructive test が無ければ Story done 不可とする。
+
+例外: Story が「Sprint プロセス強化」「ドキュメント retrofit」「ADR 文書追加」のような meta な性質を持ち、production code path を一切実装しない場合は n/a 扱い。decisions.json の `guard8_rationale` に明示すること。
+
 ## What disqualifies a test
 
 A test does not count toward Sprint completion if it:
@@ -97,6 +136,14 @@ A test does not count toward Sprint completion if it:
 A Sprint also fails the gate if (Rule 6):
 
 - The Sprint's diff introduces a user-observable surface (new route, new flag, new screen, new export) that no test in `verification-results.json` exercises
+
+A Sprint also fails the gate if (Rule 7):
+
+- A Story claims priority_rule 9 satisfaction but its smoke test runs under `MOCK=true`, `--fake-*`, `DRY_RUN=1`, in-process FakeCore / InMemoryStore, or `*_fake_*: true` defaults — and the Story is NOT a valid priority_rule 9 exception (障害シナリオ identifier in `review_reason`)
+
+A Sprint also fails the gate if (Rule 8):
+
+- The Sprint touches a data path directory (`internal/server/`, `internal/proxyfuse/`, `cmd/storage-core/`, `cmd/proxy-fuse/`, `cmd/workflow-worker/`, `internal/workflow/`, `internal/identity/`) but `tests/acceptance/devvm/` does NOT contain at least one passing destructive multi-version test (write x2 → v1/v2 独立、Demote→Recall byte verify、Restart 整合 のいずれか) — and the Sprint is NOT a documented `guard8_rationale: n/a` meta Sprint
 
 If the only feasible way to make a test pass — or to cover an addition — is to violate one of these, escalate as `needs_human`. Do not weaken the test, do not silently ship the untested addition.
 

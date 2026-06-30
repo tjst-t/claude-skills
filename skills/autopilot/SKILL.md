@@ -57,6 +57,9 @@ Show the state of the most recent autopilot run. Read-only — no active session
 ## Important Behaviors
 
 - **VISION, PRINCIPLES, and DESIGN/ are the authority**: Every autonomous decision must be justifiable by referencing one of these documents. ADRs in `docs/DESIGN/adr/` are binding constraints — autonomous decisions that contradict an accepted ADR must escalate to the user, not proceed. If none address the question, default to the simplest approach and log why.
+- **6-Guard Done Judgment**: Before marking any Story as `done`, autopilot must apply all 6 guards defined in `references/autopilot-done-judgment.md`. Any failed guard moves the Story to `needs_user_review`, not `done`. This applies to both sprint-internal verification and the post-merge milestone check.
+- **priority_rule 9 exception scope is strict**: The exception clause (障害シナリオへの限定) requires explicit障害シナリオ identifiers (`kill-9` / `停電` / `Shamir-unseal` / `ネットワーク遮断` / `disk-full` / `OOM` / `プロセスクラッシュ`) in the `review_reason`. autopilot rejects exception claims without these markers and falls back to the normal real-VM smoke requirement.
+- **Mock-mode does not satisfy real-VM smoke**: Tests that use `MOCK=true`, `--fake-*` flags, `DRY_RUN=1`, in-process FakeCore / InMemoryStore, or `*_fake_*: true` Ansible defaults do not count toward priority_rule 9 "dev VM 実機 smoke" requirement. A separate real-mode smoke is required.
 - **Never skip milestones**: Always stop at milestone boundaries. The user's review is the alignment mechanism.
 - **Drift logging, not drift blocking**: Log decisions that seem to conflict with VISION/PRINCIPLES; surface them at milestone review. Doc-staleness and VISION-drift health checks (operations.md) are advisory at milestone, never blocking.
 - **Preserve user agency**: The user can always interrupt autopilot. Pause and respond before continuing.
@@ -67,6 +70,7 @@ Show the state of the most recent autopilot run. Read-only — no active session
 
 - `references/autopilot-setup.md` — `autopilot setup` command flow (new project / existing project, DESIGN/ detection, Backfill handoff)
 - `references/autopilot-start.md` — `autopilot start` command flow (pre-flight, prototype review, sprint loop, milestone demo, cleanup)
+- `references/autopilot-done-judgment.md` — **canonical 6-guard done judgment** (Guard 1–6) applied before any Story can be marked `done`
 - `references/autopilot-operations.md` — branch locking, worktree cleanup, sprint branch deletion, milestone health checks (doc staleness, VISION drift)
 - `references/getting-started.md` — New project setup guide (with specs / without specs / existing project)
 - `references/VISION_SCHEMA.json` — VISION.json schema and example

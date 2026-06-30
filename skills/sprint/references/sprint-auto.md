@@ -61,6 +61,17 @@ Same as `sprint done` but:
 - Commit and push the `autopilot/{base-branch}/{SprintID}` branch without user confirmation (safe — this is not main)
 - Skip the summary presentation (the calling skill or user can read the logs)
 
+#### Done 判定の事前ガード
+
+Story を `status: done` に書き換える前に、以下を順に評価する:
+
+1. `references/sprint-done-judgment.md` の Guard 1–6 を **全て** 評価する
+2. fail したガードがあれば、Story を `status: needs_user_review` に書き、`docs/sprint-logs/{SprintID}/done-judgment.json` に各ガードの結果を記録する
+3. fail ガードがある Story は **autopilot から done に遷移させない**。次の milestone で user 判断 (sprint demo + 明示承認) を待つ
+4. `decisions.json` の `done_judgment` セクションに各 Story の 6 ガード結果を必ず記録する (autopilot 側がこのログを drift check で読む)
+
+ガード fail だけで Sprint 全体を `partial` にする必要はない — `done` Story と `needs_user_review` Story が混在することは想定済み。Sprint の `status` は「全 Story が `done` または `needs_user_review`」で `done`、それ以外 (テスト fail / blocked) で `partial` とする。
+
 ## Failure Recovery
 
 Autonomous execution cannot ask the user for help. The default behavior is **keep trying until fixed**. Only give up when further attempts cannot possibly succeed.

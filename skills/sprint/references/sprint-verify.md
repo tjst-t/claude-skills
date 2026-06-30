@@ -72,6 +72,38 @@ Verify that everything **implemented** in this Sprint — not just what was **de
 
 > **Why this step exists**: Mock tests (run during sprint-run) verify frontend behavior in isolation. E2E tests verify the full stack works together. The traceability check ensures every requirement has a passing test in this Sprint's run.
 
+## Phase 1.7: 6-Guard Done Judgment (mandatory per Story)
+
+Before any Story can transition to `done`, apply all 6 guards from `references/sprint-done-judgment.md` to each Story in the Sprint. This catches the "偽 done" patterns identified in the 2026-05-17 audit (user_review_required bypass, nil-injection mocks, mock-mode smoke, priority_rule 9 exception misuse, missing call paths, deferred-comment residue).
+
+For each Story:
+
+1. **Guard 1 — user_review_required**: read `.user_review_required` from the Story in `docs/ROADMAP.json`. If `true`, the Story cannot transition to `done` autonomously — only `needs_user_review`.
+2. **Guard 2 — nil-injection mock**: grep the Story's main implementation files for `if [a-zA-Z_]+\.[A-Z][a-zA-Z]* != nil \{` (the multi-dep nil-guard anti-pattern). 3+ hits in the same Story ⇒ warn and require user approval at the next sprint demo.
+3. **Guard 3 — mock-mode smoke**: scan `tests/acceptance/devvm/` (or the project's equivalent real-mode smoke path) for `MOCK=true|--fake-|DRY_RUN=1|fake_core: true|InMemoryStore`. Any hit ⇒ priority_rule 9 not satisfied; a separate real-mode smoke is required.
+4. **Guard 4 — priority_rule 9 exception validity**: if any Story `review_reason` or `decisions.json` rationale invokes the priority_rule 9 exception clause, confirm it names an explicit障害シナリオ identifier (`kill-9` / `停電` / `Shamir-unseal` / `ネットワーク遮断` / `disk-full` / `OOM` / `プロセスクラッシュ`). Unmatched claims are invalid; fall back to the normal real-mode smoke requirement.
+5. **Guard 5 — call-path existence**: for any AC describing cross-service coupling (API + Workflow trigger, backend → external SDK, etc.), run the call-path greps from `sprint-done-judgment.md` Guard 5. Zero hits ⇒ the coupling does not exist in code ⇒ Story cannot be `done`.
+6. **Guard 6 — deferred-comment residue**: run `git diff {Sprint base SHA}..HEAD -- 'cmd/' 'internal/' 'ansible/'` and grep for newly-added `// TODO.*Phase [0-9]` / `// Sprint [0-9].*で.*実装` / `// Sprint [0-9].*で.*追加` / `# TODO.*Phase [0-9]` etc. Any match without a corresponding backlog entry referencing the comment line numbers blocks `done` for the owning Story.
+
+Record each guard's outcome under `done_judgment` in `verification-results.json`:
+
+```json
+{
+  "story_id": "S5225ae-5",
+  "done_judgment": {
+    "guard1_user_review_required_not_done": "pass | fail",
+    "guard2_nil_injection_mock": "pass | fail | warn",
+    "guard3_mock_mode_not_real_smoke": "pass | fail",
+    "guard4_priority_rule_9_exception_valid": "pass | fail | n/a",
+    "guard5_call_path_grep": "pass | fail",
+    "guard6_deferred_comment_clean": "pass | fail",
+    "overall": "ok | needs_user_review"
+  }
+}
+```
+
+`overall: needs_user_review` ⇒ the Story cannot be marked `done` by `sprint done`. `sprint done` reads this block as its final gate; see `sprint-done.md`.
+
 ## Phase 2: Sprint-level code review via /review
 
 This is a final review of the entire Sprint's changes as a whole. Story-level reviews during `sprint run` catch issues within each Story, but this Sprint-level review catches cross-Story issues: inconsistencies between Stories, integration problems, duplicated code across Stories, and overall coherence.
