@@ -1,7 +1,7 @@
 ---
 name: sprint
 description: Manages Agile Sprint lifecycle — plan, prototype, run, verify, demo, refine, done. Generates roadmaps, executes sprints autonomously, and tracks progress via docs/ROADMAP.json.
-when_to_use: Use for sprint commands (plan/run/verify/demo/done/refine/prototype/hotfix/auto/roadmap/propose/init), story/task workflows, roadmap management. Also triggers on "次のスプリント", "スプリント開始", "ロードマップ作成", "ここ直して", "機能追加したい", "こういうの欲しい", "モック見せて", "プロトタイプ", "ちょっと直して", "バグ修正".
+when_to_use: Fires ONLY when the user explicitly types a `sprint <command>` (init / plan / prototype / run / verify / demo / refine / done / fix / idea / roadmap / auto, plus the deprecated aliases hotfix / propose). sprint is the engine layer — normally invoked by `autopilot`, not directly. The natural-language entry point for moving a project forward is the `autopilot` skill. The sprint commands a user most often types directly are `sprint fix` (quick fix) and `sprint idea` (capture a feature). Does NOT auto-fire on phrases like "次のスプリント", "スプリント開始", "ここ直して", "ちょっと直して", "バグ修正", "機能追加したい", "こういうの欲しい", "モック見せて", "プロトタイプ" — those route to autopilot.
 allowed-tools: Read Grep Glob Bash(git *) Bash(make *) Bash(jq *)
 ---
 
@@ -25,13 +25,24 @@ The roadmap file is always at `docs/ROADMAP.json` in the project root. If it doe
 | `sprint demo` | Demonstrate deliverables by running the program | See `references/sprint-demo.md` |
 | `sprint refine` | Interactive UI/UX refinement with user | See `references/sprint-refine.md` |
 | `sprint done` | Finalize and commit the sprint | See `references/sprint-done.md` |
-| `sprint hotfix` | Quick fix without full sprint ceremony | See `references/sprint-hotfix.md` |
+| `sprint fix` | Quick fix without full sprint ceremony (alias: `sprint hotfix`) | See `references/sprint-fix.md` |
 | `sprint help` | Show command list and usage guide | See `references/sprint-help.md` |
 | `sprint auto` | Execute one sprint fully autonomously | See `references/sprint-auto.md` |
-| `sprint propose` | Discuss and add new features to roadmap | See `references/sprint-propose.md` |
+| `sprint idea` | Discuss and add new features to roadmap (alias: `sprint propose`) | See `references/sprint-idea.md` |
 | `sprint roadmap` | Generate full roadmap from VISION | See `references/sprint-roadmap.md` |
 
 When a command is invoked, read the corresponding reference file before taking any action.
+
+## Auto mode (`--auto` flag)
+
+Every sprint command accepts an `--auto` flag that flips its decision posture:
+
+- **Default (no flag)** — collaborative. When a decision is genuinely ambiguous (multiple viable approaches with real trade-offs), **stop and ask the user**. This is the right mode when a human is driving.
+- **`sprint <cmd> --auto`** — autonomous. When a decision is ambiguous, pick the best-practice default, **log it to `docs/sprint-logs/{SprintID}/decisions.json` with rationale, and proceed** without prompting. This is how `autopilot` always invokes sprint.
+
+`--auto` changes *who resolves an ambiguous choice*, never *what is allowed*. It does NOT relax any gate: the forbidden-action categories (immediate-stop still stops), the 6-guard done judgment, and test-discipline all still apply. Under `--auto`, `sprint verify` additionally enables the independent verifier (`--with-verifier`).
+
+The legacy `sprint auto` command is the single-command form of "run plan→run→verify→done all with `--auto`". It is being superseded by the `autopilot` skill (see `references/sprint-auto.md`); prefer `autopilot` for multi-Sprint autonomous execution.
 
 ## Important Behaviors
 
@@ -81,10 +92,10 @@ See `references/roadmap-jq.md` for the complete reading patterns, write envelope
 - `references/sprint-demo.md` — demo command details
 - `references/sprint-refine.md` — refine (interactive UI/UX adjustment) command details
 - `references/sprint-done.md` — done command details
-- `references/sprint-hotfix.md` — hotfix (quick fix without sprint ceremony) command details
+- `references/sprint-fix.md` — fix (quick fix without sprint ceremony) command details. Alias: `sprint hotfix`.
 - `references/sprint-help.md` — help (command list and usage guide)
 - `references/sprint-auto.md` — auto (fully autonomous single sprint) command details
-- `references/sprint-propose.md` — propose (add new features to roadmap) command details
+- `references/sprint-idea.md` — idea (add new features to roadmap) command details. Alias: `sprint propose`.
 - `references/sprint-roadmap.md` — roadmap generation from VISION command details
 - `references/test-discipline.md` — **canonical rules** for tests: user scenarios, entry-point-driven testing, no-silent-skip, real-browser GUI E2E, status truthfulness. Shared by plan / run / verify / done / auto.
 - `references/story-scenarios.md` — user scenario taxonomy and templates (CLI / API / GUI / library), referenced from `test-discipline.md` Rule 1

@@ -38,7 +38,7 @@ For examples, see `test-examples.md`.
 
 ## Time-domain AC tests
 
-If an AC describes motion that unfolds over time (animation, smooth scroll, transition, debounce/throttle, lazy render, async layout coordination), tag its `description` with `[time-domain]` and write the test using the progression-sampler pattern. The full schema, Playwright template, forbidden patterns, and hotfix workflow live in `time-domain-tests.md`. Time-domain tests run during `sprint verify` against the real server.
+If an AC describes motion that unfolds over time (animation, smooth scroll, transition, debounce/throttle, lazy render, async layout coordination), tag its `description` with `[time-domain]` and write the test using the progression-sampler pattern. The full schema, Playwright template, forbidden patterns, and fix workflow live in `time-domain-tests.md`. Time-domain tests run during `sprint verify` against the real server.
 
 ## Endpoint contract table
 

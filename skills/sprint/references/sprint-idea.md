@@ -1,6 +1,8 @@
-# sprint propose
+# sprint idea
 
 Collaboratively turn a new idea or feature request into Stories and add them to the roadmap. This is the entry point for adding new work — whether the roadmap is complete, mid-execution, or during a milestone review.
+
+> Renamed from `sprint propose`. The old name still works as a deprecated alias — `sprint propose` runs this flow and prints a one-line deprecation note ("`sprint propose` is now `sprint idea`"). This command is the routing target for autopilot Review Mode class ③ (out-of-AC new scope).
 
 ## When to Use
 
@@ -104,9 +106,9 @@ Present the final state:
 
 ## Integration with autopilot
 
-When `sprint propose` is invoked during an autopilot milestone review:
-- The refine → propose → VISION update cycle all happens while autopilot is paused
-- After the user finishes proposing, autopilot re-reads ROADMAP.json and continues from the updated state
+When `sprint idea` is invoked during an autopilot milestone review (the routing target for Review Mode class ③ — out-of-AC new scope):
+- The refine → idea → VISION update cycle all happens while autopilot is paused
+- After the user finishes, autopilot re-reads ROADMAP.json and continues from the updated state
 - New Sprints are automatically included in the next autopilot batch
 
 ## Important Behaviors

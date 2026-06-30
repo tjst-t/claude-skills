@@ -8,8 +8,8 @@ To minimize tokens, sprint commands MUST read only the slice they need from `doc
 |---|---|---|
 | Current Sprint slice | `jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json` | sprint run / verify / demo / refine / done / prototype / auto |
 | Sprint by ID | `jq --arg id "<SprintID>" '.sprints[$id]' docs/ROADMAP.json` | targeted lookups (dependencies, history) |
-| Top-level structure (no Sprint bodies) | `jq '{progress, execution_order, dependencies, sprints: (.sprints \| map_values({title, status, milestone}))}' docs/ROADMAP.json` | sprint plan (initial scan), sprint propose (placement decision) |
-| Backlog only | `jq '.backlog' docs/ROADMAP.json` | backlog operations (sprint hotfix, propose) |
+| Top-level structure (no Sprint bodies) | `jq '{progress, execution_order, dependencies, sprints: (.sprints \| map_values({title, status, milestone}))}' docs/ROADMAP.json` | sprint plan (initial scan), sprint idea (placement decision) |
+| Backlog only | `jq '.backlog' docs/ROADMAP.json` | backlog operations (sprint fix, idea) |
 | Single Story | `jq --arg s "<SprintID>" --arg st "<StoryID>" '.sprints[$s].stories[$st]' docs/ROADMAP.json` | single-Story workflows |
 | Acceptance criteria of current Sprint | `jq '.sprints[.progress.current_sprint].stories \| to_entries[] \| {story: .key, ac: .value.acceptance_criteria}' docs/ROADMAP.json` | sprint verify Phase 1.5 traceability |
 | Whole file (legitimate) | Read tool | sprint init / roadmap only — these rewrite the whole file |
@@ -67,7 +67,7 @@ When passing JSON values as arguments, prefer single-quoted heredocs or shell va
 
 ```bash
 ITEM=$(cat <<'EOF'
-{"title":"Refactor X","description":"...","added_in":"hotfix","reason":"User request","status":"done"}
+{"title":"Refactor X","description":"...","added_in":"fix","reason":"User request","status":"done"}
 EOF
 )
 jq --argjson item "$ITEM" '.backlog += [$item]' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json

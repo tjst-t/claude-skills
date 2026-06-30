@@ -17,13 +17,19 @@ Present the following:
   autopilot start    複数スプリントを自律実行（マイルストーンで停止してレビュー）
                      GUIがあればプロトタイプレビュー → 承認後に実装開始
 
+【マイルストーン後のレビュー】
+  autopilot review   修正・追加要望を①〜④に分類して適切な機構へ振り分け（冪等）
+                     ①AC違反 ②小修正 ③新スコープ ④方向転換
+                     comprehension-report.md を読んでから実行するのが前提
+
 【確認】
-  autopilot status   最新の実行状況・判断ログ・残留worktreeを表示
+  autopilot status   進捗・直近の妥協(compromises)・ADR状況・残留worktreeを表示
   autopilot help     このヘルプを表示
 
 💡 始め方:
    新規プロジェクト → autopilot setup → autopilot start
    既存プロジェクト → autopilot setup（VISION/PRINCIPLES追加）→ autopilot start
+   マイルストーン到達後、触って気づいたら autopilot review を何度でも
    詳しくは /autopilot help setup で確認
 ```
 

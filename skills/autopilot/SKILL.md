@@ -1,7 +1,7 @@
 ---
 name: autopilot
 description: Runs multiple Sprints autonomously as developer and product owner. Executes plan-run-verify-done cycles guided by VISION.json and DESIGN_PRINCIPLES.json, stopping at milestones for user review.
-when_to_use: Use when user says "autopilot", "autopilot start/setup/status", "自動実行", "まとめて実行", or wants hands-off multi-sprint execution.
+when_to_use: The main natural-language entry point for moving a project forward. Triggers on "autopilot", "autopilot start/setup/review/status", "自動実行", "まとめて実行", "次のスプリント", "進めて", "自走して", "次のマイルストーンまで", "機能追加したい", "こういうの欲しい", "ちょっと直して", "ここ直して", "バグ修正", or any hands-off multi-sprint request. Post-milestone fix/add requests are handled here too, via Review Mode (`autopilot review`) — trivial one-line fixes are routed to `sprint fix` without full ceremony. For a single explicit sprint phase, the user types `sprint <command>` directly.
 allowed-tools: Read Grep Glob
 ---
 
@@ -50,10 +50,14 @@ A milestone boundary is any of the following (checked in order, use the earliest
 
 Show the state of the most recent autopilot run. Read-only — no active session required.
 
-1. Read `docs/ROADMAP.json` for overall progress
-2. Read the most recent `docs/sprint-logs/*/decisions.json` files
-3. Inspect `.claude/autopilot-*.lock` files and `git worktree list | grep autopilot/` per `references/autopilot-operations.md`
-4. Present: last completed Sprint, total Sprints in the run, active sessions, remaining worktrees + merge status, next milestone, key decisions, any drift warnings or failure logs
+1. Read `docs/ROADMAP.json` for overall progress (`progress.percentage`, `done` / `in_progress` / `remaining`, current Sprint, next milestone).
+2. Read the most recent `docs/sprint-logs/*/decisions.json` files for key decisions.
+3. Read the most recent milestone's `docs/sprint-logs/*/compromises.json` (if present) and summarize compromises by severity (`high` first). If absent, show "妥協なし / 記録なし".
+4. If `docs/DESIGN/` exists, show ADR counts by status (accepted / tentative / superseded) and the number of open questions (`tentative: true` items), per `design status`.
+5. Inspect `.claude/autopilot-*.lock` files and `git worktree list | grep autopilot/` per `references/autopilot-operations.md`.
+6. Present a one-screen view: roadmap progress + current Sprint, next milestone, last completed Sprint, recent compromises (by severity), DESIGN/ ADR summary (if present), active sessions, remaining worktrees + merge status, key decisions, and any drift warnings or failure logs.
+
+Backward compatibility: on a project that predates these artifacts, missing fields render as "-" / "N/A" rather than erroring (§2.9).
 
 ## Important Behaviors
 

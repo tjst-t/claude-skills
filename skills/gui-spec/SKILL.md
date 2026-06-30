@@ -126,4 +126,4 @@ This skill produces:
 
 - `references/test-generation.md` — **read this before writing any test** — E2E rules, mock rules, time-domain rules, endpoint contract format
 - `references/test-examples.md` — E2E and mock test code examples
-- `references/time-domain-tests.md` — time-domain AC schema, Playwright template, forbidden patterns, hotfix workflow
+- `references/time-domain-tests.md` — time-domain AC schema, Playwright template, forbidden patterns, fix workflow
