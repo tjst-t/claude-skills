@@ -1,0 +1,44 @@
+{
+  "$comment": "Schema and example for docs/sprint-logs/{SprintID}/verify-run.json — the MACHINE-AUTHORED test result, written by hooks/run-verify.py. It is the trust source for test status: sprint done's gate and the verification-integrity hook read this, NOT the model's hand-written verification-results.json. Models MUST NOT edit this file. See references/verify-execution.md.",
+  "$rules": {
+    "producer": "hooks/run-verify.py only. The model never authors or edits verify-run.json or the verify-run-*.log files.",
+    "ground_truth": "Each run's real process exit code. It is also written into the tail of docs/sprint-logs/{SprintID}/verify-run-{name}.log as `__VERIFY_EXIT_CODE__:{name}:{code}` so status can be re-derived even if this JSON is tampered with.",
+    "machine_status_rule": "A run is `pass` iff exit_code == 0 AND (no JUnit, or JUnit failed+errored == 0). The JUnit cross-check defends against runners that exit 0 despite failing cases. overall_machine_status is `pass` iff every run is `pass`.",
+    "language_agnostic": "Relies only on POSIX exit codes (universal) and optional JUnit XML (emitted by virtually every framework: gotestsum, pytest --junitxml, jest-junit, playwright junit reporter, rspec, maven-surefire, …). No framework-specific output parsing.",
+    "command_source": "Where the command list came from: 'declared (.claude/verify.json)' | 'fallback (make verify)' | 'fallback (make test)'. If unconfigured, run-verify.py exits 2 and writes nothing — that is a GAP (blocks done), never a pass.",
+    "freshness": "run-verify.py deletes prior verify-run-*.log and verify-run.json before each run, so the artifact reflects only the latest run (re-running after a fix is not contaminated by the previous failure).",
+    "backward_compatibility": "Optional / on-demand. Absent ⇒ machine verification was not run for this Sprint; sprint done treats that as a gap to surface (not a silent pass) unless the project has no verify command configured at all."
+  },
+  "$machine_authored": true,
+  "sprint": "Sa3f9c2",
+  "command_source": "declared (.claude/verify.json)",
+  "runs": [
+    {
+      "name": "devvm-smoke",
+      "command": "make devvm-smoke",
+      "exit_code": 1,
+      "log": "docs/sprint-logs/Sa3f9c2/verify-run-devvm-smoke.log",
+      "machine_status": "fail",
+      "junit": {
+        "total": 12,
+        "passed": 10,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "cases": [
+          { "name": "devvm.TestDevVMVaultAgentCertOwnershipNoDrift", "status": "fail" },
+          { "name": "devvm.TestPKIIssueProxyFuse", "status": "pass" }
+        ]
+      }
+    },
+    {
+      "name": "unit",
+      "command": "make test",
+      "exit_code": 0,
+      "log": "docs/sprint-logs/Sa3f9c2/verify-run-unit.log",
+      "machine_status": "pass",
+      "junit": null
+    }
+  ],
+  "overall_machine_status": "fail"
+}
