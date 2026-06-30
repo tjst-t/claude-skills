@@ -15,7 +15,7 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
    - **Scenario file presence** (`test-discipline.md` Rule 1): every Story has `scenario-{StoryID}.json` (non-GUI) or `gui-spec-{StoryID}.json` (GUI). Missing → derive it now per `story-scenarios.md` before continuing.
    - **For GUI Stories**: Verify that `npx playwright test` passes for each Story's test file. Failing tests are incomplete Tasks — execute the missing work immediately.
    - **API mock contract check**: For GUI Stories, compare the data shapes returned by Playwright test mocks against the actual backend handler implementations. Pay special attention to pagination response wrappers (`items` wrapper presence/absence). If mocks diverge from the real API, fix the tests immediately.
-   - **Time-domain AC check**: For each AC tagged `[time-domain]`, the linked test must satisfy the progression-sampler shape defined in `gui-spec/references/time-domain-tests.md`. The forbidden `page.waitForTimeout` + final-state-only pattern is rejected. Replace with a progression sampler before continuing.
+   - **Time-domain AC check**: For each AC tagged `[time-domain]`, the linked test must satisfy the progression-sampler shape defined in `references/time-domain-tests.md`. The forbidden `page.waitForTimeout` + final-state-only pattern is rejected. Replace with a progression sampler before continuing.
    - **Prototype drift check** (GUI Sprints only): If `prototype/` contains HTML files for this Sprint's Stories, extract every `data-testid` value from those files. For each testid, confirm it appears in the implementation source (frontend components / templates). Missing testids mean the implementation diverged from the approved prototype layout — surface the list to the user and either update the implementation to match or update the prototype to reflect an intentional change. Do not silently accept drift.
 3. If gaps are found, execute the missing work immediately
 
@@ -71,6 +71,53 @@ Verify that everything **implemented** in this Sprint — not just what was **de
 ```
 
 > **Why this step exists**: Mock tests (run during sprint-run) verify frontend behavior in isolation. E2E tests verify the full stack works together. The traceability check ensures every requirement has a passing test in this Sprint's run.
+
+## Phase 1.7: 6-Guard Done Judgment (mandatory per Story)
+
+Before any Story can transition to `done`, apply all 6 guards from `references/sprint-done-judgment.md` to each Story in the Sprint. This catches the "偽 done" patterns identified in the 2026-05-17 audit (user_review_required bypass, nil-injection mocks, mock-mode smoke, priority_rule 9 exception misuse, missing call paths, deferred-comment residue).
+
+For each Story:
+
+1. **Guard 1 — user_review_required**: read `.user_review_required` from the Story in `docs/ROADMAP.json`. If `true`, the Story cannot transition to `done` autonomously — only `needs_user_review`.
+2. **Guard 2 — nil-injection mock**: grep the Story's main implementation files for `if [a-zA-Z_]+\.[A-Z][a-zA-Z]* != nil \{` (the multi-dep nil-guard anti-pattern). 3+ hits in the same Story ⇒ warn and require user approval at the next sprint demo.
+3. **Guard 3 — mock-mode smoke**: scan `tests/acceptance/devvm/` (or the project's equivalent real-mode smoke path) for `MOCK=true|--fake-|DRY_RUN=1|fake_core: true|InMemoryStore`. Any hit ⇒ priority_rule 9 not satisfied; a separate real-mode smoke is required.
+4. **Guard 4 — priority_rule 9 exception validity**: if any Story `review_reason` or `decisions.json` rationale invokes the priority_rule 9 exception clause, confirm it names an explicit障害シナリオ identifier (`kill-9` / `停電` / `Shamir-unseal` / `ネットワーク遮断` / `disk-full` / `OOM` / `プロセスクラッシュ`). Unmatched claims are invalid; fall back to the normal real-mode smoke requirement.
+5. **Guard 5 — call-path existence**: for any AC describing cross-service coupling (API + Workflow trigger, backend → external SDK, etc.), run the call-path greps from `sprint-done-judgment.md` Guard 5. Zero hits ⇒ the coupling does not exist in code ⇒ Story cannot be `done`.
+6. **Guard 6 — deferred-comment residue**: run `git diff {Sprint base SHA}..HEAD -- 'cmd/' 'internal/' 'ansible/'` and grep for newly-added `// TODO.*Phase [0-9]` / `// Sprint [0-9].*で.*実装` / `// Sprint [0-9].*で.*追加` / `# TODO.*Phase [0-9]` etc. Any match without a corresponding backlog entry referencing the comment line numbers blocks `done` for the owning Story.
+
+Record each guard's outcome under `done_judgment` in `verification-results.json`:
+
+```json
+{
+  "story_id": "S5225ae-5",
+  "done_judgment": {
+    "guard1_user_review_required_not_done": "pass | fail",
+    "guard2_nil_injection_mock": "pass | fail | warn",
+    "guard3_mock_mode_not_real_smoke": "pass | fail",
+    "guard4_priority_rule_9_exception_valid": "pass | fail | n/a",
+    "guard5_call_path_grep": "pass | fail",
+    "guard6_deferred_comment_clean": "pass | fail",
+    "overall": "ok | needs_user_review"
+  }
+}
+```
+
+`overall: needs_user_review` ⇒ the Story cannot be marked `done` by `sprint done`. `sprint done` reads this block as its final gate; see `sprint-done.md`.
+
+## Phase 1.8: Independent verifier (only with `--with-verifier`)
+
+This phase runs **only** when `sprint verify` is invoked with `--with-verifier` (which `autopilot --auto` always passes). Phases 1.7 and earlier are run by the same session that implemented the code, which grades itself too leniently; this phase brings in a separate checker to backstop them.
+
+1. Spawn a **fresh Agent** (a separate read-only Claude session) whose prompt is the spec in `references/verifier-agent.md` — including its verbatim skeptical stance. Give it the Sprint ID, the base SHA, and the path to `docs/ROADMAP.json`. It has NO write access to source / tests / ROADMAP.
+2. The verifier re-derives, without trusting this session's `done_judgment`:
+   - **AC ↔ code**: every AC reachable through the user's entry point, asserted on the real backend round-trip (not a green test name)
+   - **Forbidden-category scan** (§2.4) over the whole diff
+   - **ADR conformance** against `decisions.json` `touched_adrs`
+   - **Compromise completeness** vs. the self-reported `compromises.json` / `done_judgment`
+3. The verifier writes `docs/sprint-logs/{SprintID}/verification-report.json` per `references/VERIFICATION_REPORT_SCHEMA.json`.
+4. **Reconcile**: where the verifier disagrees with this session's self-report, the verifier wins. A verifier `fail` in the AC or ADR category that maps to an immediate-stop condition halts autopilot; a `fail` / `warn` the implementer missed is merged into `compromises.json` with `overlooked_by_autopilot: true`, and the owning Story's `done_judgment.overall` is downgraded to `needs_user_review`.
+
+Without `--with-verifier`, skip this phase entirely; the single-session 6-guard pass (Phase 1.7) is the only gate.
 
 ## Phase 2: Sprint-level code review via /review
 

@@ -1,6 +1,8 @@
-# sprint propose
+# sprint idea
 
 Collaboratively turn a new idea or feature request into Stories and add them to the roadmap. This is the entry point for adding new work — whether the roadmap is complete, mid-execution, or during a milestone review.
+
+> Renamed from `sprint propose`. The old name still works as a deprecated alias — `sprint propose` runs this flow and prints a one-line deprecation note ("`sprint propose` is now `sprint idea`"). This command is the routing target for autopilot Review Mode class ③ (out-of-AC new scope).
 
 ## When to Use
 
@@ -44,6 +46,7 @@ Convert the idea into one or more user stories. For each Story:
 2. Define acceptance criteria (concrete, verifiable behaviors)
 3. Break into Tasks (implementation steps for sub-agents)
 4. Check granularity — each Story should be independently deliverable
+5. **Identify touched ADRs**: If `docs/DESIGN/adr/` (or `docs/design/adr/`) exists, list every ADR ID that the Story's implementation will touch (via `affects` field overlap, or by inspection of the components involved). These IDs will be written to `touched_adrs` in `decisions.json` at Sprint plan time, and Guard 7 (ADR conformance grep) will run each touched ADR's `machine_check:` section against the Sprint's diff during verify. Surfacing this at propose time prevents Stories from being scoped without their ADR constraints in mind.
 
 Present the Stories to the user for feedback:
 - "Here's how I'd break this down. Does this match what you had in mind?"
@@ -91,7 +94,7 @@ After the user confirms, apply all changes via in-place `jq` mutations using the
 ### 6. GUI spec (if applicable)
 
 If the new Stories involve GUI work:
-- Invoke `gui-spec` to derive scenarios and generate test files
+- Follow the GUI spec process in `references/gui-spec.md` to derive scenarios and generate test files
 - This follows the same flow as during `sprint plan` (interactive or autonomous depending on context)
 
 ### 7. Summary
@@ -103,9 +106,9 @@ Present the final state:
 
 ## Integration with autopilot
 
-When `sprint propose` is invoked during an autopilot milestone review:
-- The refine → propose → VISION update cycle all happens while autopilot is paused
-- After the user finishes proposing, autopilot re-reads ROADMAP.json and continues from the updated state
+When `sprint idea` is invoked during an autopilot milestone review (the routing target for Review Mode class ③ — out-of-AC new scope):
+- The refine → idea → VISION update cycle all happens while autopilot is paused
+- After the user finishes, autopilot re-reads ROADMAP.json and continues from the updated state
 - New Sprints are automatically included in the next autopilot batch
 
 ## Important Behaviors

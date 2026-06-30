@@ -1,7 +1,7 @@
 ---
 name: design
 description: Front-loads architectural design for complex systems. Guides a user from a fuzzy idea through dialogue to a structured set of design documents (VISION, DESIGN_PRINCIPLES, domain model, system architecture, ADRs, non-functional requirements) before implementation begins. The output feeds autopilot setup and sprint planning.
-when_to_use: Use at the very start of a new project when the user has a fuzzy idea but no documents yet, or at any time the user wants to lock cross-cutting/irreversible design decisions before sprint planning. Triggers on "design start", "アプリ作りたい", "新規プロジェクト", "アイデア相談", "ふわっとした", "設計から始めたい", "complex system design", "ADR", "アーキテクチャを固めたい". Run BEFORE `autopilot setup` for non-trivial systems.
+when_to_use: Use ONLY when load-bearing decisions must be settled — decisions that span multiple Sprints, are non-trivially reversible, lock a contract others depend on, or carry a real trade-off. Triggers on an explicit `design <command>` (design start / adr / refresh / status), or on complexity-signaling requests: "複雑な", "本格的な", "load-bearing", "アーキテクチャを固めたい", "設計判断", "ADR", "複数 Sprint にまたがる設計", "complex system design". Does NOT trigger on light "アプリ作りたい" / "アイデアある" / "新規プロジェクト" — those go to autopilot or sprint. Run BEFORE `autopilot setup` for non-trivial systems.
 allowed-tools: Read Grep Glob Write Bash(jq *) Bash(openssl rand *) Bash(mkdir *) Bash(ls *)
 ---
 
@@ -92,8 +92,8 @@ State the detected mode to the user before proceeding, so they can correct if it
 
 ```
 docs/
-├── VISION.json                      ../autopilot/references/VISION_SCHEMA.json
-├── DESIGN_PRINCIPLES.json           ../autopilot/references/DESIGN_PRINCIPLES_SCHEMA.json
+├── VISION.json                      references/VISION_SCHEMA.json
+├── DESIGN_PRINCIPLES.json           references/DESIGN_PRINCIPLES_SCHEMA.json
 └── DESIGN/
     ├── domain.json                  references/DOMAIN_SCHEMA.json
     ├── system.json                  references/SYSTEM_SCHEMA.json
@@ -146,6 +146,21 @@ Read `docs/DESIGN/` and present a one-screen view: artifact presence, ADR counts
 - **sprint run / sprint auto**: When making an autonomous technical decision, check whether it touches anything in DESIGN/. If yes, the decision must respect the ADR or escalate. If no, proceed and log to `decisions.json` as before.
 - **decisions.json**: Each entry should include an optional `adr_ref` field pointing to the ADR(s) the decision is based on, or `"none"` if it's a sprint-local decision.
 
+### ADR-necessity auto-check during `sprint plan`
+
+During `sprint plan` / `sprint idea`, Claude must actively watch for a load-bearing decision surfacing without a covering ADR. The signals that should prompt an `"ADR が必要では？"` suggestion to the user are in `references/adr-template.md` → **"Signals that an ADR is required"**. If any signal fires and no existing ADR covers it, suggest `design adr` *before* `sprint run` starts. If no signal fires, the decision stays autonomous and is logged to `decisions.json` only.
+
+### `autopilot review` ④ direction-change handoff
+
+When `autopilot review` classifies a user request as **④ direction change** (see `autopilot/SKILL.md` → Review Mode) AND `docs/DESIGN/` exists, it hands off to this skill in a fixed order:
+
+1. `autopilot review` calls **`design refresh`** internally to check consistency — existing-ADR contradictions and broken links (entities/components that the change would orphan).
+2. The impact (which ADRs conflict, what would break) is presented to the user.
+3. On approval, **`design adr`** adds a new ADR or supersedes an existing one (ADRs are append-only — never edit an accepted ADR's meaning).
+4. Finally `sprint roadmap` is re-run so downstream Sprints reflect the new decision.
+
+If `docs/DESIGN/` does NOT exist, ④ skips this handoff and `autopilot review` re-runs `sprint roadmap` directly. This skill and `autopilot review` are not mutually exclusive — on ④ they compose, with `autopilot review` as the caller.
+
 ## Reference files
 
 - `references/design-flow.md` — Phase 1/2/3 dialogue patterns, sample prompts, and "when to move to next phase" heuristics
@@ -154,6 +169,8 @@ Read `docs/DESIGN/` and present a one-screen view: artifact presence, ADR counts
 - `references/adr-template.md` — ADR template, identification heuristics, "what does and does not warrant an ADR"
 - `references/non-functional-template.md` — Non-functional requirements template
 - `references/data-template.md` — Data / protocol design template (used when applicable)
+- `references/VISION_SCHEMA.json` — VISION.json schema and example. **Owned here** — `design` is the authority that generates VISION; `autopilot setup` reads this schema for its inline (simpler) VISION generation.
+- `references/DESIGN_PRINCIPLES_SCHEMA.json` — DESIGN_PRINCIPLES.json schema and example. **Owned here** for the same reason.
 - `references/DOMAIN_SCHEMA.json` — Domain JSON schema and example
 - `references/SYSTEM_SCHEMA.json` — System JSON schema and example
 - `references/ADR_SCHEMA.json` — ADR JSON schema and example

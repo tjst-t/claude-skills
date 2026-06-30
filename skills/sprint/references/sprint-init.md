@@ -30,8 +30,8 @@ If `docs/ROADMAP.md` exists but `docs/ROADMAP.json` does not:
 5. Log: "Migrated ROADMAP.md → ROADMAP.json (backup at ROADMAP.md.bak)"
 
 Similarly migrate if found:
-- `docs/VISION.md` → `docs/VISION.json` (following VISION_SCHEMA.json from autopilot skill)
-- `docs/DESIGN_PRINCIPLES.md` → `docs/DESIGN_PRINCIPLES.json` (following DESIGN_PRINCIPLES_SCHEMA.json from autopilot skill)
+- `docs/VISION.md` → `docs/VISION.json` (following VISION_SCHEMA.json from the `design` skill)
+- `docs/DESIGN_PRINCIPLES.md` → `docs/DESIGN_PRINCIPLES.json` (following DESIGN_PRINCIPLES_SCHEMA.json from the `design` skill)
 - `docs/sprint-logs/{SprintID}/decisions.md` → `decisions.json`
 - `docs/sprint-logs/{SprintID}/{e2e-results,acceptance-matrix}.md` → consolidated `verification-results.json` (merge content; the schema is documented in `references/SPRINT_LOGS_SCHEMA.json`)
 - `docs/sprint-logs/{SprintID}/refine.md` → `refine.json`

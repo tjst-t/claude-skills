@@ -23,7 +23,8 @@ Prepare the next sprint. This is a collaborative phase with the user.
    - For each relevant ADR with status `accepted` or `tentative`: read the full ADR and treat it as a constraint on the Sprint plan.
    - Also read `docs/DESIGN/domain.json` (for entity vocabulary) and `docs/DESIGN/system.json` (for component boundaries) to ensure Story descriptions use consistent terms.
    - If the Sprint plan needs to violate an ADR, **stop and escalate to the user** — either revise the Sprint or amend the ADR via `design adr` before proceeding.
-   - If a load-bearing decision comes up during planning that isn't in any ADR, suggest creating one via `design adr` before sprint run.
+   - **ADR-necessity auto-check**: if a decision under discussion matches any signal in `../../design/references/adr-template.md` → "Signals that an ADR is required" (multiple options with cross-Story impact / defining a data-structure-API-protocol contract / expedient choice with medium+ reversibility cost) AND no existing ADR covers it, surface `"ADR が必要では？"` to the user and offer `design adr` before `sprint run`. If no signal fires, the choice stays autonomous and is logged to `decisions.json` with `adr_ref: "none"` only.
+   - **Record `touched_adrs` in decisions.json**: Once the relevant ADRs are identified, list their IDs (e.g., `["ADR-0014", "ADR-0027"]`) under `touched_adrs` at the top level of `docs/sprint-logs/{SprintID}/decisions.json`. This list is the **input to Guard 7 (ADR conformance grep)** during `sprint verify` / `sprint done` — verify reads each touched ADR's `machine_check:` section and runs its forbidden_grep / required_grep against the Sprint's diff. Missing `touched_adrs` means Guard 7 falls back to a fixed set of "always check" ADRs (ADR-0014, ADR-0033, ADR-0034), so explicit listing is required for any Sprint that touches `docs/design/adr/`-defined invariants outside that fallback set.
 
 2. Identify the next unfinished Sprint according to the **Execution Order** (not document order or ID order)
 3. Present to the user:
@@ -46,7 +47,7 @@ Prepare the next sprint. This is a collaborative phase with the user.
 5. **Auto-decide, then confirm once**: For design decisions and architectural questions, first determine if there is a clear recommended approach. If so, auto-select it and note the rationale. Only ask the user for decisions that are genuinely ambiguous (multiple viable approaches with real trade-offs). Present the full sprint plan — including all auto-decided items, rewritten stories, proposed Story splits (if any), and any open questions — in a single summary for the user to confirm or adjust.
 6. **Story scenario derivation (mandatory, every Story)**: For each Story, classify the entry point (`cli` / `api` / `gui` / `library` / `mixed`) and produce a scenario artifact before `sprint run` begins. Format and per-type templates live in `references/story-scenarios.md`; the rules tests must follow live in `references/test-discipline.md`.
 
-   - **GUI / mixed-with-GUI**: invoke the `gui-spec` skill via the Skill tool. Output → `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json`.
+   - **GUI / mixed-with-GUI**: follow the GUI spec process in `references/gui-spec.md` (formerly the standalone `gui-spec` skill — now run inline by sprint). Output → `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json`.
    - **CLI / API / Library**: derive inline from the templates in `story-scenarios.md`. Output → `docs/sprint-logs/{SprintID}/scenario-{StoryID}.json`. Each scenario must link to its AC(s) via `linked_ac` and end with observations available through the user's entry point.
    - Every AC must be exercised by at least one scenario step. AC that cannot be observed through any user-facing surface are invalid — flag them.
    - In autonomous mode (`sprint auto`): auto-derive without user confirmation, log to `decisions.json`.
@@ -54,6 +55,6 @@ Prepare the next sprint. This is a collaborative phase with the user.
    - **Story rewritten**: `--arg s --arg st --argjson body '.sprints[$s].stories[$st] = $body'`
    - **Story split into N**: replace the original story with the new ones using a single jq with `del` + multiple `=`, then increment any task numbering as needed
    - **Tasks added**: "Add Task to a Story" filter
-   - **AC added by gui-spec**: "Append AC to a Story" filter (per Story)
+   - **AC added by the GUI spec process**: "Append AC to a Story" filter (per Story)
    - Do NOT Read the whole file then rewrite it.
 8. **Update the Progress section** if Sprint count or status changed: use the "Recompute progress counts" filter (and "Update progress total" if `total` itself changed).

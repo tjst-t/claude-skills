@@ -1,6 +1,6 @@
 # DESIGN_PRINCIPLES.json テンプレート
 
-以下のテンプレートを参考に `docs/DESIGN_PRINCIPLES.json` を作成する。実際の出力はJSON形式（DESIGN_PRINCIPLES_SCHEMA.json参照）。ユーザーとの対話で各セクションを埋める。
+以下のテンプレートを参考に `docs/DESIGN_PRINCIPLES.json` を作成する。実際の出力はJSON形式（schema は `design` skill が所有: `../../design/references/DESIGN_PRINCIPLES_SCHEMA.json` 参照）。ユーザーとの対話で各セクションを埋める。
 
 ```markdown
 # 設計原則

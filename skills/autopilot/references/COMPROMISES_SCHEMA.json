@@ -1,0 +1,37 @@
+{
+  "$comment": "Schema and example for docs/sprint-logs/{SprintID}/compromises.json. Produced by autopilot at a milestone boundary to present the '完走後通知' (notify-after-completion) compromises in a categorized, actionable form. This file holds ONLY the local compromises that autopilot was allowed to make and continue past (§2.4 'notify-after-completion' categories). The 'immediate-stop' categories (acceptance_criteria_modified, destructive git, ADR violation) never reach this file because autopilot halts on them instead of recording-and-continuing.",
+  "$rules": {
+    "when_written": "Generated at milestone arrival, immediately before comprehension-report.md. One file per Sprint under sprint-logs/{SprintID}/.",
+    "trust_source": "The verifier sub-agent's verification-report.json is the authoritative source for this file. When autopilot's self-reported compromises and the verifier's findings disagree, the verifier wins and the missed item is recorded with overlooked_by_autopilot: true. See references in autopilot/SKILL.md → Constraints and Forbidden Actions, and sprint/references/verifier-agent.md.",
+    "relationship_to_done_judgment": "Distinct axis from the done-judgment guards (sprint-done-judgment.md). A guard failure moves a Story to needs_user_review; a compromise is a local concession autopilot made while still completing the Story. A single weakened assertion can appear in BOTH (as a guard-2/guard-3 fail AND as a test_assertion_weakened compromise) — that is expected, not double-counting.",
+    "type_enum": ["test_skipped", "test_assertion_weakened", "error_swallowed", "type_safety_relaxed", "acceptance_criteria_modified"],
+    "type_semantics": {
+      "test_skipped": "it.skip / xtest / @pytest.mark.skip added, or expect(true).toBe(true) stub",
+      "test_assertion_weakened": "toEqual → toBeTruthy, concrete value → any value, specific → loose matcher",
+      "error_swallowed": "try { ... } catch {}, // @ts-ignore, # noqa newly added",
+      "type_safety_relaxed": "change to any, abusive as casts",
+      "acceptance_criteria_modified": "AC removed/loosened in ROADMAP.json — IMMEDIATE-STOP category; appears here only if surfaced retroactively, never as an autopilot-continued compromise"
+    },
+    "severity_enum": ["low", "medium", "high"],
+    "adr_ref": "ADR-NNNN when the compromise relates to an ADR's decision, otherwise the string \"none\"",
+    "backward_compatibility": "Optional, on-demand (§2.9). Absent file ⇒ display '妥協なし' (no compromises) or, for Sprints predating this mechanism, '過去 Sprint で記録対象外' (not recorded for this historical Sprint). Never back-generated for past Sprints."
+  },
+  "milestone_summary": {
+    "stopped_at": "milestone_M02",
+    "compromises": [
+      {
+        "type": "test_assertion_weakened",
+        "severity": "medium",
+        "story": "Sa3f9c2-3",
+        "file": "tests/auth.spec.ts",
+        "rationale": "OAuth provider の mock 複雑化を回避",
+        "diff_summary": "expect(token).toBe('xyz') → expect(token).toBeTruthy()",
+        "recommended_action": "OAuth mock を別 Story で整備して厳密化",
+        "adr_ref": "none",
+        "overlooked_by_autopilot": false
+      }
+    ],
+    "blockers_encountered": [],
+    "scope_changes": []
+  }
+}
