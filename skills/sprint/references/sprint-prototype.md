@@ -4,14 +4,14 @@ Generate a clickable HTML prototype of all GUI Stories up to the next milestone.
 
 ## When to Use
 
-- After `sprint plan` / `gui-spec`, before `sprint run`
+- After `sprint plan` (including its GUI spec step), before `sprint run`
 - In autopilot: automatically runs after pre-flight, before the sprint loop
 - Can be invoked standalone: `/sprint prototype`
 
 ## Prerequisites
 
 - `docs/ROADMAP.json` must exist with GUI Stories identified
-- gui-spec should have been run (state diagrams and scenarios inform the prototype)
+- The GUI spec step (`references/gui-spec.md`) should have been run (state diagrams and scenarios inform the prototype)
 
 ## Flow
 
@@ -47,10 +47,10 @@ prototype/
 ```
 
 **Requirements:**
-- **Hardcoded data** — no API calls, no JavaScript fetch. Use realistic sample data that matches the endpoint contracts from gui-spec.
+- **Hardcoded data** — no API calls, no JavaScript fetch. Use realistic sample data that matches the endpoint contracts from the GUI spec.
 - **Page navigation works** — links between pages use relative paths (`href="dashboard.html"`)
 - **Layout and styling match production intent** — use the project's design system if one exists (check DESIGN_PRINCIPLES.json for UI/UX guidelines, design references). If no design system, use clean, modern defaults.
-- **All UI states represented** — for each screen, show the primary state. If the gui-spec identified important states (empty, error), create separate HTML files: `{screen-name}.html`, `{screen-name}-empty.html`, `{screen-name}-error.html`
+- **All UI states represented** — for each screen, show the primary state. If the GUI spec identified important states (empty, error), create separate HTML files: `{screen-name}.html`, `{screen-name}-empty.html`, `{screen-name}-error.html`
 - **Interactive elements are visible** — buttons, forms, inputs should be present and styled. They don't need to function (no JS handlers required) but should look correct.
 - **data-testid attributes included** — add `data-testid` to all interactive elements, matching what the Playwright tests will expect. This ensures the prototype and tests are aligned.
 - **Responsive** — use responsive CSS so the prototype looks reasonable on different screen sizes
@@ -115,7 +115,7 @@ When called from autopilot (no user present for review):
 ## Important Behaviors
 
 - **Plain HTML only**: No build tools, no frameworks, no npm. The prototype must be viewable by opening the HTML file directly.
-- **Realistic data**: Use sample data that matches the endpoint contract tables from gui-spec. Don't use "Lorem ipsum" for data fields — use plausible values.
+- **Realistic data**: Use sample data that matches the endpoint contract tables from the GUI spec. Don't use "Lorem ipsum" for data fields — use plausible values.
 - **data-testid alignment**: The prototype establishes the `data-testid` contract. Implementation and Playwright tests must match these.
 - **Prototype is a design reference, not production code**: The `prototype/` directory is not deployed. Once a Sprint completes, its prototype files are archived to `prototype/old/{SprintID}/` by `sprint done` (see `sprint-done.md`). This keeps the top of `prototype/` focused on screens still pending implementation, while preserving past designs as a viewable reference.
 - **Design quality matters**: Use `/frontend-design` skill. The prototype should look like a real product, not a wireframe. This is what the user is approving.

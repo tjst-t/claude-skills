@@ -74,7 +74,7 @@ test('[MOCK] VM create: should send required fields to backend', async ({ page }
 
 ## Time-domain Test Example (animation / smooth scroll / transition)
 
-For AC tagged `[time-domain]` (see `references/time-domain-tests.md` for schema and rules). The progression sampler runs **inside `page.evaluate`** so the 100ms cadence is honored by the browser event loop — not warped by Playwright IPC latency.
+For AC tagged `[time-domain]` (see `time-domain-tests.md` for schema and rules). The progression sampler runs **inside `page.evaluate`** so the 100ms cadence is honored by the browser event loop — not warped by Playwright IPC latency.
 
 ```typescript
 import { test, expect } from '@playwright/test';

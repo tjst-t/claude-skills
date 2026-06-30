@@ -47,7 +47,7 @@ Prepare the next sprint. This is a collaborative phase with the user.
 5. **Auto-decide, then confirm once**: For design decisions and architectural questions, first determine if there is a clear recommended approach. If so, auto-select it and note the rationale. Only ask the user for decisions that are genuinely ambiguous (multiple viable approaches with real trade-offs). Present the full sprint plan — including all auto-decided items, rewritten stories, proposed Story splits (if any), and any open questions — in a single summary for the user to confirm or adjust.
 6. **Story scenario derivation (mandatory, every Story)**: For each Story, classify the entry point (`cli` / `api` / `gui` / `library` / `mixed`) and produce a scenario artifact before `sprint run` begins. Format and per-type templates live in `references/story-scenarios.md`; the rules tests must follow live in `references/test-discipline.md`.
 
-   - **GUI / mixed-with-GUI**: invoke the `gui-spec` skill via the Skill tool. Output → `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json`.
+   - **GUI / mixed-with-GUI**: follow the GUI spec process in `references/gui-spec.md` (formerly the standalone `gui-spec` skill — now run inline by sprint). Output → `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json`.
    - **CLI / API / Library**: derive inline from the templates in `story-scenarios.md`. Output → `docs/sprint-logs/{SprintID}/scenario-{StoryID}.json`. Each scenario must link to its AC(s) via `linked_ac` and end with observations available through the user's entry point.
    - Every AC must be exercised by at least one scenario step. AC that cannot be observed through any user-facing surface are invalid — flag them.
    - In autonomous mode (`sprint auto`): auto-derive without user confirmation, log to `decisions.json`.
@@ -55,6 +55,6 @@ Prepare the next sprint. This is a collaborative phase with the user.
    - **Story rewritten**: `--arg s --arg st --argjson body '.sprints[$s].stories[$st] = $body'`
    - **Story split into N**: replace the original story with the new ones using a single jq with `del` + multiple `=`, then increment any task numbering as needed
    - **Tasks added**: "Add Task to a Story" filter
-   - **AC added by gui-spec**: "Append AC to a Story" filter (per Story)
+   - **AC added by the GUI spec process**: "Append AC to a Story" filter (per Story)
    - Do NOT Read the whole file then rewrite it.
 8. **Update the Progress section** if Sprint count or status changed: use the "Recompute progress counts" filter (and "Update progress total" if `total` itself changed).

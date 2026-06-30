@@ -1,6 +1,6 @@
 # Test Discipline
 
-The single source of truth for what counts as a valid test in this skill. `sprint plan`, `sprint run`, `sprint verify`, `sprint done`, `sprint auto`, and `gui-spec` all defer to this document. When something here changes, no other file needs to change.
+The single source of truth for what counts as a valid test in this skill. `sprint plan`, `sprint run`, `sprint verify`, `sprint done`, `sprint auto`, and the GUI spec process (`gui-spec.md`) all defer to this document. When something here changes, no other file needs to change.
 
 ## The Eight Rules
 
@@ -8,7 +8,7 @@ The single source of truth for what counts as a valid test in this skill. `sprin
 
 Before `sprint run` begins, every Story must have one of:
 - `docs/sprint-logs/{SprintID}/scenario-{StoryID}.json` — for `cli` / `api` / `library` / `mixed` Stories. Format: see `story-scenarios.md`.
-- `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json` — for `gui` Stories. Produced by `gui-spec`.
+- `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json` — for `gui` Stories. Produced by the GUI spec process (`gui-spec.md`).
 
 A scenario is the literal step-by-step sequence of actions the user performs through their real entry point, and the observations the user makes after each step. Every acceptance criterion must be exercised by at least one scenario step.
 

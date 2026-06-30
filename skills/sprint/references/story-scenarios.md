@@ -12,7 +12,7 @@ Every Story has exactly one **primary user entry point**. Pick the one that matc
 |---|---|---|
 | `cli` | Types a command in a shell | Subprocess invocation of the real binary; assert on stdout, stderr, exit code, files written |
 | `api` | Sends an HTTP request (from another service, an SDK consumer, or `curl`) | Real HTTP client against the running server (no calls into internal handlers) |
-| `gui` | Clicks/types in a browser | Playwright against the real frontend (see `gui-spec` skill) |
+| `gui` | Clicks/types in a browser | Playwright against the real frontend (see `gui-spec.md`) |
 | `library` | Imports the package and calls its public API from their own program | A separate consumer-style test program that imports the package as an external user would |
 | `mixed` | Multiple of the above as part of one user goal | Each entry point has its own scenario block, all of which must execute |
 
@@ -72,7 +72,7 @@ Per Story, write one or more scenarios. Each scenario is linked to one or more a
 
 #### GUI scenario
 
-Delegated to the `gui-spec` skill. `gui-spec` produces the state diagram, endpoint contracts, and Playwright tests; this document does not duplicate that. The GUI scenario in `scenario-{StoryID}.json` simply records the user-facing steps in the same format as CLI/API so that all Stories share one shape; the canonical artifact for GUI Stories is `gui-spec-{StoryID}.json`.
+Delegated to the GUI spec process (`gui-spec.md`). It produces the state diagram, endpoint contracts, and Playwright tests; this document does not duplicate that. The GUI scenario in `scenario-{StoryID}.json` simply records the user-facing steps in the same format as CLI/API so that all Stories share one shape; the canonical artifact for GUI Stories is `gui-spec-{StoryID}.json`.
 
 #### Library scenario
 
@@ -84,7 +84,7 @@ Delegated to the `gui-spec` skill. `gui-spec` produces the state diagram, endpoi
 ## Where scenarios are stored
 
 - Non-GUI Stories: `docs/sprint-logs/{SprintID}/scenario-{StoryID}.json` (this template)
-- GUI Stories: `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json` (produced by `gui-spec`)
+- GUI Stories: `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json` (produced by the GUI spec process, `gui-spec.md`)
 
 The scenario file is the source of truth that `sprint run` reads when generating tests, and that `sprint verify` reads when validating that tests actually drive the user's entry point.
 

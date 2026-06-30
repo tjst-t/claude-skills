@@ -94,7 +94,7 @@ After the user confirms, apply all changes via in-place `jq` mutations using the
 ### 6. GUI spec (if applicable)
 
 If the new Stories involve GUI work:
-- Invoke `gui-spec` to derive scenarios and generate test files
+- Follow the GUI spec process in `references/gui-spec.md` to derive scenarios and generate test files
 - This follows the same flow as during `sprint plan` (interactive or autonomous depending on context)
 
 ### 7. Summary

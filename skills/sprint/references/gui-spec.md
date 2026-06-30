@@ -1,26 +1,21 @@
----
-name: gui-spec
-description: Derives GUI scenarios and generates Playwright acceptance tests (E2E + mock) from UI Stories. Produces state diagrams, endpoint contract tables, and test files.
-when_to_use: Use when a Sprint contains GUI/frontend Stories involving components, screens, pages, forms, modals, dashboards, or any interactive UI elements.
-allowed-tools: Read Grep Glob
----
+# GUI Spec (sprint reference)
 
-# GUI Spec
+The GUI-specification process used by `sprint plan` (and `sprint idea`). It elicits GUI specifications through structured dialogue, then generates Playwright acceptance tests that allow autonomous implementation and self-verification.
 
-Elicits GUI specifications through structured dialogue, then generates Playwright acceptance tests that allow autonomous implementation and self-verification.
+> This was previously a standalone `gui-spec` skill. It is now a reference of the `sprint` skill — it is only ever reached from `sprint plan` / `sprint idea`, so it does not need independent auto-discovery (which also avoids mis-firing on unrelated "form / modal / dashboard" wording). The process below is unchanged; `sprint plan` follows it inline instead of invoking a separate skill. Where the text below says "this skill", read it as "this process".
 
 ## Important Behaviors
 
 - **Auto-decide, then confirm once**: Reason through all aspects autonomously, auto-select when recommendations are clear, and present a single summary for user confirmation. Only ask individual questions when a design decision is genuinely ambiguous with meaningful trade-offs.
 - **Diagram before tests**: Present the state diagram as part of the scenario summary. Tests derived from an unconfirmed diagram will likely be wrong.
-- **Two test files per Story**: E2E tests (real server, acceptance criteria) and mock tests (error/edge cases). Never mix them in the same file. The E2E shape is governed by `sprint/references/test-discipline.md` Rules 2 and 4 (real browser, real backend, no network mocks, UI-state assertions).
+- **Two test files per Story**: E2E tests (real server, acceptance criteria) and mock tests (error/edge cases). Never mix them in the same file. The E2E shape is governed by `test-discipline.md` Rules 2 and 4 (real browser, real backend, no network mocks, UI-state assertions).
 - **E2E tests trace to acceptance criteria**: Every E2E test name must start with `[AC-{StoryID}-{N}]` matching an acceptance criterion in ROADMAP.json. Every acceptance criterion must have at least one E2E test.
 - **data-testid is mandatory**: If the implementation doesn't have `data-testid` attributes, Playwright tests become fragile. This is a non-negotiable convention.
 - **Short-circuit if no GUI**: If no Stories in the Sprint involve GUI, skip immediately and return to `sprint plan`.
 - **Autonomous mode**: When invoked from `sprint auto`, skip all user confirmation steps. Auto-decide every aspect, write the spec document, and log decisions to `decisions.json`.
 - **Read the handler, not the type name**: Always read the actual backend handler for response field names. Never infer from type names or frontend conventions.
 - **Assert POST bodies in mock tests**: For every mutation, inspect `route.request().postDataJSON()` and assert required fields. In E2E tests, verify via GET that the mutation persisted instead.
-- **Time-domain AC require progression sampling**: An AC about animation, smooth scroll, transition, debounce/throttle, or async layout coordination (`[time-domain]` tag) cannot be verified by a final-state-only assertion. See `references/time-domain-tests.md`.
+- **Time-domain AC require progression sampling**: An AC about animation, smooth scroll, transition, debounce/throttle, or async layout coordination (`[time-domain]` tag) cannot be verified by a final-state-only assertion. See `time-domain-tests.md`.
 
 ## When to Use
 
@@ -93,7 +88,7 @@ For each GUI Story, generate:
 3. **Time-domain tests** (only if an AC describes motion-over-time) using the progression-sampler pattern
 4. **Endpoint contract table** added to `docs/sprint-logs/{SprintID}/gui-spec-{StoryID}.json` — read router and handlers to fill exact field names
 
-The full rules — naming, setup/teardown patterns, mock request-body assertions, time-domain template, endpoint contract format — live in `references/test-generation.md`. Read that file before writing any test.
+The full rules — naming, setup/teardown patterns, mock request-body assertions, time-domain template, endpoint contract format — live in `gui-spec-test-generation.md`. Read that file before writing any test.
 
 ### Phase 5: Update Roadmap and Write Spec
 
@@ -124,6 +119,6 @@ This skill produces:
 
 ## Reference Files
 
-- `references/test-generation.md` — **read this before writing any test** — E2E rules, mock rules, time-domain rules, endpoint contract format
-- `references/test-examples.md` — E2E and mock test code examples
-- `references/time-domain-tests.md` — time-domain AC schema, Playwright template, forbidden patterns, fix workflow
+- `gui-spec-test-generation.md` — **read this before writing any test** — E2E rules, mock rules, time-domain rules, endpoint contract format
+- `gui-spec-test-examples.md` — E2E and mock test code examples
+- `time-domain-tests.md` — time-domain AC schema, Playwright template, forbidden patterns, fix workflow

@@ -4,7 +4,7 @@ Per GUI Story, generate **two separate test files**. Each serves a different pur
 
 ## E2E tests — `tests/e2e/{story-slug}.e2e.spec.ts`
 
-Real end-to-end tests that run a real browser against the real running backend. The full shape (real browser, no network mocks, UI-affordance interactions, UI-state assertions, real-login auth) is defined by `sprint/references/test-discipline.md` Rules 2 and 4 — that document is the authority; this file adds only what is specific to writing the file:
+Real end-to-end tests that run a real browser against the real running backend. The full shape (real browser, no network mocks, UI-affordance interactions, UI-state assertions, real-login auth) is defined by `test-discipline.md` Rules 2 and 4 — that document is the authority; this file adds only what is specific to writing the file:
 
 - Use `data-testid` attributes for all selectors (never CSS classes or text content)
 - Cover the happy path and every acceptance criterion from ROADMAP.json
@@ -14,7 +14,7 @@ Real end-to-end tests that run a real browser against the real running backend. 
 - Use a dedicated test user/token documented in CLAUDE.md
 - For mutations, verify persistence by reading back **through the UI** (navigate, confirm the item appears), not via direct API or DB query
 
-For examples, see `test-examples.md`.
+For examples, see `gui-spec-test-examples.md`.
 
 **When E2E tests run**: during `sprint verify` (after all Stories are merged and the server is running).
 
@@ -32,7 +32,7 @@ Rules:
 - **Assert mutation request bodies**: for POST/PUT/PATCH, inspect `route.request().postDataJSON()` and assert required fields
 - Name tests in the format: `[MOCK] {scenario} should {expected behavior}`
 
-For examples, see `test-examples.md`.
+For examples, see `gui-spec-test-examples.md`.
 
 **When mock tests run**: during `sprint run` (per-Story, fast feedback loop).
 

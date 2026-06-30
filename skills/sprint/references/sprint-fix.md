@@ -60,7 +60,7 @@ Only do this if the user asks for it. Most fixes don't need tracking.
 
 ## Time-domain UI fix
 
-If the bug involves animation, smooth scroll, transition, debounce/throttle, or async-render coordination, the regular Flow above is insufficient. Follow the "Fix workflow for time-domain bugs" in [gui-spec/references/time-domain-tests.md](../../gui-spec/references/time-domain-tests.md) instead: tag the AC `[time-domain]`, write the progression-sampling test FIRST and confirm it fails, then implement the fix and confirm it passes. Continue with this file's Step 4 (Commit) and Step 5 (Optional: Log to ROADMAP).
+If the bug involves animation, smooth scroll, transition, debounce/throttle, or async-render coordination, the regular Flow above is insufficient. Follow the "Fix workflow for time-domain bugs" in [time-domain-tests.md](time-domain-tests.md) instead: tag the AC `[time-domain]`, write the progression-sampling test FIRST and confirm it fails, then implement the fix and confirm it passes. Continue with this file's Step 4 (Commit) and Step 5 (Optional: Log to ROADMAP).
 
 ## Important Behaviors
 

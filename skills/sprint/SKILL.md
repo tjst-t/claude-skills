@@ -27,7 +27,7 @@ The roadmap file is always at `docs/ROADMAP.json` in the project root. If it doe
 | `sprint done` | Finalize and commit the sprint | See `references/sprint-done.md` |
 | `sprint fix` | Quick fix without full sprint ceremony (alias: `sprint hotfix`) | See `references/sprint-fix.md` |
 | `sprint help` | Show command list and usage guide | See `references/sprint-help.md` |
-| `sprint auto` | Execute one sprint fully autonomously | See `references/sprint-auto.md` |
+| `sprint auto` | Execute one sprint fully autonomously (deprecated — prefer `autopilot`) | See `references/sprint-auto.md` |
 | `sprint idea` | Discuss and add new features to roadmap (alias: `sprint propose`) | See `references/sprint-idea.md` |
 | `sprint roadmap` | Generate full roadmap from VISION | See `references/sprint-roadmap.md` |
 
@@ -60,7 +60,7 @@ The legacy `sprint auto` command is the single-command form of "run plan→run�
 - **Demo with running program**: `sprint demo` runs `make serve` (or equivalent) and demonstrates acceptance criteria live. Never substitute test code execution.
 - **Refine is interactive only**: `sprint refine` requires the user to look at the running app and provide feedback. It is skipped in `sprint auto`. In autopilot, it runs at milestone boundaries after the demo.
 - **Always commit and push on done**: `sprint done` must leave a clean working tree.
-- **GUI spec is mandatory in sprint plan**: Always invoke `gui-spec` during `sprint plan`. Let `gui-spec` determine whether GUI work exists.
+- **GUI spec is mandatory in sprint plan**: Always run the GUI spec process (`references/gui-spec.md`) during `sprint plan`. Let it determine whether GUI work exists. (This was a standalone `gui-spec` skill; it is now a sprint reference, reached only from sprint plan / sprint idea.)
 - **Prototype before implementation**: For GUI Stories, run `sprint prototype` after `sprint plan` and before `sprint run`. The approved HTML prototype in `prototype/` is the visual reference for implementation sub-agents. In autopilot, prototyping covers all GUI Stories up to the next milestone.
 - **Two-tier testing**: GUI Stories produce two test files — mock tests (`*.mock.spec.ts`) for error/edge cases, E2E tests (`*.e2e.spec.ts`) for acceptance criteria against the real server. Non-GUI Stories produce acceptance tests in `tests/acceptance/`.
 - **Mock tests gate Story completion in sprint run**: A GUI Story cannot be marked `[x]` in sprint run unless its mock tests pass. E2E tests run later in sprint verify.
@@ -99,6 +99,10 @@ See `references/roadmap-jq.md` for the complete reading patterns, write envelope
 - `references/sprint-roadmap.md` — roadmap generation from VISION command details
 - `references/test-discipline.md` — **canonical rules** for tests: user scenarios, entry-point-driven testing, no-silent-skip, real-browser GUI E2E, status truthfulness. Shared by plan / run / verify / done / auto.
 - `references/story-scenarios.md` — user scenario taxonomy and templates (CLI / API / GUI / library), referenced from `test-discipline.md` Rule 1
+- `references/gui-spec.md` — **GUI spec process** (state diagrams + Playwright E2E/mock generation from UI Stories). Run from `sprint plan` / `sprint idea`. Formerly the standalone `gui-spec` skill.
+- `references/gui-spec-test-generation.md` — E2E/mock test-writing rules and endpoint contract format (read before writing any GUI test)
+- `references/gui-spec-test-examples.md` — E2E and mock test code examples
+- `references/time-domain-tests.md` — time-domain AC schema, progression-sampler Playwright template, fix workflow (shared by gui-spec, sprint verify, sprint fix)
 - `references/ROADMAP_SCHEMA.json` — roadmap JSON schema and example (includes the optional Review Mode extension fields)
 - `references/SPRINT_LOGS_SCHEMA.json` — sprint log JSON schemas (decisions, verification-results, refine, failures, scenario, gui-spec)
 - `references/verifier-agent.md` — independent verifier sub-agent spec (used by `sprint verify --with-verifier`)
