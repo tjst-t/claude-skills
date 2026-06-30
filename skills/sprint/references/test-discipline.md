@@ -2,7 +2,7 @@
 
 The single source of truth for what counts as a valid test in this skill. `sprint plan`, `sprint run`, `sprint verify`, `sprint done`, `sprint auto`, and the GUI spec process (`gui-spec.md`) all defer to this document. When something here changes, no other file needs to change.
 
-## The Eight Rules
+## The Nine Rules
 
 ### 1. Every Story has a user scenario
 
@@ -56,7 +56,7 @@ Any hit on the network surface in an `*.e2e.spec.ts` is rejected.
 - An AC's `status: "pass"` in ROADMAP.json requires at least one passing test entry in `verification-results.json` that lists the AC in its `acceptance_criteria` field.
 - A Sprint's `status: "done"` requires all of the above for every Story it contains, plus `summary.skip == 0` and `summary.fail == 0` in `verification-results.json`.
 
-Writing `pass` / `done` for tests that did not actually run in this Sprint is forbidden. `verification-results.json` is a record of executed verifications, not an aspirational checklist.
+Writing `pass` / `done` for tests that did not actually run in this Sprint is forbidden. `verification-results.json` is a record of executed verifications, not an aspirational checklist. The `status` values in it are **machine-derived, not authored by judgment** — see Rule 9.
 
 ### 6. What you ship is what you test
 
@@ -138,6 +138,14 @@ priority_rule 9 例外条項を主張する Story は、`review_reason` に以�
 
 例外: Story が「Sprint プロセス強化」「ドキュメント retrofit」「ADR 文書追加」のような meta な性質を持ち、production code path を一切実装しない場合は n/a 扱い。decisions.json の `guard8_rationale` に明示すること。
 
+### 9. Status is machine-derived, never authored by judgment
+
+The `status` field of every test entry in `verification-results.json` is **copied from the machine verdict** in `docs/sprint-logs/{SprintID}/verify-run.json` — produced by `hooks/run-verify.py` from the real process exit code (and JUnit XML when present). The model authors only `evidence` (a verbatim excerpt of the log), never the verdict.
+
+A non-zero exit code is not a matter of interpretation. A real failure is **never** re-labelled `pass` by rationalizing it as "pre-existing", "out of scope", or "already installed". On a machine failure: mark the AC `fail`, set the Sprint `partial`/`needs_human`, and stop as `sprint verify failed` for the user to decide.
+
+This rule is the direct fix for the fabrication incident (`docs/autopilot-fabrication-report.md`). The full contract — the `.claude/verify.json` declaration, the wrapper, the `sprint done` machine gate, and the integrity hook — lives in `references/verify-execution.md`. It is language/framework-agnostic: it relies only on POSIX exit codes and optional JUnit XML, never on parsing a specific runner's output.
+
 ## What disqualifies a test
 
 A test does not count toward Sprint completion if it:
@@ -161,6 +169,10 @@ A Sprint also fails the gate if (Rule 7):
 A Sprint also fails the gate if (Rule 8):
 
 - The Sprint touches a data path directory (`internal/server/`, `internal/proxyfuse/`, `cmd/storage-core/`, `cmd/proxy-fuse/`, `cmd/workflow-worker/`, `internal/workflow/`, `internal/identity/`) but `tests/acceptance/devvm/` does NOT contain at least one passing destructive multi-version test (write x2 → v1/v2 独立、Demote→Recall byte verify、Restart 整合 のいずれか) — and the Sprint is NOT a documented `guard8_rationale: n/a` meta Sprint
+
+A Sprint also fails the gate if (Rule 9):
+
+- `verify-run.json` `overall_machine_status` is `fail` (any configured verify command exited non-zero, or its JUnit reported failures), OR a configured verify command produced no `verify-run.json` (machine verification did not run). A `pass` recorded in `verification-results.json` over either condition is a fabrication and is blocked by the `sprint done` machine gate and the integrity hook.
 
 If the only feasible way to make a test pass — or to cover an addition — is to violate one of these, escalate as `needs_human`. Do not weaken the test, do not silently ship the untested addition.
 

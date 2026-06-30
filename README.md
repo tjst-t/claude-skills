@@ -59,7 +59,8 @@ The remaining sprint phase commands (`plan`, `prototype`, `run`, `verify`, `demo
 When autopilot runs unattended it never trades correctness for a green run:
 
 - **Forbidden actions** split into *immediate-stop* (AC tampering, destructive git, ADR violation, false `done`) and *notify-after* (test weakening, error swallowing) — the latter are recorded in `compromises.json` and surfaced at the milestone.
-- **Independent verifier** — `sprint verify` under autopilot runs a *separate* read-only Claude session that re-checks acceptance criteria against real code, scans for forbidden patterns, and confirms ADR conformance. Its `verification-report.json` is the trust source, so the implementing agent can't grade itself leniently.
+- **Machine-derived test status** — `sprint verify` runs the project's declared verification through `hooks/run-verify.py`, which writes the verdict (`verify-run.json`) from real process **exit codes** + JUnit. The model copies that verdict; it can't decide pass/fail by reading output. `sprint done` refuses to complete a Sprint whose machine verdict isn't `pass`. This closes the "record a real failure as pass" hole deterministically and is language-agnostic — declare your command(s) in `.claude/verify.json` (or rely on a `make verify`/`make test` fallback). See `skills/sprint/references/verify-execution.md`.
+- **Independent verifier** — `sprint verify` under autopilot runs a *separate* read-only Claude session that re-checks acceptance criteria against real code, reconciles the run logs against the claimed status, scans for forbidden patterns, and confirms ADR conformance. Its `verification-report.json` is the trust source, so the implementing agent can't grade itself leniently.
 
 ## Document hierarchy
 

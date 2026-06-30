@@ -86,7 +86,7 @@ Autopilot runs unattended, so it must never trade away correctness for a green r
 | Abandoning type safety | changing to `any`, abusive `as` casts | Notify after completion |
 | Deleting / loosening acceptance criteria | removing an AC from ROADMAP.json, softening its wording | **Immediate stop** |
 | Destructive git | `push --force`, `reset --hard origin`, branch deletion of unmerged work | **Immediate stop** |
-| False status in ROADMAP | writing `status: "done"` while tests fail | **Immediate stop** |
+| False status in ROADMAP / verification-results | writing `status: "done"`/`"pass"` while tests fail (incl. rationalizing a real failure as "pre-existing"/"out of scope") | **Immediate stop** — deterministically blocked by the machine verdict gate (`../sprint/references/verify-execution.md`) |
 | Implicit ADR violation | implementing against an accepted ADR's Decision and justifying it only via `decisions.json` | **Immediate stop** (require an ADR amendment) |
 
 Decision rule:
@@ -95,7 +95,7 @@ Decision rule:
 
 The independent verifier (`--auto` always enables it) re-scans the diff for these same categories; an item it finds that autopilot missed is recorded with `overlooked_by_autopilot: true`.
 
-Three defense layers enforce this table: **L1** this prompt (autopilot self-restraint), **L2** the `sprint verify` forbidden-degradation diff scan (`../sprint/references/test-discipline.md` Rule 6), and **L3** the optional PostToolUse hook `hooks/forbidden-action-guard.py`, which deterministically blocks test-disabling edits during an autopilot run (it self-gates on the autopilot lock). L3 ships with the plugin; see `hooks/README.md`.
+Three defense layers enforce this table: **L1** this prompt (autopilot self-restraint), **L2** the `sprint verify` forbidden-degradation diff scan (`../sprint/references/test-discipline.md` Rule 6), and **L3** the optional PostToolUse hooks `hooks/forbidden-action-guard.py` (blocks test-disabling edits during an autopilot run) and `hooks/verification-integrity-guard.py` (blocks recording a `pass` over a machine-recorded failure). L3 ships with the plugin; see `hooks/README.md`. The "false status" row above is additionally enforced **deterministically**: under `--auto`, `sprint verify` derives test status from the machine verdict (`hooks/run-verify.py` → `verify-run.json`, real exit codes), and `sprint done` refuses to complete a Sprint whose `overall_machine_status` is not `pass` — the model cannot author a passing result over a failing run (`../sprint/references/verify-execution.md`, test-discipline Rule 9).
 
 ## Review Mode
 

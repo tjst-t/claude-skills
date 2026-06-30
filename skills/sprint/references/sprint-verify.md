@@ -30,9 +30,17 @@ All test-shape rules live in `references/test-discipline.md`. This phase applies
 
 ### Step 2: Run tests and validate test shape
 
+**Step 2.0 — Machine verifier (authoritative status).** Do NOT decide pass/fail by reading test output yourself — that is the exact hole that produced the fabrication incident (`references/verify-execution.md`). Run the project's declared verification through the wrapper, which writes a machine-authored verdict from real exit codes (+ JUnit):
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT:-.}/hooks/run-verify.py --sprint {SprintID}
+```
+
+Then read `docs/sprint-logs/{SprintID}/verify-run.json`. Every `status` you later write in `verification-results.json` MUST be copied from this machine result; you author only `evidence` (verbatim log excerpts). If `run-verify.py` exits 2 (no verify command configured), that is a **gap**, not a pass — declare a `.claude/verify.json` (see `references/verify-execution.md`) or escalate; do not proceed as if tests passed. The framework-specific test-shape validations below (real browser, no network mocks, entry-point) still apply on top of the machine verdict.
+
 3. **For GUI Stories**: Run `npx playwright test *.e2e.spec.ts`. For each `*.e2e.spec.ts`, validate against `test-discipline.md` Rules 2 and 4: real browser, no network mocks (grep `page.route(`, `MSW`, `setupServer`, `fetch.mockImplementation`, `vi.mock`, `jest.mock`), user-affordance interactions, UI-state assertions, real-login auth. Mock tests are **never** a substitute. Any failure or shape violation: fix it, loop, escalate per `test-discipline.md` "Escalation" only if Claude Code genuinely cannot resolve.
 4. **For non-GUI Stories**: Run the project's acceptance test runner. For each test file, validate against `test-discipline.md` Rule 2 by the Story's `story_type` (subprocess for `cli`, real HTTP client for `api`, public API only for `library`). Confirm every scenario step in `scenario-{StoryID}.json` has a corresponding action+assertion. Re-check classification — if the deliverable is browser-observable, it's a GUI Story (Rule 4 applies). Missing tests are a gap; fix now.
-5. Document results in `docs/sprint-logs/{SprintID}/verification-results.json` (schema: `verification_results` in SPRINT_LOGS_SCHEMA.json). Each test entry includes its `story` and `acceptance_criteria` fields so traceability is derivable from this single file. **Gate** (Rule 3): if `summary.skip > 0` or `summary.fail > 0`, the Sprint cannot proceed past Phase 1.5.
+5. Document results in `docs/sprint-logs/{SprintID}/verification-results.json` (schema: `verification_results` in SPRINT_LOGS_SCHEMA.json). Each test entry includes its `story` and `acceptance_criteria` fields so traceability is derivable from this single file. **Each `status` is copied from the machine verdict in `verify-run.json` (Step 2.0), never decided by reading output**; `evidence` is your verbatim excerpt of the log. **Gate** (Rule 3): if `summary.skip > 0` or `summary.fail > 0`, OR `verify-run.json` `overall_machine_status != "pass"`, the Sprint cannot proceed past Phase 1.5. A failure here is escalated as `sprint verify failed` (mark the AC `fail`, Sprint `partial`/`needs_human`, stop) — it is NEVER reinterpreted as "pre-existing" or "out of scope".
 
 ### Step 3: Acceptance criteria traceability check
 
