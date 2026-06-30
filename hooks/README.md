@@ -1,8 +1,8 @@
 # Hooks
 
-These hooks ship with the `claude-skills` plugin (see `.claude-plugin/plugin.json`). They are the deterministic backstops that the SKILL.md files describe in prose — wiring is in `hooks.json`.
+This directory ships with the `claude-skills` plugin (see `.claude-plugin/plugin.json`). It contains the **hooks** (deterministic backstops the SKILL.md files describe in prose; wiring is in `hooks.json`) plus one **tool** invoked by `sprint verify` (`run-verify.py`).
 
-Both hooks are **fail-safe**: any unexpected condition exits 0 (do nothing), so they can never break a session.
+All hooks are **fail-safe**: any unexpected condition exits 0 (do nothing), so they can never break a session.
 
 ## `forbidden-action-guard.py` — PostToolUse (L3 defense)
 
@@ -14,6 +14,23 @@ The third defense layer from `autopilot/SKILL.md` → "Constraints and Forbidden
 - **On a hit**: emits `{"decision": "block", "reason": ...}` so Claude is told to revert the change or record it in `compromises.json` (notify-after), and to stop+escalate for immediate-stop categories.
 
 It does NOT try to detect assertion *weakening* (e.g. `toEqual` → `toBeTruthy`) — that needs the before/after diff, which is the `sprint verify` L2 scan's job (`test-discipline.md` Rule 6). The hook covers the patterns visible in a single edit's new content.
+
+## `verification-integrity-guard.py` — PostToolUse (anti-fabrication)
+
+Blocks the fabrication incident (`docs/autopilot-fabrication-report.md`): a model writing a passing `verification-results.json` over a run that actually failed.
+
+- **Matches**: `Edit` / `Write` / `MultiEdit`, but only acts when the edited file is `verification-results.json`.
+- **Self-gate**: does nothing unless `run-verify.py` has produced machine artifacts for that Sprint (`verify-run-*.log` / `verify-run.json`).
+- **Ground truth**: re-derives the verdict from the `__VERIFY_EXIT_CODE__:<name>:<code>` trailers in the run logs (and `verify-run.json`). If the machine recorded a failure but the written record claims a clean pass, emits `{"decision": "block", "reason": ...}`.
+- It is the early-warning for the direct-write path; the **method-independent** backstop is the `sprint done` machine gate (`sprint/references/verify-execution.md`), which refuses `done` on `overall_machine_status != "pass"` no matter how the file was written.
+
+## `run-verify.py` — tool (machine-authored test verdict), not a hook
+
+Invoked by `sprint verify` (Step 2.0), not wired in `hooks.json`. Runs the project's declared verification (`.claude/verify.json`, or a `verify:`/`test:` Makefile target) and writes the machine-authored `docs/sprint-logs/{SprintID}/verify-run.json` from real **exit codes** + optional **JUnit XML**. Language/framework-agnostic. Full contract: `sprint/references/verify-execution.md`. Run it directly with:
+
+```bash
+python3 hooks/run-verify.py --sprint {SprintID}   # exit 0 = all pass, 1 = a run failed, 2 = unconfigured (a gap)
+```
 
 ## `sprint-done-doc-suggester.py` — Stop (self-improving setup)
 
@@ -34,7 +51,10 @@ Nudges the user to keep ARCHITECTURE.md / `docs/DESIGN/` current after a Sprint 
   "hooks": {
     "PostToolUse": [
       { "matcher": "Edit|Write|MultiEdit",
-        "hooks": [{ "type": "command", "command": "/abs/path/to/claude-skills/hooks/forbidden-action-guard.py" }] }
+        "hooks": [
+          { "type": "command", "command": "/abs/path/to/claude-skills/hooks/forbidden-action-guard.py" },
+          { "type": "command", "command": "/abs/path/to/claude-skills/hooks/verification-integrity-guard.py" }
+        ] }
     ],
     "Stop": [
       { "matcher": "",
@@ -44,7 +64,7 @@ Nudges the user to keep ARCHITECTURE.md / `docs/DESIGN/` current after a Sprint 
 }
 ```
 
-**Disabling** — remove the entries from settings.json, or disable the plugin. Because both hooks self-gate (autopilot lock / done-commit) and fail safe, leaving them enabled is low-risk, but they are opt-out at any time.
+**Disabling** — remove the entries from settings.json, or disable the plugin. Because every hook self-gates (autopilot lock / machine artifacts present / done-commit) and fails safe, leaving them enabled is low-risk, but they are opt-out at any time.
 
 ## Requirements
 

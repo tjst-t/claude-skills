@@ -16,7 +16,18 @@ This file is the spec for the sub-agent. When `sprint verify` needs the verifier
 
 ## What to verify
 
-For each Story in the Sprint, produce a finding (or findings) covering these four categories. Record results to `verification-report.json` per `VERIFICATION_REPORT_SCHEMA.json`.
+For each Story in the Sprint, produce a finding (or findings) covering the categories below. Record results to `verification-report.json` per `VERIFICATION_REPORT_SCHEMA.json`.
+
+### 0. Execution-log reconciliation (deterministic — do this FIRST)
+
+This is the cheapest and most certain check, and the one that catches the fabrication incident (`docs/autopilot-fabrication-report.md`). Before judging any code:
+
+- Read the machine artifact `docs/sprint-logs/{SprintID}/verify-run.json` and the raw run logs `verify-run-*.log` (look for the `__VERIFY_EXIT_CODE__:<name>:<code>` trailers). These are the ground truth.
+- Read the model-authored `verification-results.json`.
+- **Reconcile**: every `status: "pass"` in `verification-results.json` must be backed by a run whose `machine_status` is `pass` (exit code 0, no JUnit failures). Any AC/test claimed `pass` while the machine recorded a failure is a **`fail` finding of the most severe kind** — it is the immediate-stop "false status" category. Flag it loudly with `overlooked_by_autopilot: true`.
+- If `verify-run.json` is missing while a verify command is configured, that itself is a finding: machine verification did not run, so no `pass` is trustworthy yet.
+
+Do not let a plausible `evidence` string ("pre-existing", "out of scope", "already installed") override an exit code. An exit code is not a matter of interpretation.
 
 ### 1. Acceptance criteria — code, not test names
 

@@ -3,6 +3,7 @@
 Finalize the Sprint and update tracking.
 
 0. **Test execution gate (mandatory)** — enforces `references/test-discipline.md` Rules 3, 5, 6, and 7:
+   - **Machine verdict gate (authoritative)**: read `docs/sprint-logs/{SprintID}/verify-run.json` (machine-authored by `hooks/run-verify.py`; see `references/verify-execution.md`). If `overall_machine_status != "pass"` (any run's `exit_code != 0`, or JUnit failures), **refuse `done`** regardless of what `verification-results.json` claims — this is the deterministic backstop against recording a real failure as pass. If `verify-run.json` is absent but the project has a verify command (`.claude/verify.json`, or a `verify:`/`test:` Makefile target), machine verification did not run → refuse `done` and re-run `sprint verify`. (Only when no verify command exists at all does this check fall back to the self-reported summary below.)
    - `verification-results.json` exists with `summary.skip == 0` and `summary.fail == 0`. Missing file → verify did not complete; refuse to proceed.
    - Every AC of every Story in the Sprint is listed in `acceptance_criteria` of at least one test entry whose `status` is `pass`. Any AC without such an entry blocks `sprint done`.
    - Every Story has a scenario artifact (`scenario-{StoryID}.json` or `gui-spec-{StoryID}.json`) whose scenarios' `linked_ac` are all covered by passing tests in `verification-results.json`.
