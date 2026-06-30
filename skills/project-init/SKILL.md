@@ -13,7 +13,7 @@ Sets up standardized project documentation and development environment. Run at t
 
 1. `CLAUDE.md` — Layer 1, always-in-context project overview, under ~100 lines (template at `references/CLAUDE_TEMPLATE.md`)
 2. `docs/ARCHITECTURE.md` — Layer 2, on-demand system design (template at `references/ARCHITECTURE_TEMPLATE.md`)
-3. `Makefile` — `make serve` / `make stop` targets using portman if applicable (details at `references/portman-integration.md`)
+3. `Makefile` — `make serve` / `make stop` targets using portman if applicable (details at `references/portman-integration.md`). Also include a `test` (and/or `verify`) target — `sprint verify`'s machine verdict (`run-verify.py`) falls back to `make verify`/`make test`, so this gives the project deterministic, machine-derived test status for free. For per-AC granularity, have that target emit JUnit XML and declare it in `.claude/verify.json` (see `sprint/references/verify-execution.md`).
 4. `docs/ROADMAP.json` — blank template via `sprint init` (or skipped if it already exists)
 
 ## Command — `project init`
