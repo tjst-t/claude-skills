@@ -98,6 +98,12 @@ chmod +x install.sh
 
 This creates symlinks in `~/.claude/skills/` pointing to each skill (and prunes symlinks for skills removed in an upgrade, such as the old `gui-spec`). Claude Code [discovers skills from this directory](https://code.claude.com/docs/en/skills#where-skills-live) automatically across all projects. Restart Claude Code afterward.
 
+The symlink install gives you the **skills**. It does not wire the **hooks** (the L3 forbidden-action guard and the sprint-done documentation suggester) — see `hooks/README.md` to enable those via `settings.json`, or install as a plugin (below) to get both.
+
+### As a plugin (skills + hooks)
+
+This repo is also a Claude Code plugin (`.claude-plugin/plugin.json`). Installing it as a plugin loads the skills **and** wires the hooks automatically. Both hooks are fail-safe and self-gating (the guard activates only during autopilot runs; the suggester only after a sprint-done commit) — see `hooks/README.md` for details and how to disable.
+
 ### Verify installation
 
 In a Claude Code session, ask "What skills are available?" — you should see `design`, `project-init`, `sprint`, and `autopilot`.
@@ -164,6 +170,18 @@ Every sprint command accepts `--auto` (decide-and-proceed instead of stopping to
 ## Existing projects
 
 This refactor is backward compatible: existing `ROADMAP.json` / `DESIGN/` / `sprint-logs/` are read as-is, new fields are optional, and nothing is auto-converted or retroactively rewritten. If you are adopting these skills on a project that already has a roadmap, read **[docs/MIGRATION.md](docs/MIGRATION.md)** first.
+
+## Configuration review
+
+Skills, hooks, and prompts accrete cruft as models improve — instructions that compensated for an older model's weakness become dead weight. Review this setup **every 3–6 months, or after a major model release**.
+
+A quick inventory pass:
+
+1. **Stale workarounds** — scan the SKILL.md / reference files for guidance that exists only to work around a model limitation that newer models no longer have. Remove it.
+2. **Trigger drift** — check each skill's `when_to_use`: is it still firing on the right requests and staying quiet otherwise? Adjust phrases that mis-fire.
+3. **Dead references** — confirm every `references/*.md` and schema is still pointed at by its SKILL.md, and every pointer resolves.
+4. **Hook noise** — if a hook fires too often or never, retune its gate (see `hooks/README.md`).
+5. **Migration doc** — re-read `docs/MIGRATION.md` and update it if any skill spec changed since last review.
 
 ## Skill paths in Claude Code
 

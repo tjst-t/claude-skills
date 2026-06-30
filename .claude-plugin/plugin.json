@@ -1,0 +1,11 @@
+{
+  "name": "claude-skills",
+  "version": "0.5.0",
+  "description": "Four-layer project workflow for Claude Code: design (load-bearing decisions) → project-init → sprint (engine) → autopilot (orchestrator). Bundles the skills plus the L3 forbidden-action guard and a sprint-done documentation suggester as hooks.",
+  "author": { "name": "tjst-t" },
+  "homepage": "https://github.com/tjst-t/claude-skills",
+  "repository": "https://github.com/tjst-t/claude-skills",
+  "license": "MIT",
+  "keywords": ["sprint", "autopilot", "agile", "roadmap", "adr", "design", "workflow"],
+  "hooks": "./hooks/hooks.json"
+}

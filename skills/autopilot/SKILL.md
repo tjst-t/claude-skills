@@ -95,6 +95,8 @@ Decision rule:
 
 The independent verifier (`--auto` always enables it) re-scans the diff for these same categories; an item it finds that autopilot missed is recorded with `overlooked_by_autopilot: true`.
 
+Three defense layers enforce this table: **L1** this prompt (autopilot self-restraint), **L2** the `sprint verify` forbidden-degradation diff scan (`../sprint/references/test-discipline.md` Rule 6), and **L3** the optional PostToolUse hook `hooks/forbidden-action-guard.py`, which deterministically blocks test-disabling edits during an autopilot run (it self-gates on the autopilot lock). L3 ships with the plugin; see `hooks/README.md`.
+
 ## Review Mode
 
 `autopilot review` is the **idempotent triage command** invoked after a milestone. It does not implement fixes itself — it classifies each user request and routes it to an existing mechanism. The user only has to remember `autopilot review`; Claude does the classification.
