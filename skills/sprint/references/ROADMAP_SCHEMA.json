@@ -14,6 +14,13 @@
     },
     "user_review_required_constraint": "If a story has user_review_required: true, its status MUST NOT be 'done' (only 'needs_user_review' is allowed pending explicit user approval). Enforced by sprint-done-judgment.md Guard 1 — see references/sprint-done-judgment.md.",
     "needs_user_review_semantics": "needs_user_review marks Stories that completed implementation but failed one or more of the 6 done-judgment guards (user_review_required, nil-injection mock, mock-mode smoke, priority_rule 9 exception validity, call-path existence, deferred-comment residue). These Stories surface at the next sprint demo for explicit user decision.",
+    "review_extensions": {
+      "$comment": "Optional fields added by autopilot Review Mode (§2.7). All are OPTIONAL and back-compatible — absent ⇒ the default interpretation below. Per §2.9.3, write a field ONLY when it carries meaning; do not add null/empty fields to every Story. See ../sprint/references/REOPEN_SCHEMA.json.",
+      "story.added_in_review": "Milestone label (e.g. \"M02\") when a fix-Story was added to an already-done Sprint via Review Mode ②. Absent ⇒ the Story was originally planned.",
+      "story.reopened_at": "ISO timestamp when a done Story was re-opened via Review Mode ① (or manual_retroactive). Absent ⇒ never re-opened.",
+      "acceptance_criteria[].reopened_at": "ISO timestamp when a pass AC was flipped back to fail on Sprint re-open. Absent ⇒ a normal AC; pass means pass.",
+      "sprint.corrections": "Optional array of correction records ({type, milestone, ref} where type is one of reopen | fix_story | direction_change) appended when Review Mode touches this Sprint. Absent ⇒ treated as an empty array (no corrections)."
+    },
     "progress_rules": "Only one sprint can be in_progress at a time. A story is done only when all tasks are done. A sprint is done only when all stories are done; if any story is needs_user_review, the sprint is partial.",
     "milestone": "Set to true at natural review points. sprint plan and sprint roadmap manage milestone placement."
   },

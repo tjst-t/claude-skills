@@ -1,6 +1,6 @@
 # VISION.json テンプレート
 
-以下のテンプレートを参考に `docs/VISION.json` を作成する。実際の出力はJSON形式（VISION_SCHEMA.json参照）。ユーザーとの対話で各セクションを埋める。
+以下のテンプレートを参考に `docs/VISION.json` を作成する。実際の出力はJSON形式（schema は `design` skill が所有: `../../design/references/VISION_SCHEMA.json` 参照）。ユーザーとの対話で各セクションを埋める。
 
 ```markdown
 # プロダクトビジョン

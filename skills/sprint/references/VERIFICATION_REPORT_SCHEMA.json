@@ -1,0 +1,55 @@
+{
+  "$comment": "Schema and example for docs/sprint-logs/{SprintID}/verification-report.json. This is the output of the INDEPENDENT verifier sub-agent (see references/verifier-agent.md), not of the implementing session. It is the trust source for compromises.json: where the implementer's self-report and the verifier disagree, the verifier wins and the gap is recorded as overlooked_by_autopilot. Produced when sprint verify runs with --with-verifier (always, when invoked via autopilot --auto).",
+  "$rules": {
+    "producer": "A read-only Claude sub-agent spawned separately from the implementing/auto session, with a critical, self-skeptical stance. It has NO write access — it only reports. See references/verifier-agent.md for the full prompt.",
+    "verdict_enum": ["pass", "fail", "warn"],
+    "categories_checked": [
+      "acceptance_criteria — every ROADMAP AC for the Sprint is matched against real code, not just against a passing test name",
+      "forbidden_categories — the §2.4 forbidden-action scan over the whole diff (test_skipped / test_assertion_weakened / error_swallowed / type_safety_relaxed / acceptance_criteria_modified)",
+      "adr_conformance — no implementation contradicts an accepted ADR's Decision",
+      "compromises_completeness — every compromise the implementer self-reported is real, AND no additional compromise was missed"
+    ],
+    "discrepancy_rule": "For each finding, compare against what the implementing session recorded (compromises.json + verification-results.json done_judgment). If the verifier finds an issue the implementer did not record, set overlooked_by_autopilot: true. Those entries are merged back into compromises.json with the same flag.",
+    "cost_note": "Spawning a second session costs tokens. Default sprint verify stays single-session; the verifier runs only on --with-verifier or via autopilot --auto.",
+    "backward_compatibility": "Optional, on-demand (§2.9). Absent file ⇒ 'verifier 未実行' (verifier not run). Never back-generated."
+  },
+  "sprint": "Sa3f9c2",
+  "verified_at": "2026-06-30T16:30:00Z",
+  "verifier_model": "claude-opus-4-8 (read-only, separate session)",
+  "overall": "warn",
+  "findings": [
+    {
+      "category": "acceptance_criteria",
+      "story": "Sa3f9c2-2",
+      "ac": "AC-Sa3f9c2-2-3",
+      "verdict": "fail",
+      "detail": "AC claims the token is persisted to localStorage on login, and a test passes, but the test asserts only on a success toast. grep of the login handler shows no localStorage.setItem call. The coupling does not exist in code.",
+      "overlooked_by_autopilot": true,
+      "recommended_action": "Re-open Story Sa3f9c2-2 (① AC violation) — add the persistence + a test that reads it back"
+    },
+    {
+      "category": "forbidden_categories",
+      "story": "Sa3f9c2-3",
+      "ac": null,
+      "verdict": "warn",
+      "detail": "tests/auth.spec.ts weakened expect(token).toBe('xyz') → toBeTruthy(). The implementer recorded this in compromises.json — confirmed real, not overlooked.",
+      "overlooked_by_autopilot": false,
+      "recommended_action": "Tighten in a follow-up Story once the OAuth mock exists"
+    },
+    {
+      "category": "adr_conformance",
+      "story": "Sa3f9c2-1",
+      "ac": null,
+      "verdict": "pass",
+      "detail": "No implementation in this Sprint contradicts an accepted ADR's Decision.",
+      "overlooked_by_autopilot": false,
+      "recommended_action": null
+    }
+  ],
+  "summary": {
+    "ac_failures": 1,
+    "forbidden_warnings": 1,
+    "adr_conflicts": 0,
+    "overlooked_count": 1
+  }
+}

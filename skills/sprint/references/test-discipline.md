@@ -82,6 +82,23 @@ If an addition is untested, the resolution is **one of**: (a) add an AC + scenar
 
 **During `sprint run`**, each implementation sub-agent must report a "user-observable additions" list alongside its results, so `sprint verify` has a head start instead of rediscovering everything from scratch.
 
+**Forbidden-degradation diff scan (companion to coverage scan).** The same `sprint verify` diff pass that enumerates *added* surfaces also scans for *degraded verification* — the §2.4 forbidden-action categories introduced by this Sprint's diff:
+
+| Pattern grepped in the diff | Category |
+|---|---|
+| newly added `it.skip` / `xit` / `xtest` / `test.skip` / `@pytest.mark.skip` / `t.Skip`, or a body rewritten to `expect(true).toBe(true)` | test effectively disabled |
+| `toEqual`/`toBe(<concrete>)` → `toBeTruthy`/`toBeDefined`, or removed assertions on an existing test | assertion weakened |
+| newly added `catch {}` (empty), `// @ts-ignore`, `# noqa`, `# type: ignore` | error swallowed |
+| new `: any` / `as any` / abusive `as` casts replacing a real type | type safety relaxed |
+| an AC removed from or softened in `docs/ROADMAP.json` | acceptance criteria modified |
+
+**Behavior on a hit** (this is where the autonomous-run policy lands):
+- The first four are **notify-after** concessions — log each to `docs/sprint-logs/{SprintID}/compromises.json` (per `autopilot/references/COMPROMISES_SCHEMA.json`) with `type`, `severity`, `rationale`, `diff_summary`, `recommended_action`. The Sprint may still complete; the compromise surfaces at the milestone.
+- "acceptance criteria modified" is **immediate-stop** — do not record-and-continue; halt and escalate (autopilot stops; an interactive `sprint verify` refuses and tells the user).
+- A manual (non-`--auto`) `sprint verify` reports these inline instead of writing `compromises.json`. The independent verifier (Phase 1.8) re-runs this exact scan and flags anything the implementing session left out as `overlooked_by_autopilot`.
+
+This scan does not replace Rule 3 (no silent skips, which blocks *uncovered AC*); it catches *deliberate weakening of verification that already existed*.
+
 ### 7. 実機検証は本番モードで
 
 priority_rule 9 「dev VM 実機 deploy + smoke test」要件を満たすテストは、本番と同じモード/フラグ/設定で実行されなければならない。

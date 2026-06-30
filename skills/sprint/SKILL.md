@@ -21,7 +21,7 @@ The roadmap file is always at `docs/ROADMAP.json` in the project root. If it doe
 | `sprint plan` | Prepare the next sprint collaboratively | See `references/sprint-plan.md` |
 | `sprint prototype` | Generate HTML prototype for GUI review | See `references/sprint-prototype.md` |
 | `sprint run` | Execute the current sprint | See `references/sprint-run.md` |
-| `sprint verify` | Verify completeness and quality | See `references/sprint-verify.md` |
+| `sprint verify` | Verify completeness and quality (`--with-verifier` adds an independent checker) | See `references/sprint-verify.md` |
 | `sprint demo` | Demonstrate deliverables by running the program | See `references/sprint-demo.md` |
 | `sprint refine` | Interactive UI/UX refinement with user | See `references/sprint-refine.md` |
 | `sprint done` | Finalize and commit the sprint | See `references/sprint-done.md` |
@@ -59,6 +59,7 @@ When a command is invoked, read the corresponding reference file before taking a
 - **All data files are JSON**: ROADMAP, VISION, DESIGN_PRINCIPLES, and all sprint-logs use JSON format. See `references/ROADMAP_SCHEMA.json` and `references/SPRINT_LOGS_SCHEMA.json` for structure. ARCHITECTURE.md and CLAUDE.md remain Markdown.
 - **DESIGN/ is binding when present**: `docs/DESIGN/` is managed by the `design` skill. When the directory exists, sprint plan / run / roadmap must read the relevant ADRs and respect them as constraints. Accepted ADRs are not negotiable in sprint commands — if a Sprint needs to contradict one, escalate to the user via `design adr` (amend / supersede) before proceeding. Tentative ADRs are advisory.
 - **6-Guard Done Judgment**: Before marking any Story as `done` in `sprint verify` / `sprint done` / `sprint auto`, apply all 6 guards defined in `references/sprint-done-judgment.md`. Any failed guard moves the Story to `needs_user_review`, not `done`. Record each guard's pass/fail/warn outcome in `verification-results.json` under `done_judgment`.
+- **Independent verifier (`--with-verifier`)**: The default `sprint verify` runs in the same session that implemented the code, which grades itself too leniently (self-grading bias). `sprint verify --with-verifier` additionally spawns a **separate read-only Claude session** that re-checks AC against real code, the §2.4 forbidden categories, ADR conformance, and compromise completeness, writing `docs/sprint-logs/{SprintID}/verification-report.json`. That report is the trust source — where it disagrees with the self-report, the verifier wins. `autopilot --auto` always enables it; manual `sprint verify` defaults to off (token cost). Full spec: `references/verifier-agent.md`.
 - **priority_rule 9 exception scope is strict**: The exception clause (障害シナリオへの限定) requires explicit障害シナリオ identifiers (`kill-9` / `停電` / `Shamir-unseal` / `ネットワーク遮断` / `disk-full` / `OOM` / `プロセスクラッシュ`) in the Story's `review_reason`. sprint rejects exception claims without these markers and falls back to the normal real-mode smoke requirement.
 - **Mock-mode does not satisfy real-mode smoke** (test-discipline Rule 7): Tests that use `MOCK=true`, `--fake-*` flags, `DRY_RUN=1`, in-process FakeCore / InMemoryStore, or `*_fake_*: true` defaults do not count toward priority_rule 9 "dev VM 実機 smoke" requirement.
 
@@ -87,5 +88,8 @@ See `references/roadmap-jq.md` for the complete reading patterns, write envelope
 - `references/sprint-roadmap.md` — roadmap generation from VISION command details
 - `references/test-discipline.md` — **canonical rules** for tests: user scenarios, entry-point-driven testing, no-silent-skip, real-browser GUI E2E, status truthfulness. Shared by plan / run / verify / done / auto.
 - `references/story-scenarios.md` — user scenario taxonomy and templates (CLI / API / GUI / library), referenced from `test-discipline.md` Rule 1
-- `references/ROADMAP_SCHEMA.json` — roadmap JSON schema and example
+- `references/ROADMAP_SCHEMA.json` — roadmap JSON schema and example (includes the optional Review Mode extension fields)
 - `references/SPRINT_LOGS_SCHEMA.json` — sprint log JSON schemas (decisions, verification-results, refine, failures, scenario, gui-spec)
+- `references/verifier-agent.md` — independent verifier sub-agent spec (used by `sprint verify --with-verifier`)
+- `references/VERIFICATION_REPORT_SCHEMA.json` — `verification-report.json` schema (verifier output)
+- `references/REOPEN_SCHEMA.json` — `reopen.json` schema (Sprint re-open from autopilot Review Mode ①)

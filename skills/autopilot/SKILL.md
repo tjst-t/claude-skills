@@ -31,6 +31,7 @@ For complex systems with many cross-cutting decisions, the inline templates are 
 |---|---|---|
 | `autopilot setup` | Create VISION, DESIGN_PRINCIPLES, and required artifacts | See `references/autopilot-setup.md` |
 | `autopilot start` | Begin autonomous multi-sprint execution | See `references/autopilot-start.md` |
+| `autopilot review` | Triage user requests after a milestone and route them to the right mechanism (idempotent) | See `## Review Mode` below |
 | `autopilot status` | Show progress and recent decisions | See below |
 | `autopilot help` | Show command list and usage guide | See `references/autopilot-help.md` |
 
@@ -61,10 +62,113 @@ Show the state of the most recent autopilot run. Read-only — no active session
 - **priority_rule 9 exception scope is strict**: The exception clause (障害シナリオへの限定) requires explicit障害シナリオ identifiers (`kill-9` / `停電` / `Shamir-unseal` / `ネットワーク遮断` / `disk-full` / `OOM` / `プロセスクラッシュ`) in the `review_reason`. autopilot rejects exception claims without these markers and falls back to the normal real-VM smoke requirement.
 - **Mock-mode does not satisfy real-VM smoke**: Tests that use `MOCK=true`, `--fake-*` flags, `DRY_RUN=1`, in-process FakeCore / InMemoryStore, or `*_fake_*: true` Ansible defaults do not count toward priority_rule 9 "dev VM 実機 smoke" requirement. A separate real-mode smoke is required.
 - **Never skip milestones**: Always stop at milestone boundaries. The user's review is the alignment mechanism.
+- **Forbidden actions are split into immediate-stop and notify-after**: Autopilot must obey `## Constraints and Forbidden Actions` below. Immediate-stop categories (AC tampering, destructive git, ADR violation, false `done`) halt the run; notify-after categories (test weakening, error swallowing, type-safety relaxation) are recorded to `compromises.json` and surfaced at the milestone.
+- **Milestone artifacts are mandatory**: On reaching a milestone, autopilot writes `docs/sprint-logs/{SprintID}/compromises.json` (per `references/COMPROMISES_SCHEMA.json`), then `comprehension-report.md` (per `references/comprehension-report-template.md`), and tells the user to read the comprehension report **before** `autopilot review`.
+- **Independent verifier under `--auto`**: When autopilot drives `sprint verify` (always `--auto`), it auto-enables `--with-verifier` — a separate read-only Claude session (`../sprint/references/verifier-agent.md`) re-checks AC, forbidden categories, ADR conformance, and compromise completeness. Its `verification-report.json` is the trust source: where it disagrees with autopilot's self-report, the verifier wins and the gap is recorded as `overlooked_by_autopilot`.
 - **Drift logging, not drift blocking**: Log decisions that seem to conflict with VISION/PRINCIPLES; surface them at milestone review. Doc-staleness and VISION-drift health checks (operations.md) are advisory at milestone, never blocking.
 - **Preserve user agency**: The user can always interrupt autopilot. Pause and respond before continuing.
 - **Context management**: Each Sprint runs in a dedicated sub-agent to prevent context exhaustion. The main autopilot conversation tracks only Sprint-level status, decision summaries, and drift flags.
 - **Incremental commits + branch lifecycle**: Each Sprint on `autopilot/{base-branch}/{SprintID}`; merged branches are deleted (local + remote). Only unmerged branches survive. Per-branch locking lets multiple branches run concurrently. Full procedure: `references/autopilot-operations.md`.
+
+## Constraints and Forbidden Actions
+
+Autopilot runs unattended, so it must never trade away correctness for a green run. Forbidden actions fall into two tiers by **how much damage continuing would do**:
+
+| Category | Examples | On detection |
+|---|---|---|
+| Effectively disabling a test | adding `it.skip` / `xtest` / `@pytest.mark.skip` / `t.Skip`; rewriting to `expect(true).toBe(true)` | **Notify after completion** |
+| Weakening an assertion | `toEqual` → `toBeTruthy`; concrete value → any value; removing assertions | Notify after completion |
+| Swallowing errors | newly added `try { ... } catch {}`, `// @ts-ignore`, `# noqa` | Notify after completion |
+| Abandoning type safety | changing to `any`, abusive `as` casts | Notify after completion |
+| Deleting / loosening acceptance criteria | removing an AC from ROADMAP.json, softening its wording | **Immediate stop** |
+| Destructive git | `push --force`, `reset --hard origin`, branch deletion of unmerged work | **Immediate stop** |
+| False status in ROADMAP | writing `status: "done"` while tests fail | **Immediate stop** |
+| Implicit ADR violation | implementing against an accepted ADR's Decision and justifying it only via `decisions.json` | **Immediate stop** (require an ADR amendment) |
+
+Decision rule:
+- **Immediate stop** = the action breaks the *premise of all later work* (AC tampering, git destruction, ADR violation, false done). Continuing is meaningless — halt and escalate to the user now.
+- **Notify after completion** = a *local* concession that stays reviewable later. Record it to `docs/sprint-logs/{SprintID}/compromises.json` (per `references/COMPROMISES_SCHEMA.json`) and keep going; stopping the whole run for a local concession costs more than it saves.
+
+The independent verifier (`--auto` always enables it) re-scans the diff for these same categories; an item it finds that autopilot missed is recorded with `overlooked_by_autopilot: true`.
+
+## Review Mode
+
+`autopilot review` is the **idempotent triage command** invoked after a milestone. It does not implement fixes itself — it classifies each user request and routes it to an existing mechanism. The user only has to remember `autopilot review`; Claude does the classification.
+
+**Idempotency requirement**: every invocation re-reads `docs/ROADMAP.json`, the milestone's `compromises.json`, and `docs/DESIGN/` from scratch. It holds NO internal state between calls. This lets the user loop `touch the app → notice something → autopilot review → fix → touch again` any number of times at one milestone boundary, and across milestones, with identical behavior each time.
+
+### Flow
+
+1. **Comprehension gate** — confirm `docs/sprint-logs/{SprintID}/comprehension-report.md` exists for the milestone's Sprints. If missing, generate it (per `references/comprehension-report-template.md`) before continuing, and ask the user to read it first.
+2. **Load context** — ROADMAP.json + the milestone's `compromises.json` + recent Sprint status + `docs/DESIGN/` (if present).
+3. **Collect requests** — take all of the user's requests at once (batch).
+4. **Classify** each request into ①–④ using the decision tree below; for ④ with DESIGN/, also surface the ADR impact.
+5. **Present the classification table** to the user for approval.
+6. **Route** each approved request to its mechanism; update ROADMAP.json (and ADRs if needed); leave the project ready for the next `autopilot start`.
+
+### The four classes and where each is routed
+
+| # | Class | Test | Routed to |
+|---|---|---|---|
+| ① | **AC violation** — an existing AC was not actually met | `sprint verify` failure handling → re-open the Sprint (see below) → `sprint run` to fix |
+| ② | **Out-of-AC small fix** — AC met, minor UX/detail, 1–2 tasks | `sprint fix` (a fix-Story; placement chosen by the user, see below) |
+| ③ | **Out-of-AC new scope** — Story-sized or larger new work | `sprint idea` → picked up by the next `sprint plan` |
+| ④ | **Direction change** — ROADMAP-wide / load-bearing | DESIGN/ present: `design refresh` → `design adr` → `sprint roadmap`. DESIGN/ absent: `sprint roadmap` re-run |
+
+### Decision tree (apply per request)
+
+```
+Q0: Does DESIGN/ have a relevant ADR or VISION item?  YES → note ADR impact alongside the class.  NO → continue.
+Q1: Should an existing AC already have covered this?  YES → ① AC violation.  NO → Q2.
+Q2: Does it complete in 1–2 small tasks?              YES → ② small fix.     NO → Q3.
+Q3: Does it fit the existing roadmap direction + ADRs? YES → ③ new scope.    NO → ④ direction change.
+```
+
+Conservative bias when a boundary is unclear — always lean toward the costlier-to-miss side:
+- ① vs ② → lean **①** (missing an AC violation is worse than an extra check).
+- ② vs ③ → lean **③** (don't pollute a done Sprint with creep).
+- ③ vs ④ → lean **④** (don't miss a load-bearing decision).
+
+### ① Sprint re-open detail
+
+| Change | Action |
+|---|---|
+| Sprint status | `done` → `in_progress` |
+| Affected AC status | `pass` → `fail`, add `reopened_at: <timestamp>` |
+| Fix work | append fix tasks to the Story, or add a fix-Story |
+| Log | write `docs/sprint-logs/{SprintID}/reopen.json` (per `../sprint/references/REOPEN_SCHEMA.json`), `triggered_by: "milestone_review"` |
+| Progress | recompute `progress.done` |
+
+(Re-opening a *past* Sprint by explicit user request uses the same flow but `triggered_by: "manual_retroactive"`. Autopilot never re-opens a past Sprint on its own — see `## Backward compatibility`.)
+
+### ② Fix-Story placement detail
+
+Adding a Story to a `done` Sprint is normal in agile. **Let the user choose placement**:
+
+| Placement | Behavior |
+|---|---|
+| Most recent done Sprint (default) | add to that Sprint's `stories` with `added_in_review: "<milestone>"` |
+| Next Sprint | add to the next (or a new) Sprint |
+
+The `added_in_review` field keeps "added after the fact" distinguishable from "originally planned" in history.
+
+### ④ Direction-change detail (DESIGN/ present)
+
+1. `autopilot review` classifies ④.
+2. Run `design refresh` internally → check ADR contradictions and broken links.
+3. Present the impact to the user.
+4. On approval, `design adr` adds a new ADR or supersedes an existing one.
+5. Re-run `sprint roadmap` (if needed); update downstream Sprints.
+
+Without DESIGN/, ④ is just a `sprint roadmap` re-run. Full handoff contract: `design/SKILL.md` → "`autopilot review` ④ direction-change handoff".
+
+## Backward compatibility
+
+This skill must run cleanly on projects created before these mechanisms existed (§2.9):
+- **Never auto-convert existing files.** ROADMAP.json / VISION.json / DESIGN/ / sprint-logs/ are read as-is. No `migrate` command.
+- **New fields are optional.** A Story without `added_in_review` / `reopened_at` is read as "originally planned" / a normal `pass` AC. Missing `compromises.json` ⇒ "妥協なし"; missing `comprehension-report.md` ⇒ generated on demand at `autopilot review`, never back-filled for past Sprints; missing `verification-report.json` ⇒ "verifier 未実行".
+- **No retroactive rewrites.** Autopilot does not re-open or re-grade a past `done` Sprint on its own. Only an explicit user instruction does, recorded as `triggered_by: "manual_retroactive"`.
+- **Offers default to No.** If autopilot offers to tidy an existing ROADMAP.json to the new schema, the default is to leave it alone; only an explicit yes proceeds.
 
 ## Reference Files
 
@@ -72,9 +176,14 @@ Show the state of the most recent autopilot run. Read-only — no active session
 - `references/autopilot-start.md` — `autopilot start` command flow (pre-flight, prototype review, sprint loop, milestone demo, cleanup)
 - `references/autopilot-done-judgment.md` — **canonical 6-guard done judgment** (Guard 1–6) applied before any Story can be marked `done`
 - `references/autopilot-operations.md` — branch locking, worktree cleanup, sprint branch deletion, milestone health checks (doc staleness, VISION drift)
+- `references/COMPROMISES_SCHEMA.json` — `compromises.json` schema (notify-after compromises recorded at a milestone)
+- `references/comprehension-report-template.md` — `comprehension-report.md` template + writing guide (generated at every milestone)
+- `../sprint/references/verifier-agent.md` — the independent read-only verifier sub-agent spec (auto-enabled under `--auto`)
+- `../sprint/references/VERIFICATION_REPORT_SCHEMA.json` — `verification-report.json` schema (verifier output; trust source for compromises)
+- `../sprint/references/REOPEN_SCHEMA.json` — `reopen.json` schema (① Sprint re-open in Review Mode)
 - `references/getting-started.md` — New project setup guide (with specs / without specs / existing project)
-- `references/VISION_SCHEMA.json` — VISION.json schema and example
-- `references/DESIGN_PRINCIPLES_SCHEMA.json` — DESIGN_PRINCIPLES.json schema and example
+- `../design/references/VISION_SCHEMA.json` — VISION.json schema and example. **Owned by the `design` skill** (the authority that generates VISION). autopilot setup's inline VISION generation reads it but a stricter version is produced by `design`.
+- `../design/references/DESIGN_PRINCIPLES_SCHEMA.json` — DESIGN_PRINCIPLES.json schema and example. **Owned by the `design` skill** for the same reason.
 - `references/vision-template.md` — VISION setup guidelines (question prompts)
 - `references/principles-template.md` — DESIGN_PRINCIPLES setup guidelines (question prompts)
 - `references/autopilot-help.md` — help (command list and usage guide)

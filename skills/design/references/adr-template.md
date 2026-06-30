@@ -23,6 +23,18 @@ If none of the above hold, do not write an ADR. Examples that do NOT warrant one
 
 If you find yourself writing ADRs for these, you are over-using the format. Stop.
 
+## Signals that an ADR is required
+
+This is the trigger list `sprint plan` / `sprint idea` watch for. During planning, if a decision under discussion matches **ANY** of these signals AND no existing ADR already covers it, Claude must surface `"ADR が必要では？"` to the user and offer `design adr` **before** `sprint run` starts:
+
+- **Multiple options, cross-Story impact**: the same problem has 2+ viable options and the choice constrains other Stories (not just this one). The decision is being made once but will be depended on repeatedly.
+- **Defining a contract**: the decision establishes a data structure, an API contract, an event/message schema, or a wire protocol that other components will encode/decode against.
+- **"とりあえずこれで行こう" with high lock-in**: a decision made for expedience ("just go with this for now") whose `reversibility_cost` is plausibly `medium` or higher — i.e. unwinding it later is a multi-file or data-migration change.
+
+If **none** of these signals fire, do NOT propose an ADR. Record the choice as an ordinary autonomous decision in `docs/sprint-logs/{SprintID}/decisions.json` (with `adr_ref: "none"`) and move on. The signals above intentionally overlap with the scope discriminator in `SKILL.md` and the "When to write an ADR" list above — they are the *operational, plan-time* phrasing of the same test.
+
+This section is the authority cited by `design/SKILL.md` → "ADR-necessity auto-check during `sprint plan`".
+
 ## The shape of a good ADR
 
 Every ADR records:

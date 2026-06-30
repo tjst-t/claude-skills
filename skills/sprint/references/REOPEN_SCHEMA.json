@@ -1,0 +1,27 @@
+{
+  "$comment": "Schema and example for docs/sprint-logs/{SprintID}/reopen.json. Written when a Story/Sprint that was previously marked done is re-opened — either by autopilot review (classification ① AC violation) or by an explicit user request to retroactively re-open a past Sprint. Records why and when, so the history of 'a done Sprint became in_progress again' is auditable.",
+  "$rules": {
+    "when_written": "On Sprint re-open. See autopilot/SKILL.md → Review Mode (① AC violation) for the milestone_review path, and the backward-compatibility policy for the manual_retroactive path.",
+    "triggered_by_enum": ["milestone_review", "manual_retroactive"],
+    "triggered_by_semantics": {
+      "milestone_review": "Re-opened by autopilot review at a milestone boundary because a user request was classified as ① (an existing AC was not actually satisfied).",
+      "manual_retroactive": "Re-opened by explicit user instruction targeting an already-completed past Sprint (§2.9.5). autopilot NEVER sets this autonomously — past Sprints are not auto-rewritten."
+    },
+    "state_changes_applied": "When a Sprint is re-opened, the caller ALSO mutates docs/ROADMAP.json: Sprint status done → in_progress; affected AC status pass → fail with a reopened_at timestamp added; fix tasks/Stories appended; progress.done recomputed. This file is the log of that mutation, not a substitute for it.",
+    "backward_compatibility": "Optional, on-demand (§2.9). Absent file ⇒ '再オープン履歴なし' (no re-open history). Never back-generated."
+  },
+  "sprint_id": "Sa3f9c2",
+  "reopened_at": "2026-06-30T10:00:00Z",
+  "triggered_by": "milestone_review",
+  "milestone": "M02",
+  "reason": "AC 違反: ログイン成功時にトークンが localStorage に保存されていなかった",
+  "affected_acceptance_criteria": ["AC-Sa3f9c2-2-3"],
+  "added_stories": [],
+  "added_tasks": [
+    {
+      "story": "Sa3f9c2-2",
+      "task_id": "Sa3f9c2-2-fix-1",
+      "description": "localStorage へのトークン保存処理を追加"
+    }
+  ]
+}
