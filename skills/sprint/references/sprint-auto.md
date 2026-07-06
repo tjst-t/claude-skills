@@ -29,10 +29,11 @@ Same as `sprint plan` but fully autonomous:
 - Read `docs/VISION.json`, `docs/DESIGN_PRINCIPLES.json` (full files — these are short)
 - Read only the slice you need from `docs/ROADMAP.json` (see SKILL.md "Roadmap Reading Patterns"): top-level structure to find the next unfinished Sprint, then that Sprint's slice
   ```bash
-  jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone}))}' docs/ROADMAP.json
+  jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone, detail_level}))}' docs/ROADMAP.json
   jq --arg id "<NextSprintID>" '.sprints[$id]' docs/ROADMAP.json
   ```
 - Identify the next unfinished Sprint
+- **Elaborate first if the Sprint is coarse** (rolling-wave gate): if its `detail_level` is `"coarse"` or its `stories` object is empty, it is a placeholder past the detail horizon and must be elaborated **before** anything else in this phase. Derive its Stories/AC/Tasks autonomously from the Sprint `description` (goal) + relevant `backlog` items + current code state + DESIGN/ADR constraints (reusing `sprint-plan.md` §1.1 and `sprint-idea.md` §3), then flip `detail_level` to `"detailed"` via the "Promote coarse → detailed" filter and log the elaboration to `decisions.json`. **Never proceed to Run with empty stories** — a story-less Sprint would iterate zero Stories and be marked done instantly (silent false-done). If elaboration cannot produce any in-scope Story (e.g. the goal is now fully covered by earlier Sprints), mark the Sprint `done` with an explicit `decisions.json` note rather than running it empty.
 - Validate and rewrite user stories autonomously
 - Evaluate story granularity — if a Story is overloaded, split it autonomously based on VISION and DESIGN_PRINCIPLES guidance
 - Run the GUI spec process in **autonomous mode** (see `references/gui-spec.md` "Autonomous mode" — all scenarios are derived and confirmed without user interaction)

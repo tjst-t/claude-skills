@@ -8,8 +8,9 @@ To minimize tokens, sprint commands MUST read only the slice they need from `doc
 |---|---|---|
 | Current Sprint slice | `jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json` | sprint run / verify / demo / refine / done / prototype / auto |
 | Sprint by ID | `jq --arg id "<SprintID>" '.sprints[$id]' docs/ROADMAP.json` | targeted lookups (dependencies, history) |
-| Top-level structure (no Sprint bodies) | `jq '{progress, execution_order, dependencies, sprints: (.sprints \| map_values({title, status, milestone}))}' docs/ROADMAP.json` | sprint plan (initial scan), sprint idea (placement decision) |
-| Backlog only | `jq '.backlog' docs/ROADMAP.json` | backlog operations (sprint fix, idea) |
+| Top-level structure (no Sprint bodies) | `jq '{progress, execution_order, dependencies, sprints: (.sprints \| map_values({title, status, milestone, detail_level}))}' docs/ROADMAP.json` | sprint plan (initial scan), sprint idea (placement decision). `detail_level` is `null` for legacy/detailed Sprints — treat `null` as `detailed`. |
+| Next unfinished Sprint's detail level | `jq -r --arg id "<SprintID>" '.sprints[$id].detail_level // "detailed"' docs/ROADMAP.json` | sprint plan / auto: decide whether the next Sprint needs elaboration first (`coarse` ⇒ elaborate before running) |
+| Backlog only | `jq '.backlog' docs/ROADMAP.json` | backlog operations (sprint fix, idea, elaboration input) |
 | Single Story | `jq --arg s "<SprintID>" --arg st "<StoryID>" '.sprints[$s].stories[$st]' docs/ROADMAP.json` | single-Story workflows |
 | Acceptance criteria of current Sprint | `jq '.sprints[.progress.current_sprint].stories \| to_entries[] \| {story: .key, ac: .value.acceptance_criteria}' docs/ROADMAP.json` | sprint verify Phase 1.5 traceability |
 | Whole file (legitimate) | Read tool | sprint init / roadmap only — these rewrite the whole file |
@@ -34,7 +35,8 @@ Combine multiple with `|` in a single jq invocation when updating several fields
 | Mark AC status | `--arg s "$SPRINT" --arg st "$STORY" --arg ac "$AC_ID" '(.sprints[$s].stories[$st].acceptance_criteria[] \| select(.id == $ac)).status \|= "pass"'` |
 | Set current Sprint | `--arg s "$SPRINT" '.progress.current_sprint = $s'` |
 | Recompute progress counts | `'.progress.done = ([.sprints[] \| select(.status == "done")] \| length) \| .progress.in_progress = ([.sprints[] \| select(.status == "in_progress")] \| length) \| .progress.remaining = (.progress.total - .progress.done - .progress.in_progress) \| .progress.percentage = (if .progress.total > 0 then (.progress.done * 100 / .progress.total \| floor) else 0 end)'` |
-| Add new Sprint | `--arg s "$NEW" --argjson body "$BODY_JSON" '.sprints[$s] = $body'` |
+| Add new Sprint | `--arg s "$NEW" --argjson body "$BODY_JSON" '.sprints[$s] = $body'` (for a coarse Sprint, `$BODY_JSON` = `{title, description, milestone, status:"pending", detail_level:"coarse", stories:{}}`) |
+| Promote coarse → detailed | `--arg s "$SPRINT" '.sprints[$s].detail_level = "detailed"'` (set AFTER filling stories via "Add Task to a Story" / "Append AC to a Story"; the last step of elaboration) |
 | Replace whole Sprint entry | `--arg s "$SPRINT" --argjson new "$NEW_JSON" '.sprints[$s] = $new'` |
 | Append to execution_order | `--arg s "$SPRINT" '.execution_order += [$s]'` |
 | Insert into execution_order at index | `--arg s "$SPRINT" --argjson i 2 '.execution_order = .execution_order[:$i] + [$s] + .execution_order[$i:]'` |

@@ -56,6 +56,7 @@ Invoke `/project-init` to generate `CLAUDE.md`, `docs/ARCHITECTURE.md`, and `Mak
 Invoke `/sprint roadmap` to generate `docs/ROADMAP.json` from VISION + ARCHITECTURE + (if present) DESIGN/.
 
 - The generated roadmap includes `[MILESTONE]` markers at natural review points.
+- Generation is **rolling-wave** (see `../../sprint/references/sprint-roadmap.md` → "Detail horizon"): sprints up to the first milestone are detailed in full; later sprints are coarse placeholders (`detail_level:"coarse"`, title + goal only) plus an ordered backlog. Small projects whose whole roadmap fits before any milestone are fully detailed with no coarse tier. The coarse sprints are elaborated just-in-time at each `autopilot start` milestone batch, so you don't review far-future task breakdowns now.
 - If `docs/DESIGN/` exists, the roadmap generation reads `system.json` and ADRs as additional planning input. Stories are aligned to system components, and ADRs constrain implementation choices.
 
 ---

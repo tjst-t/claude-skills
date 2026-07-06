@@ -22,7 +22,10 @@
       "sprint.corrections": "Optional array of correction records ({type, milestone, ref} where type is one of reopen | fix_story | direction_change) appended when Review Mode touches this Sprint. Absent ⇒ treated as an empty array (no corrections)."
     },
     "progress_rules": "Only one sprint can be in_progress at a time. A story is done only when all tasks are done. A sprint is done only when all stories are done; if any story is needs_user_review, the sprint is partial.",
-    "milestone": "Set to true at natural review points. sprint plan and sprint roadmap manage milestone placement."
+    "milestone": "Set to true at natural review points. sprint plan and sprint roadmap manage milestone placement.",
+    "detail_level": "OPTIONAL per-Sprint field: \"detailed\" | \"coarse\". ABSENT ⇒ \"detailed\" (back-compat — pre-rolling-wave roadmaps have no field and are all detailed). A \"detailed\" Sprint carries full Stories + acceptance_criteria + Tasks and is runnable. A \"coarse\" Sprint is a placeholder past the detail horizon: it holds only {title, description(goal), milestone, status, detail_level:\"coarse\", stories:{}} and MUST NOT be run or marked done until elaborated. Elaboration (sprint plan / sprint auto phase 1 / autopilot batch step) fills stories/AC/tasks from the goal + backlog + code state, then flips detail_level to \"detailed\". See references/sprint-roadmap.md → \"Detail horizon\".",
+    "coarse_sprint_constraint": "A Sprint with detail_level:\"coarse\" (or empty stories: {}) is un-runnable by contract: sprint run / sprint auto refuse to execute it, and sprint done / done-judgment refuse to mark it done. This closes the silent-instant-done hole (a story-less Sprint would otherwise iterate zero Stories and complete instantly). The gate lives in sprint-auto.md §1, sprint-run/sprint-done, and sprint-done-judgment.md (Sprint-level precondition).",
+    "backlog_role": "Ordered planning surface AND the input to elaboration (not merely a deferral dump). Items are un-slotted Stories/Epics; when a coarse Sprint is elaborated, its stories are drawn from the goal + the relevant backlog items. sprint idea appends far-term new work here by default."
   },
   "project": "Project Name",
   "description": "One-line project description",
@@ -81,6 +84,14 @@
           "tasks": {}
         }
       }
+    },
+    "Sc7d2a1": {
+      "title": "Coarse sprint (past the detail horizon — not yet elaborated)",
+      "status": "pending",
+      "description": "Goal only; Stories/AC/Tasks are filled in at elaboration time from this goal + backlog. Un-runnable until then.",
+      "milestone": false,
+      "detail_level": "coarse",
+      "stories": {}
     }
   },
   "dependencies": {
