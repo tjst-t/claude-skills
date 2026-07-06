@@ -41,28 +41,30 @@ If no GUI Stories exist in the upcoming batch, skip this step entirely.
 
 ## Sprint loop
 
-Each Sprint is executed as an **independent sub-agent** to manage context window usage. The main autopilot conversation stays lightweight and delegates heavy work.
+The main autopilot conversation **is the orchestrator** and stays the single spawner. Story-level parallelism requires fan-out from the top level: a sub-agent cannot itself spawn sub-agents, so wrapping a whole Sprint in one `sprint auto` sub-agent would serialize its Stories. Sprints are sequential by nature — each builds on the prior increment — so there is no Sprint-level parallelism to give up. The main loop keeps its **context** thin (not its control): every heavy phase is delegated to a leaf sub-agent that returns a structured summary, while the main loop retains only wave structure, branch names, decision summaries, and status. Per-sprint working detail (implementation transcripts, review-fix dialogue, GUI-spec generation) lives inside leaf sub-agents and on disk (`docs/sprint-logs/`, `docs/ROADMAP.json`), so it does not accumulate across the batch.
+
+> **Do NOT wrap a Sprint in a single `sprint auto` sub-agent** — that is exactly what serializes Story implementation. The main loop drives the Sprint's phases directly (so it retains spawn authority for the Run fan-out) and delegates the non-spawning phases as below. `sprint auto`'s phase definitions still apply — the main loop is now the agent executing them.
 
 For each Sprint until the next milestone boundary:
 
-1. Launch an Agent to invoke `sprint auto` via the Skill tool. The agent prompt must include:
-   - The Sprint ID to execute
-   - The full contents of `docs/VISION.json` and `docs/DESIGN_PRINCIPLES.json`
-   - Instruction to run the verify phase with the **independent verifier enabled** (`sprint verify --with-verifier`) and to write `verification-report.json` (per `../sprint/references/verifier-agent.md`)
-   - Instruction to return: completion status, decision summary, and any warnings
-2. When the agent completes, read the decision log (`docs/sprint-logs/{SprintID}/decisions.json`).
-3. **Drift check + 6-Guard re-evaluation**: Review the decisions against VISION and DESIGN_PRINCIPLES. If any decision contradicts these documents, flag it but continue (it will be reviewed at the milestone demo). In addition, re-evaluate the 6 done-judgment guards from `references/autopilot-done-judgment.md` independently from `sprint auto`'s internal pass:
+1. **Branch setup (main loop).** Create the Sprint branch `autopilot/{base-branch-sanitized}/{SprintID}` per `sprint auto` §0.
+2. **Plan (delegated).** Launch **one** planning sub-agent to run the autonomous plan phase for this Sprint (`sprint auto` §1: elaborate-if-coarse, validate/split Stories, run the GUI spec process, log decisions, apply ROADMAP mutations). Its prompt must include the Sprint ID and the full contents of `docs/VISION.json` and `docs/DESIGN_PRINCIPLES.json`. It must **return structured output**: the execution waves (Stories grouped so intra-wave Stories are mutually independent) and, per Story, the implement-agent prompt inputs (Tasks, `story_type`, scenario / gui-spec path, prototype path if any). The heavy planning reasoning stays in this leaf; the main loop keeps only the returned wave JSON.
+3. **Run (main loop fans out — the step that must stay at the top level).** Execute the Sprint's Stories per `../sprint/references/sprint-run.md`, wave by wave. For each wave, the main loop launches the Story implement sub-agents **in parallel** (single message, multiple Agent calls, `model: "sonnet"`, `isolation: "worktree"`), then the review sub-agents, then drives the review→fix loop via SendMessage to each implementation agent, then merges each Story worktree branch into the Sprint branch. The main loop retains only branch names and per-Story summaries — all implementation and review-fix dialogue lives in the leaf agents.
+4. **Verify (delegated).** Run the verify phase with the **independent verifier enabled** (`sprint verify --with-verifier`, per `../sprint/references/verifier-agent.md`), delegating to the verifier sub-agent; it writes `verification-report.json` and returns a summary plus the report path.
+5. **Done (thin, main loop).** Apply the done-judgment guards and the ROADMAP status mutations directly (`sprint auto` §4) — lightweight `jq` writes and merges, no delegation needed.
+6. Read the decision log (`docs/sprint-logs/{SprintID}/decisions.json`).
+7. **Drift check + 6-Guard re-evaluation**: Review the decisions against VISION and DESIGN_PRINCIPLES. If any decision contradicts these documents, flag it but continue (it will be reviewed at the milestone demo). In addition, re-evaluate the 6 done-judgment guards from `references/autopilot-done-judgment.md` independently from `sprint auto`'s internal pass:
    - **Guard 4 (priority_rule 9 exception)**: scan `decisions.json` entries that claim the priority_rule 9 exception. Confirm each names an explicit障害シナリオ identifier (`kill-9` / `停電` / `Shamir-unseal` / `ネットワーク遮断` / `disk-full` / `OOM` / `プロセスクラッシュ`). Unmatched claims are flagged and the Story is moved to `needs_user_review`.
    - **Guard 5 (call-path existence)**: for any Story whose AC describes cross-service coupling (API + Workflow trigger, backend → external service, etc.), run the call-path greps from `autopilot-done-judgment.md` Guard 5 against the merged code. Zero hits ⇒ the coupling does not exist in code ⇒ the Story does NOT count as `done`; mark `needs_user_review` and surface at the milestone demo.
    - **Guard 6 (deferred-comment residue)**: run `git diff` from the Sprint's base SHA to HEAD over `cmd/` `internal/` `ansible/`, scanning for newly added `// TODO.*Phase [0-9]` / `// Sprint [0-9].*で.*実装` / `// Sprint [0-9].*で.*追加` / `# TODO.*Phase [0-9]` patterns. Any match without a corresponding backlog entry (referencing the comment line numbers) blocks `done` for the owning Story.
    - Record the per-Story guard result back into the Sprint's `verification-results.json` `done_judgment` block. Stories with `overall: needs_user_review` are reported to the milestone summary but do NOT block subsequent Sprint execution — they accumulate as user-review items.
-4. **Failure handling**: If `sprint auto` returns `partial` or `needs_human`:
-   - `partial` with fix Sprint inserted → execute the fix Sprint next (it was added to the roadmap by sprint auto), then retry the incomplete Stories from the original Sprint
+8. **Failure handling**: If the Sprint's Run/Verify phases (`sprint auto` §Failure Recovery) resolve to `partial` or `needs_human`:
+   - `partial` with fix Sprint inserted → execute the fix Sprint next (it was added to the roadmap during the Run phase), then retry the incomplete Stories from the original Sprint
    - `partial` without fix Sprint → continue to next Sprint, log incomplete Stories
    - `needs_human` → stop and trigger milestone demo early so the user can address the blocker
-5. Merge the Sprint's `autopilot/{base-branch}/{SprintID}` branch into the working branch.
-6. **Delete the merged Sprint branch** (local + remote) per `references/autopilot-operations.md` — the merge commit is the recovery point.
-7. **Re-read the roadmap top-level structure** (`jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone, detail_level}))}'`) to pick the next unfinished Sprint. `sprint auto` may have inserted a fix Sprint or split a Story mid-batch, so the "next Sprint" is whatever execution order now says — not a list frozen at pre-flight. Proceed to that Sprint (it is already `detailed` — batch elaboration ran before the loop).
+9. Merge the Sprint's `autopilot/{base-branch}/{SprintID}` branch into the working branch.
+10. **Delete the merged Sprint branch** (local + remote) per `references/autopilot-operations.md` — the merge commit is the recovery point.
+11. **Re-read the roadmap top-level structure** (`jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone, detail_level}))}'`) to pick the next unfinished Sprint. The Run phase may have inserted a fix Sprint or split a Story mid-batch, so the "next Sprint" is whatever execution order now says — not a list frozen at pre-flight. Proceed to that Sprint (it is already `detailed` — batch elaboration ran before the loop).
 
 ## Milestone demo and refine
 

@@ -2,6 +2,8 @@
 
 Execute the current Sprint. Stories are parallelized where dependencies allow, using sub-agents with worktree isolation.
 
+> **The Story fan-out must run at the top level (the main conversation).** A sub-agent cannot spawn sub-agents, so if `sprint run` is itself executed inside a sub-agent, the "launch an Agent per Story" steps below cannot parallelize and Stories degrade to serial. When driven by `autopilot`, the main autopilot loop is the executor of this phase (see `../../autopilot/references/autopilot-start.md` → Sprint loop) — it is never wrapped in a per-Sprint sub-agent. Heavy per-Story work (implementation, review-fix) lives in the Story leaf agents this phase spawns, so the executor's context stays thin without wrapping.
+
 1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):
    ```bash
    jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json

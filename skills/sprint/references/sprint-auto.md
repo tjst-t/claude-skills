@@ -1,6 +1,6 @@
 # sprint auto
 
-> **Deprecated — use `autopilot` instead.** `sprint auto` is the single-command form of "run plan→run→verify→done all with `--auto`". The `autopilot` skill is the supported entry point for autonomous execution (single Sprint or many), and it adds milestone handling, compromises/comprehension reporting, and the independent verifier. `sprint auto` is kept as a working alias for one-Sprint debug runs and as the unit `autopilot` invokes per Sprint; when a user types `sprint auto` directly, run it but print a one-line note: *"`sprint auto` still works; for milestone-aware autonomous execution use `autopilot`."* It will be removed in a future version.
+> **Deprecated — use `autopilot` instead.** `sprint auto` is the single-command form of "run plan→run→verify→done all with `--auto`". The `autopilot` skill is the supported entry point for autonomous execution (single Sprint or many), and it adds milestone handling, compromises/comprehension reporting, and the independent verifier. `sprint auto` is kept as a working alias for one-Sprint debug runs and as the **phase definitions** `autopilot` executes per Sprint (autopilot drives these phases from its own top-level loop rather than wrapping them in a per-Sprint sub-agent — see `../../autopilot/references/autopilot-start.md` → Sprint loop); when a user types `sprint auto` directly, run it but print a one-line note: *"`sprint auto` still works; for milestone-aware autonomous execution use `autopilot`."* It will be removed in a future version.
 
 Execute a single Sprint autonomously — plan, run, verify, and done — without user interaction. All decisions are made by Claude and logged for post-hoc review.
 
@@ -45,6 +45,7 @@ Same as `sprint plan` but fully autonomous:
 ### 2. Autonomous Run
 
 Same as `sprint run` but:
+- **Run this phase at the top level** — the executor fans out one sub-agent per Story, and a sub-agent cannot spawn sub-agents. Invoked directly by a user, `sprint auto` already runs in the top-level conversation, so the fan-out works. Never nest this phase inside another sub-agent, or Story implementation serializes (see `sprint-run.md`'s top-level note).
 - All technical and architectural decisions are made autonomously
 - Decisions that would normally be escalated to the user are instead decided by consulting `docs/VISION.json` and `docs/DESIGN_PRINCIPLES.json`, then logged to `docs/sprint-logs/{SprintID}/decisions.json` with rationale
 - Out-of-scope issues are automatically added to the Backlog section (no user approval needed)
