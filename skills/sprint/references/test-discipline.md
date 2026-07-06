@@ -180,5 +180,5 @@ If the only feasible way to make a test pass — or to cover an addition — is 
 
 When a rule cannot be satisfied:
 1. Log the diagnosis to `docs/sprint-logs/{SprintID}/failures.json` (what was tried, what failed, why Claude Code cannot resolve it).
-2. Mark the affected Story `blocked` with a `needs_human` reason via `jq` mutation (see `references/roadmap-jq.md` (Named write filters)).
+2. Mark the affected Story `blocked` with a `needs_human` reason via `jq` mutation (see `references/roadmap-jq.md` → Named write filters).
 3. The Sprint stays `partial` / `in_progress`, NOT `done`. The user (or autopilot milestone review) handles it.

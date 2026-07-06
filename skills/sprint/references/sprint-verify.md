@@ -4,7 +4,7 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
 
 ## Phase 1: Completeness check
 
-1. Read only the current Sprint slice (see `references/roadmap-jq.md` (Reading patterns)):
+1. Read only the current Sprint slice (see `references/roadmap-jq.md` → Reading patterns):
    ```bash
    jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
    ```
@@ -155,7 +155,7 @@ Collect any out-of-scope issues discovered during the completeness check, smoke 
 
 ## Phase 3: Finalize
 
-8. Update `docs/ROADMAP.json` to reflect the verified state via in-place `jq` mutations (see `references/roadmap-jq.md` (Named write filters)). Concrete filters:
+8. Update `docs/ROADMAP.json` to reflect the verified state via in-place `jq` mutations (see `references/roadmap-jq.md` → Named write filters). Concrete filters:
    - **Mark each AC pass/fail**: "Mark AC status" filter, one invocation per AC
    - **Mark Stories that completed verification as `done`**: "Mark Story status" filter
    - Backlog items approved in Phase 2.5 already appended above

@@ -13,7 +13,7 @@ This phase is **always interactive**. It cannot run in auto mode. During autopil
 
 ### 1. Start the refinement session
 
-1. Read only the current Sprint slice (see `references/roadmap-jq.md` (Reading patterns)):
+1. Read only the current Sprint slice (see `references/roadmap-jq.md` → Reading patterns):
    ```bash
    jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
    ```

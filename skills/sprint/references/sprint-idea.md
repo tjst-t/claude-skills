@@ -55,7 +55,7 @@ Present the Stories to the user for feedback:
 
 ### 4. Place in roadmap
 
-Read the top-level structure (no Sprint bodies) — see `references/roadmap-jq.md` (Reading patterns):
+Read the top-level structure (no Sprint bodies) — see `references/roadmap-jq.md` → Reading patterns:
 ```bash
 jq '{progress, execution_order, dependencies, backlog, sprints: (.sprints | map_values({title, status, milestone}))}' docs/ROADMAP.json
 ```
@@ -83,7 +83,7 @@ Present the proposed placement with rationale:
 
 ### 5. Update ROADMAP.json
 
-After the user confirms, apply all changes via in-place `jq` mutations using the named filters in `references/roadmap-jq.md` (Named write filters). Concretely:
+After the user confirms, apply all changes via in-place `jq` mutations using the named filters in `references/roadmap-jq.md` → Named write filters. Concretely:
 
 1. **Generate Sprint ID** (if creating a new Sprint): `openssl rand -hex 3` prepended with `S`; verify uniqueness with `jq --arg id "$NEW" '.sprints | has($id)' docs/ROADMAP.json` and regenerate on collision.
 2. **Add Sprint or Stories**: "Add new Sprint" filter for a whole Sprint, or "Add Task to a Story" / direct `.sprints[$s].stories[$sid] = $story` for appending Stories to an existing Sprint. Story IDs are `{SprintID}-{n}`, Task IDs `{SprintID}-{n}-{m}`.

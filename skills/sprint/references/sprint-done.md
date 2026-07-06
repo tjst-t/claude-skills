@@ -17,7 +17,7 @@ Finalize the Sprint and update tracking.
    - Re-run Guard 6 (deferred-comment residue) against `git diff {Sprint base SHA}..HEAD -- 'cmd/' 'internal/' 'ansible/'`. Matches without a backlog reference block `done` for the owning Story.
    - Stories that fail any guard at this re-evaluation are marked `status: "needs_user_review"` (NOT `done`) in the Step 2 atomic mutation below, and the Sprint's overall status reflects this — see Step 2 note.
 
-1. Read only the current Sprint slice (see `references/roadmap-jq.md` (Reading patterns)):
+1. Read only the current Sprint slice (see `references/roadmap-jq.md` → Reading patterns):
    ```bash
    jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
    ```

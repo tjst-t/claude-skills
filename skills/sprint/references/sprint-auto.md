@@ -27,7 +27,7 @@ Create a dedicated branch for this Sprint's autonomous work:
 
 Same as `sprint plan` but fully autonomous:
 - Read `docs/VISION.json`, `docs/DESIGN_PRINCIPLES.json` (full files — these are short)
-- Read only the slice you need from `docs/ROADMAP.json` (see `references/roadmap-jq.md` (Reading patterns)): top-level structure to find the next unfinished Sprint, then that Sprint's slice
+- Read only the slice you need from `docs/ROADMAP.json` (see `references/roadmap-jq.md` → Reading patterns): top-level structure to find the next unfinished Sprint, then that Sprint's slice
   ```bash
   jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone, detail_level}))}' docs/ROADMAP.json
   jq --arg id "<NextSprintID>" '.sprints[$id]' docs/ROADMAP.json
@@ -38,7 +38,7 @@ Same as `sprint plan` but fully autonomous:
 - Evaluate story granularity — if a Story is overloaded, split it autonomously based on VISION and DESIGN_PRINCIPLES guidance
 - Run the GUI spec process in **autonomous mode** (see `references/gui-spec.md` "Autonomous mode" — all scenarios are derived and confirmed without user interaction)
 - Log all planning decisions to `docs/sprint-logs/{SprintID}/decisions.json`
-- Update `docs/ROADMAP.json` with any changes via in-place `jq` mutations — see `references/roadmap-jq.md` (Named write filters) for the named filters (Mark Sprint/Story/Task/AC status, Recompute progress, Add new Sprint, Append to execution_order, Add dependency, Append to backlog, etc.)
+- Update `docs/ROADMAP.json` with any changes via in-place `jq` mutations — see `references/roadmap-jq.md` → Named write filters for the named filters (Mark Sprint/Story/Task/AC status, Recompute progress, Add new Sprint, Append to execution_order, Add dependency, Append to backlog, etc.)
 
 **No user confirmation.** All decisions are logged.
 
@@ -101,7 +101,7 @@ If a test cannot pass within these rules, escalate per `test-discipline.md` "Esc
 **When the fix is outside the current Sprint's scope:**
 
 If the root cause is in code that belongs to a different Sprint (e.g., missing DB migration, incomplete API from a prior Sprint, infrastructure not yet set up):
-1. Append a fix description to the Backlog of `docs/ROADMAP.json` via the "Append to backlog" filter (see `references/roadmap-jq.md` (Named write filters)):
+1. Append a fix description to the Backlog of `docs/ROADMAP.json` via the "Append to backlog" filter (see `references/roadmap-jq.md` → Named write filters):
    ```bash
    jq --argjson item "$ITEM" '.backlog += [$item]' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
    ```
