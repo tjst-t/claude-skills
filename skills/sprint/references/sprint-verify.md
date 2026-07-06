@@ -147,7 +147,7 @@ This is a final review of the entire Sprint's changes as a whole. Story-level re
 Collect any out-of-scope issues discovered during the completeness check, smoke test, or code review that are NOT bugs in the current Sprint but warrant future attention (e.g., tech debt, missing tests in unrelated modules, performance concerns, refactoring opportunities). Present them to the user:
 - For each item, provide a short title and one-line description
 - Ask the user which items to add to the Backlog section of `docs/ROADMAP.json`
-- For each approved item, use the "Append to backlog" filter from SKILL.md:
+- For each approved item, use the "Append to backlog" filter from `references/roadmap-jq.md`:
   ```bash
   jq --argjson item "$ITEM" '.backlog += [$item]' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
   ```

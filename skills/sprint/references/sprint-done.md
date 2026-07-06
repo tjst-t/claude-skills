@@ -50,7 +50,7 @@ Finalize the Sprint and update tracking.
    - Stories that failed any guard (`overall: "needs_user_review"`) keep their pre-existing status — usually `pending` or `in_progress` — but with a `needs_user_review` marker. Their Tasks are NOT auto-completed.
    - AC that already failed stay `fail`; everything else becomes `pass`. (If you have AC explicitly marked `pending` or `no_test` that should stay that way, refine the filter accordingly.)
    - The Sprint becomes `done` only if every Story is `done`. If ANY Story is `needs_user_review`, the Sprint becomes `partial` and surfaces at the milestone demo.
-3. **Update the Progress section** with the "Recompute progress counts" filter from SKILL.md (and clear `current_sprint` or set it to the next pending Sprint). Combined:
+3. **Update the Progress section** with the "Recompute progress counts" filter from `references/roadmap-jq.md` (and clear `current_sprint` or set it to the next pending Sprint). Combined below — the four `.progress.*` lines are verbatim that canonical filter; keep them in sync with `roadmap-jq.md` if the progress formula changes:
    ```bash
    NEXT=$(jq -r '.progress.current_sprint as $cur | (.execution_order | index($cur)) as $idx | .execution_order[$idx + 1] // ""' docs/ROADMAP.json)
    jq --arg next "$NEXT" '

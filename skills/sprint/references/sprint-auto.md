@@ -105,7 +105,7 @@ If the root cause is in code that belongs to a different Sprint (e.g., missing D
    ```bash
    jq --argjson item "$ITEM" '.backlog += [$item]' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
    ```
-2. Insert a new Sprint (or add the fix Story to the next unfinished Sprint) in the execution order, **before** the current Sprint, using the "Add new Sprint" + "Insert into execution_order at index" filters from SKILL.md.
+2. Insert a new Sprint (or add the fix Story to the next unfinished Sprint) in the execution order, **before** the current Sprint, using the "Add new Sprint" + "Insert into execution_order at index" filters from `references/roadmap-jq.md`.
 3. Mark the current Story as `pending` with a dependency note: `--arg s --arg st --arg dep '.sprints[$s].stories[$st].status = "pending" | .sprints[$s].stories[$st].depends_on = $dep'`
 4. Mark the current Sprint as `partial` (`.sprints[$s].status = "partial"` filter) and return — autopilot will execute the fix Sprint next, then retry the current Sprint
 

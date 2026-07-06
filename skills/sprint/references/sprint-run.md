@@ -61,7 +61,7 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
 4. **Backlog proposals**: After all waves are complete, collect any out-of-scope issues discovered during implementation or review (e.g., tech debt, missing error handling in unrelated code, potential improvements noticed by sub-agents). Sub-agents should return these as a separate "out-of-scope findings" list alongside their implementation results. Present them to the user as backlog candidates:
    - For each item, provide a short title and one-line description
    - Ask the user which items to add to the Backlog section of `docs/ROADMAP.json`
-   - For each approved item, append via the "Append to backlog" filter from SKILL.md:
+   - For each approved item, append via the "Append to backlog" filter from `references/roadmap-jq.md`:
      ```bash
      jq --argjson item "$ITEM" '.backlog += [$item]' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
      ```
