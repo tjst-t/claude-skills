@@ -1,5 +1,29 @@
 {
-  "$comment": "Schema and examples for all sprint log JSON files under docs/sprint-logs/{SprintID}/",
+  "$comment": "Schema and examples for all sprint log JSON files under docs/sprint-logs/{SprintID}/. Realigned in Se173ef (2026-07-06) to the CURRENT artifact set actually written by the sprint/autopilot skills, so the Palmux Sprint tab (internal/tab/sprint) stays in sync and does not drift again. The canonical trust-source files are verify-run.json (machine verdict) and verification-report.json (independent verifier); done-judgment.json / compromises.json / comprehension-report.md / prototype-review.json / reopen.json capture the 6-guard judgment, notify-after concessions, milestone narrative, prototype approval, and re-open history respectively.",
+  "$artifact_index": {
+    "$comment": "Authoritative list of what lives under docs/sprint-logs/{SprintID}/. The Sprint tab backend reads these exact names — keep this list and the tab's readers (internal/tab/sprint/handler.go + parser/artifacts.go) in lockstep. When a new artifact is introduced: (1) add it here, (2) add a parser + reader in the tab, (3) surface it in the tab UI. See docs/sprint-logs/README.md in the palmux2 repo for the tab⇄skill contract.",
+    "current": [
+      "decisions.json",
+      "verify-run.json",
+      "verify-run-{name}.log",
+      "verification-report.json",
+      "done-judgment.json",
+      "compromises.json",
+      "comprehension-report.md",
+      "prototype-review.json",
+      "reopen.json",
+      "gui-spec-{StoryID}.json",
+      "scenario-{StoryID}.json",
+      "failures.json",
+      "verification-results.json"
+    ],
+    "deprecated": {
+      "acceptance-matrix.json": "REMOVED. AC pass/fail is now derived from verification-report.json ac_findings + ROADMAP.json acceptance_criteria[].status. The Sprint tab reads it only for very old sprints that still carry the file.",
+      "e2e-results.json": "REMOVED. Per-run test results now come from verify-run.json (machine verdict, backed by real exit codes). The Sprint tab reads it only for very old sprints that still carry the file.",
+      "refine.json": "LEGACY. Interactive refine records; still written by `sprint refine` when a human refines UI/UX, but no longer surfaced as a dedicated tab (Se173ef folded the IA to Overview/Detail/Review/Milestones/Decisions). Read for backward compatibility."
+    },
+    "note_on_verification_results": "verification-results.json is STILL written by `sprint verify` (model-authored AC↔test traceability + diff_coverage). It is NOT the machine trust source — verify-run.json is (its status values are copied from verify-run.json per test-discipline Rule 9). The Sprint tab reads verify-run.json + verification-report.json for the machine/verifier verdicts, not verification-results.json."
+  },
   "decisions": {
     "$file": "decisions.json",
     "$comment": "Autonomous decisions made during the sprint. adr_ref links the decision to a load-bearing ADR when applicable.",
@@ -16,18 +40,147 @@
       }
     ]
   },
+  "verify_run": {
+    "$file": "verify-run.json",
+    "$comment": "MACHINE-AUTHORED test verdict, written by hooks/run-verify.py from real process exit codes (+ JUnit when present). This is the trust source for test status: sprint done's gate and the verification-integrity hook read this, NOT the model's verification-results.json. Models MUST NOT edit it. Each run also appends `__VERIFY_EXIT_CODE__:{name}:{code}` to the tail of verify-run-{name}.log for tamper-evidence. Full schema: references/VERIFY_RUN_SCHEMA.json.",
+    "$machine_authored": true,
+    "sprint": "Sb1e4d8",
+    "command_source": "declared (.claude/verify.json) | fallback (make verify) | fallback (make test)",
+    "runs": [
+      {
+        "name": "unit",
+        "command": "go test ./...",
+        "exit_code": 0,
+        "log": "docs/sprint-logs/Sb1e4d8/verify-run-unit.log",
+        "machine_status": "pass",
+        "junit": { "total": 42, "passed": 42, "failed": 0, "errored": 0, "skipped": 0 }
+      }
+    ],
+    "overall_machine_status": "pass"
+  },
+  "verification_report": {
+    "$file": "verification-report.json",
+    "$comment": "Output of the INDEPENDENT verifier sub-agent (sprint verify --with-verifier; always under autopilot --auto). A separate read-only session re-checks AC↔code, the forbidden-category scan, ADR conformance, and compromise completeness. Where it disagrees with the implementer's self-report the verifier wins; missed items get overlooked_by_autopilot: true. Full schema: references/VERIFICATION_REPORT_SCHEMA.json.",
+    "sprint": "Sb1e4d8",
+    "verified_at": "2026-05-01T16:30:00Z",
+    "verifier_model": "claude (read-only, separate session)",
+    "overall": "pass",
+    "stories": {
+      "Sb1e4d8-1": {
+        "verdict": "ok",
+        "ac_findings": [
+          {
+            "ac": "AC-Sb1e4d8-1-1",
+            "status": "pass",
+            "evidence": "file:line references proving the AC is met against real code, not just a green test name",
+            "overlooked_by_autopilot": false,
+            "recommended_action": null
+          }
+        ],
+        "forbidden_category_findings": []
+      }
+    },
+    "findings": [
+      {
+        "category": "acceptance_criteria | forbidden_categories | adr_conformance | correctness | test_coverage",
+        "story": "Sb1e4d8-1",
+        "ac": "AC-Sb1e4d8-1-1",
+        "verdict": "pass | warn | fail",
+        "detail": "…",
+        "overlooked_by_autopilot": false,
+        "recommended_action": null
+      }
+    ],
+    "adr_conformance": { "status": "pass | warn | fail | n/a", "detail": "…" },
+    "summary": {
+      "ac_failures": 0,
+      "ac_warnings": 0,
+      "forbidden_warnings": 0,
+      "forbidden_failures": 0,
+      "adr_conflicts": 0,
+      "overlooked_count": 0
+    }
+  },
+  "done_judgment": {
+    "$file": "done-judgment.json",
+    "$comment": "Per-Story 6(-8) guard done judgment (references/sprint-done-judgment.md). Any story with overall != 'ok' is held at needs_user_review, not done. Guard keys are conventionally guard_{N}_{name}; each value begins with the verdict token (pass/fail/warn/n/a) followed by the evaluation sentence. The Sprint tab parses the leading token as the guard status and the whole string as the hover detail.",
+    "sprint": "Sb1e4d8",
+    "precondition": { "detail_level": "detailed", "stories_nonempty": true, "ok": true },
+    "stories": {
+      "Sb1e4d8-1": {
+        "guard_1_not_user_review_required": "pass — roadmap did not pre-mark this needs_user_review",
+        "guard_2_nil_injection_mock": "pass — real dependency exercised in acceptance test",
+        "guard_3_mock_as_real": "pass — real-mode smoke, no MOCK/--fake/DRY_RUN/InMemory",
+        "guard_4_pr9_exception": "pass — no exception claimed",
+        "guard_5_call_path": "pass — end-to-end call path grep-present and exercised",
+        "guard_6_deferral_comments": "pass — no deferred TODO/Phase-N comments in the diff",
+        "guard_7_adr_conformance": "n/a — no docs/DESIGN ADRs",
+        "guard_8_destructive_multiversion": "n/a — no data-path multi-version scenario",
+        "overall": "ok",
+        "note": "optional free-form context"
+      }
+    }
+  },
+  "compromises": {
+    "$file": "compromises.json",
+    "$comment": "The notify-after-completion concessions autopilot made and continued past (§2.4). Written at a milestone boundary. Immediate-stop categories (acceptance_criteria_modified, destructive git, ADR violation) never reach this file. Real files put the arrays at the top level; the historical schema example nested them under milestone_summary{} — the Sprint tab accepts both. Full schema: autopilot/references/COMPROMISES_SCHEMA.json.",
+    "stopped_at": "milestone_Sb1e4d8",
+    "compromises": [
+      {
+        "type": "test_assertion_weakened",
+        "severity": "low | medium | high",
+        "story": "Sb1e4d8-3",
+        "file": "tests/auth.spec.ts",
+        "rationale": "why the concession was made",
+        "diff_summary": "expect(token).toBe('xyz') → expect(token).toBeTruthy()",
+        "recommended_action": "tighten in a follow-up story",
+        "adr_ref": "none",
+        "overlooked_by_autopilot": false
+      }
+    ],
+    "blockers_encountered": [
+      { "type": "…", "severity": "medium", "detail": "…", "resolution": "…" }
+    ],
+    "scope_changes": [
+      { "type": "…", "severity": "low", "detail": "…", "resolution": "…" }
+    ]
+  },
+  "comprehension_report": {
+    "$file": "comprehension-report.md",
+    "$comment": "Markdown (NOT JSON) — the milestone narrative: 'what changed / why this way / what to verify / what was assumed'. Written at a milestone boundary immediately after compromises.json. Read this before `autopilot review`. The Sprint tab renders it as Markdown and extracts the ## / ### headings as a table of contents. Template: autopilot/references/comprehension-report-template.md."
+  },
+  "prototype_review": {
+    "$file": "prototype-review.json",
+    "$comment": "Approved GUI prototype screens + design decisions from `sprint prototype`. The Sprint tab shows the approved screens, feedback rounds, and design decisions alongside the gui-spec state diagram.",
+    "sprint_range": ["Sb1e4d8"],
+    "screens": [
+      { "file": "prototype/dashboard.html", "story": "Sb1e4d8-1", "feedback_rounds": 1, "approved": true }
+    ],
+    "design_decisions": ["Short design decision statements the user approved"],
+    "approved_by_user": true,
+    "approved_at": "2026-05-01"
+  },
+  "reopen": {
+    "$file": "reopen.json",
+    "$comment": "Written when a previously-done Story/Sprint is re-opened (autopilot Review Mode ① AC-violation, or an explicit user manual_retroactive request). Records why + when so the 'a done Sprint became in_progress again' history is auditable. A single object (not an array). Full schema: references/REOPEN_SCHEMA.json.",
+    "sprint_id": "Sb1e4d8",
+    "reopened_at": "2026-06-30T10:00:00Z",
+    "triggered_by": "milestone_review | manual_retroactive",
+    "milestone": "M02",
+    "reason": "AC violation: …",
+    "affected_acceptance_criteria": ["AC-Sb1e4d8-2-3"],
+    "added_stories": [],
+    "added_tasks": [
+      { "story": "Sb1e4d8-2", "task_id": "Sb1e4d8-2-fix-1", "description": "…" }
+    ]
+  },
   "verification_results": {
     "$file": "verification-results.json",
-    "$comment": "Combined test execution + AC traceability. Replaces the older split between e2e-results.json and acceptance-matrix.json. Each test entry carries its linked story/AC so traceability is derivable from this single file.",
+    "$comment": "MODEL-AUTHORED test execution + AC↔test traceability + diff_coverage (Rule 6). Its per-test status values are COPIED from verify-run.json (the machine verdict) — the model authors only `evidence`, never the verdict (test-discipline Rule 9). NOT the machine trust source; the Sprint tab reads verify-run.json/verification-report.json for the machine/verifier verdicts. Still written by every `sprint verify`.",
     "sprint": "Sb1e4d8",
     "run_at": "2026-05-01T16:00:00Z",
     "server_command": "make serve",
-    "summary": {
-      "total": 10,
-      "pass": 9,
-      "fail": 1,
-      "skip": 0
-    },
+    "summary": { "total": 10, "pass": 9, "fail": 1, "skip": 0 },
     "tests": [
       {
         "name": "[AC-Sb1e4d8-1-1] should display VM list after login",
@@ -37,40 +190,30 @@
         "status": "pass",
         "duration_ms": 1200,
         "error": null
-      },
-      {
-        "name": "[AC-Sb1e4d8-1-2] should start VM and show running status",
-        "file": "vm-list.e2e.spec.ts",
-        "story": "Sb1e4d8-1",
-        "acceptance_criteria": ["AC-Sb1e4d8-1-2"],
-        "status": "fail",
-        "duration_ms": 850,
-        "error": "Timeout waiting for [data-testid=vm-status-vm-1]"
       }
     ],
     "diff_coverage": {
-      "$comment": "Rule 6 — user-observable additions in this Sprint's diff and how each is covered. Resolution is one of: covered (test exists), added_test (new test added during verify), reverted (out-of-scope, removed), needs_human (escalated).",
+      "$comment": "Rule 6 — user-observable additions in this Sprint's diff and how each is covered. resolution ∈ covered | added_test | reverted | needs_human.",
       "surfaces": [
         {
           "type": "api",
           "identifier": "POST /api/v1/vms",
-          "introduced_in_files": ["internal/api/vm_handler.go", "internal/api/router.go"],
+          "introduced_in_files": ["internal/api/vm_handler.go"],
           "resolution": "covered",
           "test": "[AC-Sb1e4d8-1-1] should display VM list after login"
-        },
-        {
-          "type": "cli",
-          "identifier": "--verbose flag on `vm status`",
-          "introduced_in_files": ["cmd/myapp/vm/status.go"],
-          "resolution": "added_test",
-          "test": "TestAC_Sb1e4d8_2_3_VerboseOutput"
         }
       ]
+    },
+    "done_judgment": {
+      "$comment": "Optional mirror of the per-Story 6-guard outcome (also written standalone to done-judgment.json). overall: 'needs_user_review' blocks sprint done for that Story.",
+      "story_id": "Sb1e4d8-1",
+      "guard1_user_review_required_not_done": "pass",
+      "overall": "ok"
     }
   },
   "refine": {
     "$file": "refine.json",
-    "$comment": "Interactive refinement changes from user feedback",
+    "$comment": "LEGACY. Interactive refinement changes from user feedback (`sprint refine`). Read for backward compatibility; no longer a dedicated Sprint tab.",
     "sprint": "Sb1e4d8",
     "refinements": [
       {
@@ -85,7 +228,7 @@
   },
   "failures": {
     "$file": "failures.json",
-    "$comment": "Unresolved failures and blockers",
+    "$comment": "Unresolved failures and blockers (needs_human escalations).",
     "sprint": "Sb1e4d8",
     "failures": [
       {
@@ -93,10 +236,7 @@
         "type": "needs_human",
         "summary": "LDAP credentials required",
         "attempts": [
-          {
-            "approach": "Attempted to use mock LDAP",
-            "result": "Production LDAP has custom schema not replicable"
-          }
+          { "approach": "Attempted to use mock LDAP", "result": "Production LDAP has custom schema not replicable" }
         ],
         "resolution": null
       }
@@ -116,16 +256,7 @@
         "description": "Operator starts a stopped VM and confirms it is running",
         "preconditions": ["A VM named vm-123 exists in stopped state"],
         "steps": [
-          {
-            "n": 1,
-            "action": "user runs `myapp vm start vm-123`",
-            "expected": "exit code 0; stdout contains `started vm-123`"
-          },
-          {
-            "n": 2,
-            "action": "user runs `myapp vm status vm-123`",
-            "expected": "exit code 0; stdout contains `state: running`"
-          }
+          { "n": 1, "action": "user runs `myapp vm start vm-123`", "expected": "exit code 0; stdout contains `started vm-123`" }
         ],
         "cleanup": ["stop vm-123"]
       }
@@ -133,21 +264,17 @@
   },
   "gui_spec": {
     "$file": "gui-spec-{StoryID}.json",
-    "$comment": "GUI specification for a Story — state diagram + endpoint contracts",
+    "$comment": "GUI specification for a Story — state diagram + endpoint contracts + data_testids. The Sprint tab renders state_diagram as Mermaid.",
     "sprint": "Sb1e4d8",
     "story": "Sb1e4d8-1",
     "state_diagram": "stateDiagram-v2\n    [*] --> Empty: page load (no data)\n    Empty --> Loading: user clicks Add\n    Loading --> Populated: API success\n    Loading --> Error: API failure",
     "scenarios": {
       "entry_point": "Direct URL /vms",
       "happy_path": "User sees VM list, clicks Start, VM status changes to running",
-      "data_states": {
-        "empty": "Show empty state message with Create button",
-        "loading": "Show spinner",
-        "error": "Show error message with Retry button"
-      },
-      "edge_cases": ["Long VM names truncated with ellipsis", "Concurrent start requests debounced"],
-      "success_feedback": "Inline status update with brief toast",
-      "failure_feedback": "Error message below the action button"
+      "data_states": { "empty": "…", "loading": "…", "error": "…" },
+      "edge_cases": ["…"],
+      "success_feedback": "…",
+      "failure_feedback": "…"
     },
     "endpoint_contracts": [
       {
@@ -155,29 +282,10 @@
         "method": "GET",
         "registered": true,
         "request_fields": null,
-        "response_fields": {
-          "items": "VM[]",
-          "next_cursor": "string"
-        }
-      },
-      {
-        "path": "/api/v1/vms",
-        "method": "POST",
-        "registered": true,
-        "request_fields": {
-          "name": "string (required)",
-          "flavor_id": "string (required)"
-        },
-        "response_fields": {
-          "id": "string",
-          "name": "string",
-          "status": "string"
-        }
+        "response_fields": { "items": "VM[]", "next_cursor": "string" }
       }
     ],
-    "test_files": {
-      "e2e": "tests/e2e/vm-list.e2e.spec.ts",
-      "mock": "tests/e2e/vm-list.mock.spec.ts"
-    }
+    "data_testids": ["vm-list", "vm-row-{id}", "vm-start-{id}"],
+    "test_files": { "e2e": "tests/e2e/vm-list.e2e.spec.ts", "mock": "tests/e2e/vm-list.mock.spec.ts" }
   }
 }
