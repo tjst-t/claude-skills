@@ -70,10 +70,12 @@ This is enough to decide placement. If a specific Sprint's body is needed for cl
 
 | Option | When to use |
 |--------|-------------|
-| **Add to existing unfinished Sprint** | New work is small (1-2 Stories) and related to an existing Sprint's scope |
+| **Add to existing unfinished Sprint** | New work is small (1-2 Stories) and related to an existing **detailed** Sprint's scope |
 | **Create a new Sprint** | New work is distinct enough to be its own Sprint (3+ Stories or different concern) |
 | **Insert before an existing Sprint** | New work is a prerequisite for planned work |
-| **Append at the end** | No dependencies on existing work, can wait |
+| **Append to the backlog** (default for far-term work) | No dependencies that force it early, and it lands past the detail horizon — let elaboration pull it into a coarse sprint at the right milestone |
+
+**Rolling-wave placement bias**: with two-tier roadmaps, prefer the **backlog** for anything that isn't genuinely near-term. Only slot a new idea directly into a Sprint when it's within the current detail horizon (an unfinished *detailed* Sprint, or the next one) or a real prerequisite for planned work. Do NOT write full Stories/Tasks into a **coarse** Sprint here — either append to the backlog (it will be picked up when that sprint is elaborated) or, if it should be its own future sprint, add a coarse Sprint (`detail_level:"coarse"`, `stories:{}`) with just a title + goal. This keeps far-term detail from being written before it's needed.
 
 Present the proposed placement with rationale:
 - "I recommend creating a new Sprint (proposed ID `Sd9b2f1`) after `Sc7d2a1` because it depends on the API from `Sc7d2a1` but is independent of `Sb1e4d8`. Here's the updated execution order: `Sa3f9c2` → `Sb1e4d8` → `Sc7d2a1` → **`Sd9b2f1`** → ..."

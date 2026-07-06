@@ -29,7 +29,7 @@ The roadmap file is always at `docs/ROADMAP.json` in the project root. If it doe
 | `sprint help` | Show command list and usage guide | See `references/sprint-help.md` |
 | `sprint auto` | Execute one sprint fully autonomously (deprecated — prefer `autopilot`) | See `references/sprint-auto.md` |
 | `sprint idea` | Discuss and add new features to roadmap (alias: `sprint propose`) | See `references/sprint-idea.md` |
-| `sprint roadmap` | Generate full roadmap from VISION | See `references/sprint-roadmap.md` |
+| `sprint roadmap` | Generate two-tier roadmap from VISION (rolling-wave: detail to next milestone, coarse beyond) | See `references/sprint-roadmap.md` |
 
 When a command is invoked, read the corresponding reference file before taking any action.
 

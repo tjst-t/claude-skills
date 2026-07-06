@@ -15,6 +15,17 @@ autopilot skill 側の `autopilot-done-judgment.md` と同内容を維持する�
 
 ---
 
+## Sprint 単位の事前条件 (rolling-wave): coarse Sprint は done 不可
+
+per-Story ガード (Guard 1–8) を評価する **前** に、Sprint 単位の precondition を満たすこと:
+
+- Sprint の `detail_level` が `"coarse"`、または `stories` が空 `{}` の場合、その Sprint は詳細化の地平より先の placeholder であり、**`done` にも `partial` にも遷移させてはならない**。
+- coarse Sprint は story が 0 件なので per-Story ガードは 1 度も発火せず、放置すると「Story 0 件 → 全 Story done とみなす → Sprint 即 done」というサイレント偽完了が成立してしまう。これを塞ぐのが本 precondition。
+- 対応: `sprint plan` §1.1 / `sprint auto` phase 1 の elaboration ゲートで、実行前に必ず Stories を詰めて `detail_level` を `"detailed"` に反転する。elaboration を経ていない coarse Sprint が done ゲートに到達した場合はバグ — done を拒否し、elaboration に差し戻す。
+- 後方互換: `detail_level` フィールドが無い (legacy / pre-rolling-wave) Sprint は `"detailed"` とみなし、本 precondition は素通り。
+
+---
+
 ## Guard 1: user_review_required の自動 done 禁止
 
 Story の `user_review_required: true` フィールドが含まれる場合:

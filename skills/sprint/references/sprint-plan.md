@@ -5,12 +5,19 @@ Prepare the next sprint. This is a collaborative phase with the user.
 1. **Read only what is needed from `docs/ROADMAP.json`** (see SKILL.md "Roadmap Reading Patterns"):
    - Top-level structure to find the next Sprint and check dependencies:
      ```bash
-     jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone}))}' docs/ROADMAP.json
+     jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone, detail_level}))}' docs/ROADMAP.json
      ```
    - Then the slice of the next unfinished Sprint:
      ```bash
      jq --arg id "<NextSprintID>" '.sprints[$id]' docs/ROADMAP.json
      ```
+
+1.1. **Elaborate the next Sprint if it is coarse** (rolling-wave just-in-time detailing). If the next unfinished Sprint's `detail_level` is `"coarse"` (or it has empty `stories: {}`), it is a placeholder past the detail horizon and CANNOT be run or planned as-is — elaborate it first:
+   - Draw its Stories from the Sprint's `description` (goal) + the relevant `backlog` items (`jq '.backlog'`) + the current code state + any DESIGN/ADR constraints. This reuses the Story-design logic in `sprint-idea.md` §3.
+   - Write proper user stories with acceptance criteria and Tasks; move any backlog items you consumed out of `backlog` (or mark them slotted).
+   - **Flip `detail_level` to `"detailed"`** only after Stories exist ("Promote coarse → detailed" filter in `roadmap-jq.md`).
+   - In autonomous mode (`--auto` / autopilot): elaborate without confirmation and log the elaboration to `decisions.json`. Interactively: present the elaborated Stories for confirmation as part of the plan summary (step 5).
+   - A coarse Sprint must never proceed to `sprint run` with empty stories — that would let it complete instantly with zero work (silent false-done). This step is the gate.
 
 1.5. **Consult `docs/DESIGN/` if it exists** (skip this step if the directory is absent):
    - List ADRs that affect any of the upcoming Sprint's Stories. An ADR is relevant if its `affects` field overlaps with the Sprint's components (often inferable from Story titles + `system.json`) or if `affects` is `["*"]`.

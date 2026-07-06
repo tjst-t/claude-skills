@@ -42,15 +42,15 @@ These are the commands meant to be typed directly. Everything else is internal t
 | `autopilot status` | Progress, recent compromises, ADR summary |
 | `sprint fix` | One-shot fix, no sprint ceremony (alias: `sprint hotfix`) |
 | `sprint idea` | Capture a feature into the backlog (alias: `sprint propose`) |
-| `sprint roadmap` | Generate / regenerate the roadmap from VISION + DESIGN/ |
+| `sprint roadmap` | Generate / regenerate the roadmap from VISION + DESIGN/ (rolling-wave: near-term detailed, far-term coarse) |
 
 The remaining sprint phase commands (`plan`, `prototype`, `run`, `verify`, `demo`, `refine`, `done`, `init`, `auto`) still exist for manual / debug use, but they no longer auto-fire on natural language — you invoke them by typing `sprint <command>` explicitly. See **Advanced / debug** below.
 
 ## How they work together
 
 1. **`design start`** *(optional, recommended for complex systems)* — guided dialogue from a fuzzy idea to a structured `docs/DESIGN/`: VISION, DESIGN_PRINCIPLES, domain model, system architecture, ADRs, non-functional requirements. Skip it for small projects.
-2. **`autopilot setup`** — detects `docs/DESIGN/`. If present, skips its own VISION/PRINCIPLES questions; otherwise asks targeted questions (or routes to `design`). Calls `project init` and `sprint roadmap` as needed.
-3. **`autopilot start`** — runs Sprints autonomously up to the next milestone, then **stops** for your review. For GUI work it first builds prototypes for you to approve.
+2. **`autopilot setup`** — detects `docs/DESIGN/`. If present, skips its own VISION/PRINCIPLES questions; otherwise asks targeted questions (or routes to `design`). Calls `project init` and `sprint roadmap` as needed. `sprint roadmap` plans **rolling-wave**: sprints up to the first milestone are detailed in full; later sprints are coarse placeholders (title + goal) plus an ordered backlog.
+3. **`autopilot start`** — runs Sprints autonomously up to the next milestone, then **stops** for your review. For GUI work it first builds prototypes for you to approve. At each milestone it also **elaborates the next batch** of coarse sprints from the backlog (just-in-time), so far-term detail is written when it's needed, not upfront.
 4. **At each milestone** — autopilot writes a `compromises.json` (local concessions it made) and a human-readable `comprehension-report.md` (what changed / why / what to verify / what was assumed). Read the report, then run **`autopilot review`** as many times as you like to triage fixes and additions before continuing.
 5. **`design adr`** — add ADRs whenever a load-bearing decision surfaces during planning.
 

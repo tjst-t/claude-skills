@@ -22,6 +22,7 @@ There is intentionally **no schema version field**. Compatibility is held by a s
 - **Triggers narrowed/expanded**: natural-language project requests now route to `autopilot`; `sprint` fires only on an explicit `sprint <command>`; `design` fires only on load-bearing/complexity signals.
 - **Schemas moved owner**: `VISION_SCHEMA.json` and `DESIGN_PRINCIPLES_SCHEMA.json` now live under the `design` skill. This is internal to the skills — your `docs/VISION.json` / `docs/DESIGN_PRINCIPLES.json` are unaffected.
 - **Machine-derived test status (Phase 6)**: `sprint verify` now runs your tests through `hooks/run-verify.py` and records the verdict in `docs/sprint-logs/{SprintID}/verify-run.json` from real exit codes; `sprint done` refuses to complete a Sprint whose machine verdict isn't `pass`. **To adopt it**, declare your verification command(s) in `.claude/verify.json` (see `skills/sprint/references/verify-execution.md`) — or rely on the `make verify`/`make test` fallback. If a project has **no** verify command configured at all, the gate falls back to the previous (self-reported) behavior, so nothing breaks; but declaring a command is strongly recommended, since it's what closes the fabrication hole. This is language/framework-agnostic (exit codes + optional JUnit XML).
+- **Rolling-wave roadmaps (Phase 7)**: new `sprint roadmap` runs plan two-tier — sprints up to the first milestone are detailed, later sprints are coarse placeholders (`detail_level:"coarse"`, empty `stories`) elaborated just-in-time at each milestone. **Your existing roadmap is unaffected**: with no `detail_level` field, every Sprint is treated as `"detailed"` and nothing is auto-converted. The two-tier shape only appears when you next *regenerate* the roadmap with `sprint roadmap` on a project large enough to have a milestone before the end. Coarse sprints cannot be run or marked done until elaborated.
 
 ## Optional fields and their defaults
 
@@ -31,6 +32,7 @@ There is intentionally **no schema version field**. Compatibility is held by a s
 | ROADMAP.json → Story | `reopened_at` | never re-opened |
 | ROADMAP.json → AC | `reopened_at` | a normal `pass` AC |
 | ROADMAP.json → Sprint | `corrections` | empty array (no corrections) |
+| ROADMAP.json → Sprint | `detail_level` | treated as `"detailed"` — a fully-planned Sprint. Pre-rolling-wave roadmaps have no coarse tier, so every Sprint is detailed and `sprint plan` / `sprint auto` behave exactly as before. |
 | sprint-logs/{SprintID}/ | `compromises.json` | "妥協なし" / not recorded for this historical Sprint |
 | sprint-logs/{SprintID}/ | `reopen.json` | no re-open history |
 | sprint-logs/{SprintID}/ | `verification-report.json` | verifier not run |

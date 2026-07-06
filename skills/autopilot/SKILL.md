@@ -46,6 +46,8 @@ A milestone boundary is any of the following (checked in order, use the earliest
 3. **Every 3 Sprints** as a fallback if no explicit milestones or dependency boundaries are found — prevents unbounded execution
 4. **End of roadmap**: all Sprints complete
 
+These same rules define the **detail horizon** used by `sprint roadmap` (rolling-wave planning): sprints up to the first milestone boundary are generated in full detail, sprints beyond it are coarse placeholders elaborated just-in-time at each milestone batch (see `../sprint/references/sprint-roadmap.md` → "Detail horizon" and `references/autopilot-start.md` → "Batch elaboration"). A coarse sprint (`detail_level:"coarse"` / empty `stories`) cannot be run or marked done until elaborated.
+
 ## `autopilot status`
 
 Show the state of the most recent autopilot run. Read-only — no active session required.
