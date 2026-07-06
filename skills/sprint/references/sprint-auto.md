@@ -27,7 +27,7 @@ Create a dedicated branch for this Sprint's autonomous work:
 
 Same as `sprint plan` but fully autonomous:
 - Read `docs/VISION.json`, `docs/DESIGN_PRINCIPLES.json` (full files — these are short)
-- Read only the slice you need from `docs/ROADMAP.json` (see SKILL.md "Roadmap Reading Patterns"): top-level structure to find the next unfinished Sprint, then that Sprint's slice
+- Read only the slice you need from `docs/ROADMAP.json` (see `references/roadmap-jq.md` (Reading patterns)): top-level structure to find the next unfinished Sprint, then that Sprint's slice
   ```bash
   jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone, detail_level}))}' docs/ROADMAP.json
   jq --arg id "<NextSprintID>" '.sprints[$id]' docs/ROADMAP.json
@@ -38,7 +38,7 @@ Same as `sprint plan` but fully autonomous:
 - Evaluate story granularity — if a Story is overloaded, split it autonomously based on VISION and DESIGN_PRINCIPLES guidance
 - Run the GUI spec process in **autonomous mode** (see `references/gui-spec.md` "Autonomous mode" — all scenarios are derived and confirmed without user interaction)
 - Log all planning decisions to `docs/sprint-logs/{SprintID}/decisions.json`
-- Update `docs/ROADMAP.json` with any changes via in-place `jq` mutations — see SKILL.md "Writes" for the named filters (Mark Sprint/Story/Task/AC status, Recompute progress, Add new Sprint, Append to execution_order, Add dependency, Append to backlog, etc.)
+- Update `docs/ROADMAP.json` with any changes via in-place `jq` mutations — see `references/roadmap-jq.md` (Named write filters) for the named filters (Mark Sprint/Story/Task/AC status, Recompute progress, Add new Sprint, Append to execution_order, Add dependency, Append to backlog, etc.)
 
 **No user confirmation.** All decisions are logged.
 
@@ -69,10 +69,10 @@ Same as `sprint done` but:
 
 Story を `status: done` に書き換える前に、以下を順に評価する:
 
-1. `references/sprint-done-judgment.md` の Guard 1–6 を **全て** 評価する
+1. `references/sprint-done-judgment.md` の Guard 1–8 を **全て** 評価する
 2. fail したガードがあれば、Story を `status: needs_user_review` に書き、`docs/sprint-logs/{SprintID}/done-judgment.json` に各ガードの結果を記録する
 3. fail ガードがある Story は **autopilot から done に遷移させない**。次の milestone で user 判断 (sprint demo + 明示承認) を待つ
-4. `decisions.json` の `done_judgment` セクションに各 Story の 6 ガード結果を必ず記録する (autopilot 側がこのログを drift check で読む)
+4. `decisions.json` の `done_judgment` セクションに各 Story の 8 ガード結果を必ず記録する (autopilot 側がこのログを drift check で読む)
 
 ガード fail だけで Sprint 全体を `partial` にする必要はない — `done` Story と `needs_user_review` Story が混在することは想定済み。Sprint の `status` は「全 Story が `done` または `needs_user_review`」で `done`、それ以外 (テスト fail / blocked) で `partial` とする。
 
@@ -82,7 +82,7 @@ Autonomous execution cannot ask the user for help. The default behavior is **kee
 
 ### Prohibited shortcuts
 
-Auto mode runs without a human in the loop, so silently degrading verification means the user discovers the regression later. **All five rules in `references/test-discipline.md` apply identically under auto mode** — no exceptions for "the Sprint needs to complete". In addition:
+Auto mode runs without a human in the loop, so silently degrading verification means the user discovers the regression later. **All nine rules in `references/test-discipline.md` apply identically under auto mode** — no exceptions for "the Sprint needs to complete". In addition:
 
 - **Do not delete or weaken an acceptance criterion** to make the implementation match. AC are user-facing intent — only the user drops them.
 - **Do not reclassify a GUI Story as non-GUI** to escape the Playwright requirement (see `references/gui-spec.md` Phase 1).
@@ -101,7 +101,7 @@ If a test cannot pass within these rules, escalate per `test-discipline.md` "Esc
 **When the fix is outside the current Sprint's scope:**
 
 If the root cause is in code that belongs to a different Sprint (e.g., missing DB migration, incomplete API from a prior Sprint, infrastructure not yet set up):
-1. Append a fix description to the Backlog of `docs/ROADMAP.json` via the "Append to backlog" filter (see SKILL.md "Writes"):
+1. Append a fix description to the Backlog of `docs/ROADMAP.json` via the "Append to backlog" filter (see `references/roadmap-jq.md` (Named write filters)):
    ```bash
    jq --argjson item "$ITEM" '.backlog += [$item]' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
    ```

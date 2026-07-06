@@ -59,12 +59,12 @@ Show the state of the most recent autopilot run. Read-only — no active session
 5. Inspect `.claude/autopilot-*.lock` files and `git worktree list | grep autopilot/` per `references/autopilot-operations.md`.
 6. Present a one-screen view: roadmap progress + current Sprint, next milestone, last completed Sprint, recent compromises (by severity), DESIGN/ ADR summary (if present), active sessions, remaining worktrees + merge status, key decisions, and any drift warnings or failure logs.
 
-Backward compatibility: on a project that predates these artifacts, missing fields render as "-" / "N/A" rather than erroring (§2.9).
+Backward compatibility: on a project that predates these artifacts, missing fields render as "-" / "N/A" rather than erroring (see "Backward compatibility" below).
 
 ## Important Behaviors
 
 - **VISION, PRINCIPLES, and DESIGN/ are the authority**: Every autonomous decision must be justifiable by referencing one of these documents. ADRs in `docs/DESIGN/adr/` are binding constraints — autonomous decisions that contradict an accepted ADR must escalate to the user, not proceed. If none address the question, default to the simplest approach and log why.
-- **6-Guard Done Judgment**: Before marking any Story as `done`, autopilot must apply all 6 guards defined in `references/autopilot-done-judgment.md`. Any failed guard moves the Story to `needs_user_review`, not `done`. This applies to both sprint-internal verification and the post-merge milestone check.
+- **8-Guard Done Judgment**: Before marking any Story as `done`, autopilot must apply all 8 guards defined in `references/autopilot-done-judgment.md`. Any failed guard moves the Story to `needs_user_review`, not `done`. This applies to both sprint-internal verification and the post-merge milestone check.
 - **priority_rule 9 exception scope is strict**: The exception clause (障害シナリオへの限定) requires explicit障害シナリオ identifiers (`kill-9` / `停電` / `Shamir-unseal` / `ネットワーク遮断` / `disk-full` / `OOM` / `プロセスクラッシュ`) in the `review_reason`. autopilot rejects exception claims without these markers and falls back to the normal real-VM smoke requirement.
 - **Mock-mode does not satisfy real-VM smoke**: Tests that use `MOCK=true`, `--fake-*` flags, `DRY_RUN=1`, in-process FakeCore / InMemoryStore, or `*_fake_*: true` Ansible defaults do not count toward priority_rule 9 "dev VM 実機 smoke" requirement. A separate real-mode smoke is required.
 - **Never skip milestones**: Always stop at milestone boundaries. The user's review is the alignment mechanism.
@@ -172,7 +172,7 @@ Without DESIGN/, ④ is just a `sprint roadmap` re-run. Full handoff contract: `
 
 ## Backward compatibility
 
-This skill must run cleanly on projects created before these mechanisms existed (§2.9):
+This skill must run cleanly on projects created before these mechanisms existed:
 - **Never auto-convert existing files.** ROADMAP.json / VISION.json / DESIGN/ / sprint-logs/ are read as-is. No `migrate` command.
 - **New fields are optional.** A Story without `added_in_review` / `reopened_at` is read as "originally planned" / a normal `pass` AC. Missing `compromises.json` ⇒ "妥協なし"; missing `comprehension-report.md` ⇒ generated on demand at `autopilot review`, never back-filled for past Sprints; missing `verification-report.json` ⇒ "verifier 未実行".
 - **No retroactive rewrites.** Autopilot does not re-open or re-grade a past `done` Sprint on its own. Only an explicit user instruction does, recorded as `triggered_by: "manual_retroactive"`.
@@ -182,7 +182,7 @@ This skill must run cleanly on projects created before these mechanisms existed 
 
 - `references/autopilot-setup.md` — `autopilot setup` command flow (new project / existing project, DESIGN/ detection, Backfill handoff)
 - `references/autopilot-start.md` — `autopilot start` command flow (pre-flight, prototype review, sprint loop, milestone demo, cleanup)
-- `references/autopilot-done-judgment.md` — **canonical 6-guard done judgment** (Guard 1–6) applied before any Story can be marked `done`
+- `references/autopilot-done-judgment.md` — **canonical 8-guard done judgment** (Guard 1–8) applied before any Story can be marked `done`
 - `references/autopilot-operations.md` — branch locking, worktree cleanup, sprint branch deletion, milestone health checks (doc staleness, VISION drift)
 - `references/COMPROMISES_SCHEMA.json` — `compromises.json` schema (notify-after compromises recorded at a milestone)
 - `references/comprehension-report-template.md` — `comprehension-report.md` template + writing guide (generated at every milestone)

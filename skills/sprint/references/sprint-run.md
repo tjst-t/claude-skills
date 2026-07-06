@@ -4,7 +4,7 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
 
 > **The Story fan-out must run at the top level (the main conversation).** A sub-agent cannot spawn sub-agents, so if `sprint run` is itself executed inside a sub-agent, the "launch an Agent per Story" steps below cannot parallelize and Stories degrade to serial. When driven by `autopilot`, the main autopilot loop is the executor of this phase (see `../../autopilot/references/autopilot-start.md` → Sprint loop) — it is never wrapped in a per-Sprint sub-agent. Heavy per-Story work (implementation, review-fix) lives in the Story leaf agents this phase spawns, so the executor's context stays thin without wrapping.
 
-1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):
+1. Read only the current Sprint slice (see `references/roadmap-jq.md` (Reading patterns)):
    ```bash
    jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
    ```
@@ -46,7 +46,7 @@ Execute the current Sprint. Stories are parallelized where dependencies allow, u
    **Step 4 — Merge and complete:**
    - The main agent merges each Story's worktree branch into the current branch (e.g., `git merge --no-ff {branch}`)
    - Resolve any merge conflicts (if parallel Stories touched the same files, fix conflicts and re-run tests)
-   - Mark each Story and its Tasks as `done` in `docs/ROADMAP.json` via in-place `jq` mutation (see SKILL.md "Writes"). Concrete filter — combine Story + all Tasks of that Story in one jq invocation:
+   - Mark each Story and its Tasks as `done` in `docs/ROADMAP.json` via in-place `jq` mutation (see `references/roadmap-jq.md` (Named write filters)). Concrete filter — combine Story + all Tasks of that Story in one jq invocation:
      ```bash
      jq --arg s "$SPRINT" --arg st "$STORY" '
        .sprints[$s].stories[$st].status = "done"

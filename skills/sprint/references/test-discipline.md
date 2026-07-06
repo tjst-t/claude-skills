@@ -82,7 +82,7 @@ If an addition is untested, the resolution is **one of**: (a) add an AC + scenar
 
 **During `sprint run`**, each implementation sub-agent must report a "user-observable additions" list alongside its results, so `sprint verify` has a head start instead of rediscovering everything from scratch.
 
-**Forbidden-degradation diff scan (companion to coverage scan).** The same `sprint verify` diff pass that enumerates *added* surfaces also scans for *degraded verification* — the §2.4 forbidden-action categories introduced by this Sprint's diff:
+**Forbidden-degradation diff scan (companion to coverage scan).** The same `sprint verify` diff pass that enumerates *added* surfaces also scans for *degraded verification* — the forbidden-action categories (`autopilot/SKILL.md` → Constraints and Forbidden Actions) introduced by this Sprint's diff:
 
 | Pattern grepped in the diff | Category |
 |---|---|
@@ -180,5 +180,5 @@ If the only feasible way to make a test pass — or to cover an addition — is 
 
 When a rule cannot be satisfied:
 1. Log the diagnosis to `docs/sprint-logs/{SprintID}/failures.json` (what was tried, what failed, why Claude Code cannot resolve it).
-2. Mark the affected Story `blocked` with a `needs_human` reason via `jq` mutation (see SKILL.md "Writes").
+2. Mark the affected Story `blocked` with a `needs_human` reason via `jq` mutation (see `references/roadmap-jq.md` (Named write filters)).
 3. The Sprint stays `partial` / `in_progress`, NOT `done`. The user (or autopilot milestone review) handles it.

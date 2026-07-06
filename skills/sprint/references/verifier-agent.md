@@ -37,7 +37,7 @@ For every AC of every Story in `docs/ROADMAP.json` for this Sprint:
 - Confirm the test tagged `[AC-{StoryID}-{N}]` asserts on the user-observable result of the round-trip, not on a synthetic intermediate. A test that passes while asserting the wrong thing is a `fail`.
 - If the AC describes cross-service coupling (API → workflow trigger, backend → external SDK, persistence), grep for the call path. **Zero hits ⇒ the coupling does not exist ⇒ `fail`**, regardless of a green test.
 
-### 2. Forbidden-category scan (§2.4)
+### 2. Forbidden-category scan (test-discipline Rule 6)
 
 Scan the whole Sprint diff (`git diff {base SHA}..HEAD`) for the forbidden-action categories. Classify each hit:
 - `test_skipped` — `it.skip` / `xtest` / `@pytest.mark.skip` / `t.Skip` newly added, or `expect(true).toBe(true)` stubs

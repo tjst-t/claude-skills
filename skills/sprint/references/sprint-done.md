@@ -10,18 +10,18 @@ Finalize the Sprint and update tracking.
    - `verification-results.json` contains a `diff_coverage` block (Rule 6) with every entry's `resolution` set to `covered` or `added_test`. Any entry with `resolution: "needs_human"` or absent block `sprint done`.
    - On failure: surface the specific gap, do NOT downgrade or fabricate, stop. User decides between escalating as `needs_human` or fixing the gap.
 
-0.5. **6-Guard done-judgment re-evaluation (mandatory)** — enforces `references/sprint-done-judgment.md`. `sprint verify` already produced a `done_judgment` block per Story in `verification-results.json`; `sprint done` re-reads it as the final gate and additionally re-runs Guards 4–6 against the post-merge tree to catch anything that drifted between verify and done:
+0.5. **8-Guard done-judgment re-evaluation (mandatory)** — enforces `references/sprint-done-judgment.md`. `sprint verify` already produced a `done_judgment` block per Story in `verification-results.json`; `sprint done` re-reads it as the final gate and additionally re-runs the machine-checkable Guards 4–6 against the post-merge tree to catch anything that drifted between verify and done:
    - Read `verification-results.json` → `done_judgment[]`. Any Story with `overall: "needs_user_review"` is NOT eligible for `done`.
    - Re-run Guard 4 against the Story's `review_reason` and any `decisions.json` rationale that invokes the priority_rule 9 exception. The exception requires an explicit障害シナリオ identifier (`kill-9` / `停電` / `Shamir-unseal` / `ネットワーク遮断` / `disk-full` / `OOM` / `プロセスクラッシュ`); unmatched claims are invalid and require a real-mode smoke.
    - Re-run Guard 5 (call-path grep) against the current HEAD. Zero hits ⇒ the Story does not earn `done`.
    - Re-run Guard 6 (deferred-comment residue) against `git diff {Sprint base SHA}..HEAD -- 'cmd/' 'internal/' 'ansible/'`. Matches without a backlog reference block `done` for the owning Story.
    - Stories that fail any guard at this re-evaluation are marked `status: "needs_user_review"` (NOT `done`) in the Step 2 atomic mutation below, and the Sprint's overall status reflects this — see Step 2 note.
 
-1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):
+1. Read only the current Sprint slice (see `references/roadmap-jq.md` (Reading patterns)):
    ```bash
    jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
    ```
-2. Mark each Story's terminal status based on the Step 0.5 6-guard re-evaluation, then set the Sprint status accordingly. Stories with `done_judgment.overall: "needs_user_review"` MUST NOT be flipped to `done` here. Read the per-Story `overall` flag and branch:
+2. Mark each Story's terminal status based on the Step 0.5 8-guard re-evaluation, then set the Sprint status accordingly. Stories with `done_judgment.overall: "needs_user_review"` MUST NOT be flipped to `done` here. Read the per-Story `overall` flag and branch:
    ```bash
    SPRINT=$(jq -r '.progress.current_sprint' docs/ROADMAP.json)
    # Build a map of {story_id: "done" | "needs_user_review"} from verification-results.json
@@ -46,7 +46,7 @@ Finalize the Sprint and update tracking.
        )
    ' docs/ROADMAP.json > /tmp/r.json && mv /tmp/r.json docs/ROADMAP.json
    ```
-   - Stories that passed the 6 guards (`overall: "ok"`) become `done`. Their Tasks also become `done`.
+   - Stories that passed the 8 guards (`overall: "ok"`) become `done`. Their Tasks also become `done`.
    - Stories that failed any guard (`overall: "needs_user_review"`) keep their pre-existing status — usually `pending` or `in_progress` — but with a `needs_user_review` marker. Their Tasks are NOT auto-completed.
    - AC that already failed stay `fail`; everything else becomes `pass`. (If you have AC explicitly marked `pending` or `no_test` that should stay that way, refine the filter accordingly.)
    - The Sprint becomes `done` only if every Story is `done`. If ANY Story is `needs_user_review`, the Sprint becomes `partial` and surfaces at the milestone demo.

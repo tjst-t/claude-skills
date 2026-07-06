@@ -63,4 +63,4 @@ _Generated at milestone arrival. Read this before `autopilot review`._
 - `compromises.json` — the machine-readable compromise list this report's "What to verify" section summarizes (severity=high items especially).
 - `verification-report.json` — the verifier's independent findings; `overlooked_by_autopilot` items belong in "What to verify".
 - `decisions.json` — the raw decision log behind "Why this way".
-- The verifier sub-agent (`sprint/references/verifier-agent.md`) MAY, as a future extension, also verify the accuracy of this report; for now autopilot generates it and the verifier checks the underlying facts.
+- The verifier sub-agent (`../../sprint/references/verifier-agent.md`) MAY, as a future extension, also verify the accuracy of this report; for now autopilot generates it and the verifier checks the underlying facts.

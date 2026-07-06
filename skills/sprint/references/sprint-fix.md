@@ -49,7 +49,7 @@ The user describes what to fix. No story format needed, no acceptance criteria �
 
 ### 5. Optional: Log to ROADMAP
 
-If the user wants tracking, append an entry to the `backlog` array in `docs/ROADMAP.json` with an in-place `jq` mutation (see SKILL.md "Roadmap Reading Patterns" — do not Read the whole ROADMAP for this):
+If the user wants tracking, append an entry to the `backlog` array in `docs/ROADMAP.json` with an in-place `jq` mutation (see `references/roadmap-jq.md` (Reading patterns) — do not Read the whole ROADMAP for this):
 
 ```bash
 jq --argjson new '{"title":"Fix login button size","description":"Increased padding and font-size per user feedback","added_in":"fix","reason":"User request","status":"done"}' \

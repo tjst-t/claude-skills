@@ -4,7 +4,7 @@ Verify the Sprint implementation is complete and correct. Run this after `sprint
 
 ## Phase 1: Completeness check
 
-1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):
+1. Read only the current Sprint slice (see `references/roadmap-jq.md` (Reading patterns)):
    ```bash
    jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
    ```
@@ -80,9 +80,9 @@ Verify that everything **implemented** in this Sprint — not just what was **de
 
 > **Why this step exists**: Mock tests (run during sprint-run) verify frontend behavior in isolation. E2E tests verify the full stack works together. The traceability check ensures every requirement has a passing test in this Sprint's run.
 
-## Phase 1.7: 6-Guard Done Judgment (mandatory per Story)
+## Phase 1.7: 8-Guard Done Judgment (mandatory per Story)
 
-Before any Story can transition to `done`, apply all 6 guards from `references/sprint-done-judgment.md` to each Story in the Sprint. This catches the "偽 done" patterns identified in the 2026-05-17 audit (user_review_required bypass, nil-injection mocks, mock-mode smoke, priority_rule 9 exception misuse, missing call paths, deferred-comment residue).
+Before any Story can transition to `done`, apply all 8 guards from `references/sprint-done-judgment.md` to each Story in the Sprint. This catches the "偽 done" patterns identified in the 2026-05-17 audit (user_review_required bypass, nil-injection mocks, mock-mode smoke, priority_rule 9 exception misuse, missing call paths, deferred-comment residue) plus the 2026-05-23 RC-5 additions (ADR conformance, missing destructive multi-version test).
 
 For each Story:
 
@@ -92,6 +92,8 @@ For each Story:
 4. **Guard 4 — priority_rule 9 exception validity**: if any Story `review_reason` or `decisions.json` rationale invokes the priority_rule 9 exception clause, confirm it names an explicit障害シナリオ identifier (`kill-9` / `停電` / `Shamir-unseal` / `ネットワーク遮断` / `disk-full` / `OOM` / `プロセスクラッシュ`). Unmatched claims are invalid; fall back to the normal real-mode smoke requirement.
 5. **Guard 5 — call-path existence**: for any AC describing cross-service coupling (API + Workflow trigger, backend → external SDK, etc.), run the call-path greps from `sprint-done-judgment.md` Guard 5. Zero hits ⇒ the coupling does not exist in code ⇒ Story cannot be `done`.
 6. **Guard 6 — deferred-comment residue**: run `git diff {Sprint base SHA}..HEAD -- 'cmd/' 'internal/' 'ansible/'` and grep for newly-added `// TODO.*Phase [0-9]` / `// Sprint [0-9].*で.*実装` / `// Sprint [0-9].*で.*追加` / `# TODO.*Phase [0-9]` etc. Any match without a corresponding backlog entry referencing the comment line numbers blocks `done` for the owning Story.
+7. **Guard 7 — ADR conformance**: if the Story changed files under `internal/` or `cmd/`, run the machine-checkable ADR invariants (forbidden / required greps) from `sprint-done-judgment.md` Guard 7 — both the legacy §7.1 table and the `machine_check:` patterns of any ADR listed in `decisions.json` `touched_adrs`. Any failing invariant blocks `done`; record hits under `guard7_adr_conformance` with the ADR id, and legitimate exceptions under `decisions.json` `guard7_exceptions`.
+8. **Guard 8 — destructive multi-version test**: if the Story touched a data path (`internal/server/`, `internal/proxyfuse/`, `cmd/storage-core/`, `cmd/proxy-fuse/`, `cmd/workflow-worker/`, `internal/workflow/`, `internal/identity/`), confirm `tests/acceptance/devvm/` contains at least one passing destructive scenario test (write x2 → v1/v2 独立 / Demote→Recall byte verify / Restart 整合) per `sprint-done-judgment.md` Guard 8. Zero ⇒ Story cannot be `done` unless it is a documented `guard8_rationale: n/a` meta Story.
 
 Record each guard's outcome under `done_judgment` in `verification-results.json`:
 
@@ -105,6 +107,8 @@ Record each guard's outcome under `done_judgment` in `verification-results.json`
     "guard4_priority_rule_9_exception_valid": "pass | fail | n/a",
     "guard5_call_path_grep": "pass | fail",
     "guard6_deferred_comment_clean": "pass | fail",
+    "guard7_adr_conformance": "pass | fail | warn",
+    "guard8_destructive_multi_version_test": "pass | fail | n/a",
     "overall": "ok | needs_user_review"
   }
 }
@@ -119,13 +123,13 @@ This phase runs **only** when `sprint verify` is invoked with `--with-verifier` 
 1. Spawn a **fresh Agent** (a separate read-only Claude session) whose prompt is the spec in `references/verifier-agent.md` — including its verbatim skeptical stance. Give it the Sprint ID, the base SHA, and the path to `docs/ROADMAP.json`. It has NO write access to source / tests / ROADMAP.
 2. The verifier re-derives, without trusting this session's `done_judgment`:
    - **AC ↔ code**: every AC reachable through the user's entry point, asserted on the real backend round-trip (not a green test name)
-   - **Forbidden-category scan** (§2.4) over the whole diff
+   - **Forbidden-category scan** (`test-discipline.md` Rule 6 forbidden-degradation categories) over the whole diff
    - **ADR conformance** against `decisions.json` `touched_adrs`
    - **Compromise completeness** vs. the self-reported `compromises.json` / `done_judgment`
 3. The verifier writes `docs/sprint-logs/{SprintID}/verification-report.json` per `references/VERIFICATION_REPORT_SCHEMA.json`.
 4. **Reconcile**: where the verifier disagrees with this session's self-report, the verifier wins. A verifier `fail` in the AC or ADR category that maps to an immediate-stop condition halts autopilot; a `fail` / `warn` the implementer missed is merged into `compromises.json` with `overlooked_by_autopilot: true`, and the owning Story's `done_judgment.overall` is downgraded to `needs_user_review`.
 
-Without `--with-verifier`, skip this phase entirely; the single-session 6-guard pass (Phase 1.7) is the only gate.
+Without `--with-verifier`, skip this phase entirely; the single-session 8-guard pass (Phase 1.7) is the only gate.
 
 ## Phase 2: Sprint-level code review via /review
 
@@ -151,7 +155,7 @@ Collect any out-of-scope issues discovered during the completeness check, smoke 
 
 ## Phase 3: Finalize
 
-8. Update `docs/ROADMAP.json` to reflect the verified state via in-place `jq` mutations (see SKILL.md "Writes"). Concrete filters:
+8. Update `docs/ROADMAP.json` to reflect the verified state via in-place `jq` mutations (see `references/roadmap-jq.md` (Named write filters)). Concrete filters:
    - **Mark each AC pass/fail**: "Mark AC status" filter, one invocation per AC
    - **Mark Stories that completed verification as `done`**: "Mark Story status" filter
    - Backlog items approved in Phase 2.5 already appended above

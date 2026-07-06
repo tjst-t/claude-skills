@@ -17,7 +17,7 @@ Generate a clickable HTML prototype of all GUI Stories up to the next milestone.
 
 ### 1. Identify GUI scope
 
-1. Read only the slice you need (see SKILL.md "Roadmap Reading Patterns"):
+1. Read only the slice you need (see `references/roadmap-jq.md` (Reading patterns)):
    - Standalone invocation: current Sprint slice
      ```bash
      jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json

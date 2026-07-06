@@ -2,7 +2,7 @@
 
 Demonstrate the Sprint's deliverables to the user by running the actual program. Run this after `sprint verify`.
 
-1. Read only the current Sprint slice (see SKILL.md "Roadmap Reading Patterns"):
+1. Read only the current Sprint slice (see `references/roadmap-jq.md` (Reading patterns)):
    ```bash
    jq '.sprints[.progress.current_sprint]' docs/ROADMAP.json
    ```

@@ -2,7 +2,7 @@
 
 Prepare the next sprint. This is a collaborative phase with the user.
 
-1. **Read only what is needed from `docs/ROADMAP.json`** (see SKILL.md "Roadmap Reading Patterns"):
+1. **Read only what is needed from `docs/ROADMAP.json`** (see `references/roadmap-jq.md` (Reading patterns)):
    - Top-level structure to find the next Sprint and check dependencies:
      ```bash
      jq '{progress, execution_order, dependencies, sprints: (.sprints | map_values({title, status, milestone, detail_level}))}' docs/ROADMAP.json
@@ -58,7 +58,7 @@ Prepare the next sprint. This is a collaborative phase with the user.
    - **CLI / API / Library**: derive inline from the templates in `story-scenarios.md`. Output → `docs/sprint-logs/{SprintID}/scenario-{StoryID}.json`. Each scenario must link to its AC(s) via `linked_ac` and end with observations available through the user's entry point.
    - Every AC must be exercised by at least one scenario step. AC that cannot be observed through any user-facing surface are invalid — flag them.
    - In autonomous mode (`sprint auto`): auto-derive without user confirmation, log to `decisions.json`.
-7. After all items are resolved, update `docs/ROADMAP.json` with the agreed changes via targeted `jq` mutations (see SKILL.md "Writes"). Concrete filters depending on what changed:
+7. After all items are resolved, update `docs/ROADMAP.json` with the agreed changes via targeted `jq` mutations (see `references/roadmap-jq.md` (Named write filters)). Concrete filters depending on what changed:
    - **Story rewritten**: `--arg s --arg st --argjson body '.sprints[$s].stories[$st] = $body'`
    - **Story split into N**: replace the original story with the new ones using a single jq with `del` + multiple `=`, then increment any task numbering as needed
    - **Tasks added**: "Add Task to a Story" filter
