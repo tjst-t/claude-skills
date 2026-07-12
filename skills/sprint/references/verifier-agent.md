@@ -56,9 +56,19 @@ Read the implementer's self-reported `compromises.json` (if present) and the `do
 - Confirm each self-reported compromise is real (not invented to look diligent).
 - **Find what they missed.** Any compromise the diff reveals that the implementer did NOT record gets `overlooked_by_autopilot: true`.
 
+### 5. Concerns — out-of-spec unease (sensor, never a gate)
+
+Every category above checks a *rule*. This one checks what no rule covers: the AC are met, no forbidden pattern, no ADR conflict, machine verdict green — and yet something is off. The mesh of defined checks has gaps by construction; a thing that violates no rule passes through them silently. This is the channel that makes it visible.
+
+- Ask, per Story and for the Sprint as a whole: *"If a colleague were about to ship this, what would I tell them to double-check even though nothing is technically wrong?"* Examples: an AC-satisfying flow that reads as a hang (2s of dead air after submit), an error message that is correct but would confuse a real user, an abstraction that works but points the wrong way for where the roadmap is heading, a default that is defensible but surprising.
+- **Sensor, not a gate.** A concern NEVER blocks or downgrades a Story — a real defect is a `fail`/`warn` finding, not a concern. Record it and move on; it does not enter the discrepancy/halt logic.
+- **Honest-empty is valid.** If nothing feels off, write an empty `concerns` list — do not manufacture one to look diligent. The signal is never a single concern; it is the *pattern across Sprints*.
+- **Scope discipline (keep this channel clean):** a bug → category-1 `fail`; out-of-scope tech debt or a feature idea → backlog (not here); a forbidden-category concession → `compromises.json`. Concerns is strictly "gates green, rules satisfied, but something feels off."
+- Consolidate here any concerns the **implementer** reported for its Stories (passed to you in the spawn prompt): corroborate, dedupe, or add your own. Tag each with a short `theme` slug so recurrence across Sprints is detectable — a theme that recurs is a candidate for a new AC / invariant / rule (surfaced in `../../autopilot/references/skill-retrospective.md`).
+
 ## Output and reconciliation
 
-- Write `verification-report.json` per its schema.
+- Write `verification-report.json` per its schema — `findings[]` (categories 1–4) plus the `concerns[]` sensor (category 5). Concerns are recorded but, unlike findings, never trigger a downgrade or halt.
 - The caller (`sprint verify` / `sprint done`) then reconciles: where the verifier and the implementer's self-report disagree, **the verifier wins**. Overlooked items are merged into `compromises.json` with `overlooked_by_autopilot: true`, and any `fail` in categories 1 or 3 that corresponds to an immediate-stop condition halts autopilot rather than being filed as a notify-after compromise.
 
 ## Relationship to the done-judgment guards

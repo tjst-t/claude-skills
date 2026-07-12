@@ -11,7 +11,7 @@ The template and writing guide for `docs/sprint-logs/{SprintID}/comprehension-re
 
 - **Markdown, not JSON.** This is for a human to read. Machine-readable detail lives in `compromises.json` / `decisions.json` / `verification-report.json`; do not duplicate it here.
 - **Semantic units, not file lists.** Describe behavior changes at the level a product owner thinks in. If you catch yourself pasting a file path list, stop and abstract.
-- **Four sections, fixed.** Always all four, in this order, even if a section is short ("No load-bearing assumptions this milestone.").
+- **Five sections, fixed.** Always all five, in this order, even if a section is short ("No load-bearing assumptions this milestone."). "How to run it" comes first so the PO can open the app before reading what changed.
 
 ## Generation timing
 
@@ -25,6 +25,17 @@ The template and writing guide for `docs/sprint-logs/{SprintID}/comprehension-re
 # Comprehension Report — {Milestone label} (Sprints {list})
 
 _Generated at milestone arrival. Read this before `autopilot review`._
+
+## How to run it
+
+<!-- The PO reviews by *touching* the app, not by reading a diff. Give the single
+     fastest path to a running, interactive build: a deployed URL, or a 1-command
+     start (`make serve` → http://localhost:PORT), plus the dev login if one is
+     needed. If a step needs manual setup (env var, seed data), say so explicitly —
+     that friction is a DoD defect worth a self-audit item 4 note. Keep it to the
+     commands the PO actually types. -->
+- e.g. `make serve` → http://localhost:5173 （dev ログイン: 右上「dev login」ボタン、トークン自動投入）
+- e.g. デプロイ済み: https://staging.example.com （seed 済み。管理者は admin@example.com / dev トークン）
 
 ## What changed
 

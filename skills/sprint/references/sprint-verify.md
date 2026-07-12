@@ -120,7 +120,7 @@ Record each guard's outcome under `done_judgment` in `verification-results.json`
 
 This phase runs **only** when `sprint verify` is invoked with `--with-verifier` (which `autopilot --auto` always passes). Phases 1.7 and earlier are run by the same session that implemented the code, which grades itself too leniently; this phase brings in a separate checker to backstop them.
 
-1. Spawn a **fresh Agent** (a separate read-only Claude session) whose prompt is the spec in `references/verifier-agent.md` — including its verbatim skeptical stance. Give it the Sprint ID, the base SHA, and the path to `docs/ROADMAP.json`. It has NO write access to source / tests / ROADMAP.
+1. Spawn a **fresh Agent** (a separate read-only Claude session) whose prompt is the spec in `references/verifier-agent.md` — including its verbatim skeptical stance. Give it the Sprint ID, the base SHA, the path to `docs/ROADMAP.json`, and the **implementer-reported concerns** collected during `sprint run` (Step 1's `[{note, theme}]` list), which the verifier corroborates/dedupes and consolidates into the report's `concerns[]` sensor (category 5). It has NO write access to source / tests / ROADMAP.
 2. The verifier re-derives, without trusting this session's `done_judgment`:
    - **AC ↔ code**: every AC reachable through the user's entry point, asserted on the real backend round-trip (not a green test name)
    - **Forbidden-category scan** (`test-discipline.md` Rule 6 forbidden-degradation categories) over the whole diff
@@ -129,7 +129,7 @@ This phase runs **only** when `sprint verify` is invoked with `--with-verifier` 
 3. The verifier writes `docs/sprint-logs/{SprintID}/verification-report.json` per `references/VERIFICATION_REPORT_SCHEMA.json`.
 4. **Reconcile**: where the verifier disagrees with this session's self-report, the verifier wins. A verifier `fail` in the AC or ADR category that maps to an immediate-stop condition halts autopilot; a `fail` / `warn` the implementer missed is merged into `compromises.json` with `overlooked_by_autopilot: true`, and the owning Story's `done_judgment.overall` is downgraded to `needs_user_review`.
 
-Without `--with-verifier`, skip this phase entirely; the single-session 8-guard pass (Phase 1.7) is the only gate.
+Without `--with-verifier`, skip this phase entirely; the single-session 8-guard pass (Phase 1.7) is the only gate. In that standalone case there is no `verification-report.json` to hold the `concerns[]` sensor and no milestone retrospective to roll it up, so simply **surface any implementer-reported concerns to the user** at the end of verify (one line each) rather than dropping them — the user decides whether any is worth a backlog item. The structured concerns→retrospective→self-audit path exists only under autopilot (which always runs the verifier).
 
 ## Phase 2: Sprint-level code review via /review
 

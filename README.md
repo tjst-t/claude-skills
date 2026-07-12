@@ -174,9 +174,12 @@ This refactor is backward compatible: existing `ROADMAP.json` / `DESIGN/` / `spr
 
 ## Configuration review
 
-Skills, hooks, and prompts accrete cruft as models improve — instructions that compensated for an older model's weakness become dead weight. Review this setup **every 3–6 months, or after a major model release**.
+Skills, hooks, and prompts accrete cruft as models improve — instructions that compensated for an older model's weakness become dead weight. Review this setup on **two cadences**:
 
-A quick inventory pass:
+- **Time-driven** — **every 3–6 months, or after a major model release** — the cruft-removal inventory below.
+- **Failure-driven** — every sprint / milestone — turning failures and rework into SKILL diffs. This is the job of **[docs/skills-self-audit.md](docs/skills-self-audit.md)**: at each milestone autopilot writes a `skill-retrospective.md` (failure → "which SKILL is defective?" → diff proposal or explicit deferral), and the self-audit is the roll-up that verifies the loop is running, checks the verification net still catches seeded violations (`python3 hooks/tests/test_hooks.py`), and takes proposed SKILL diffs to you for approval. A SKILL that never changes after a failure is the failure mode this guards against — a SKILL can't detect its own staleness.
+
+A quick time-driven inventory pass:
 
 1. **Stale workarounds** — scan the SKILL.md / reference files for guidance that exists only to work around a model limitation that newer models no longer have. Remove it.
 2. **Trigger drift** — check each skill's `when_to_use`: is it still firing on the right requests and staying quiet otherwise? Adjust phrases that mis-fire.

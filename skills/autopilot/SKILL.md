@@ -55,9 +55,10 @@ Show the state of the most recent autopilot run. Read-only — no active session
 1. Read `docs/ROADMAP.json` for overall progress (`progress.percentage`, `done` / `in_progress` / `remaining`, current Sprint, next milestone).
 2. Read the most recent `docs/sprint-logs/*/decisions.json` files for key decisions.
 3. Read the most recent milestone's `docs/sprint-logs/*/compromises.json` (if present) and summarize compromises by severity (`high` first). If absent, show "妥協なし / 記録なし".
+3.5. Read the recent milestones' `skill-retrospective.md` (if present). Surface any **Deferred** SKILL-diff proposal that has been carried for 2+ milestones — that is the self-audit item 1 基準 for a stalled improvement loop, and it is reported to the PO here. If the most recent milestone has no retrospective at all, note "skill-retrospective 未生成".
 4. If `docs/DESIGN/` exists, show ADR counts by status (accepted / tentative / superseded) and the number of open questions (`tentative: true` items), per `design status`.
 5. Inspect `.claude/autopilot-*.lock` files and `git worktree list | grep autopilot/` per `references/autopilot-operations.md`.
-6. Present a one-screen view: roadmap progress + current Sprint, next milestone, last completed Sprint, recent compromises (by severity), DESIGN/ ADR summary (if present), active sessions, remaining worktrees + merge status, key decisions, and any drift warnings or failure logs.
+6. Present a one-screen view: roadmap progress + current Sprint, next milestone, last completed Sprint, recent compromises (by severity), any stalled SKILL-diff proposals (retrospective Deferred carried 2+ milestones), DESIGN/ ADR summary (if present), active sessions, remaining worktrees + merge status, key decisions, and any drift warnings or failure logs.
 
 Backward compatibility: on a project that predates these artifacts, missing fields render as "-" / "N/A" rather than erroring (see "Backward compatibility" below).
 
@@ -69,7 +70,8 @@ Backward compatibility: on a project that predates these artifacts, missing fiel
 - **Mock-mode does not satisfy real-VM smoke**: Tests that use `MOCK=true`, `--fake-*` flags, `DRY_RUN=1`, in-process FakeCore / InMemoryStore, or `*_fake_*: true` Ansible defaults do not count toward priority_rule 9 "dev VM 実機 smoke" requirement. A separate real-mode smoke is required.
 - **Never skip milestones**: Always stop at milestone boundaries. The user's review is the alignment mechanism.
 - **Forbidden actions are split into immediate-stop and notify-after**: Autopilot must obey `## Constraints and Forbidden Actions` below. Immediate-stop categories (AC tampering, destructive git, ADR violation, false `done`) halt the run; notify-after categories (test weakening, error swallowing, type-safety relaxation) are recorded to `compromises.json` and surfaced at the milestone.
-- **Milestone artifacts are mandatory**: On reaching a milestone, autopilot writes `docs/sprint-logs/{SprintID}/compromises.json` (per `references/COMPROMISES_SCHEMA.json`), then `comprehension-report.md` (per `references/comprehension-report-template.md`), and tells the user to read the comprehension report **before** `autopilot review`.
+- **Milestone artifacts are mandatory**: On reaching a milestone, autopilot writes `docs/sprint-logs/{SprintID}/compromises.json` (per `references/COMPROMISES_SCHEMA.json`), then `comprehension-report.md` (per `references/comprehension-report-template.md`), then `skill-retrospective.md` (per `references/skill-retrospective.md`), and tells the user to read the comprehension report **before** `autopilot review`.
+- **Failure → SKILL diff, not just a task fix**: The `skill-retrospective.md` written at each milestone forces item 1 of the self-audit (`docs/skills-self-audit.md`): for every compromise, overlooked verifier finding, and review re-open in the batch, classify whether the root cause is task-local or a defect in a SKILL/harness/hook, and for a defect **propose a diff or record an explicit reason for deferral** (never leave it blank). Advisory — it never blocks the milestone, and autopilot never edits a SKILL from here; the proposal goes to the PO through the self-audit flow (SKILL revision is load-bearing).
 - **Independent verifier under `--auto`**: When autopilot drives `sprint verify` (always `--auto`), it auto-enables `--with-verifier` — a separate read-only Claude session (`../sprint/references/verifier-agent.md`) re-checks AC, forbidden categories, ADR conformance, and compromise completeness. Its `verification-report.json` is the trust source: where it disagrees with autopilot's self-report, the verifier wins and the gap is recorded as `overlooked_by_autopilot`.
 - **Drift logging, not drift blocking**: Log decisions that seem to conflict with VISION/PRINCIPLES; surface them at milestone review. Doc-staleness and VISION-drift health checks (operations.md) are advisory at milestone, never blocking.
 - **Preserve user agency**: The user can always interrupt autopilot. Pause and respond before continuing.
@@ -174,7 +176,7 @@ Without DESIGN/, ④ is just a `sprint roadmap` re-run. Full handoff contract: `
 
 This skill must run cleanly on projects created before these mechanisms existed:
 - **Never auto-convert existing files.** ROADMAP.json / VISION.json / DESIGN/ / sprint-logs/ are read as-is. No `migrate` command.
-- **New fields are optional.** A Story without `added_in_review` / `reopened_at` is read as "originally planned" / a normal `pass` AC. Missing `compromises.json` ⇒ "妥協なし"; missing `comprehension-report.md` ⇒ generated on demand at `autopilot review`, never back-filled for past Sprints; missing `verification-report.json` ⇒ "verifier 未実行".
+- **New fields are optional.** A Story without `added_in_review` / `reopened_at` is read as "originally planned" / a normal `pass` AC. Missing `compromises.json` ⇒ "妥協なし"; missing `comprehension-report.md` ⇒ generated on demand at `autopilot review`, never back-filled for past Sprints; missing `verification-report.json` ⇒ "verifier 未実行"; missing `skill-retrospective.md` ⇒ "skill-retrospective 未生成", generated on demand at the next self-audit, never back-filled for past milestones.
 - **No retroactive rewrites.** Autopilot does not re-open or re-grade a past `done` Sprint on its own. Only an explicit user instruction does, recorded as `triggered_by: "manual_retroactive"`.
 - **Offers default to No.** If autopilot offers to tidy an existing ROADMAP.json to the new schema, the default is to leave it alone; only an explicit yes proceeds.
 
@@ -186,6 +188,7 @@ This skill must run cleanly on projects created before these mechanisms existed:
 - `references/autopilot-operations.md` — branch locking, worktree cleanup, sprint branch deletion, milestone health checks (doc staleness, VISION drift)
 - `references/COMPROMISES_SCHEMA.json` — `compromises.json` schema (notify-after compromises recorded at a milestone)
 - `references/comprehension-report-template.md` — `comprehension-report.md` template + writing guide (generated at every milestone)
+- `references/skill-retrospective.md` — `skill-retrospective.md` template + guide: failure/rework → SKILL diff proposal (self-audit item 1), generated at every milestone
 - `../sprint/references/verifier-agent.md` — the independent read-only verifier sub-agent spec (auto-enabled under `--auto`)
 - `../sprint/references/VERIFICATION_REPORT_SCHEMA.json` — `verification-report.json` schema (verifier output; trust source for compromises)
 - `../sprint/references/REOPEN_SCHEMA.json` — `reopen.json` schema (① Sprint re-open in Review Mode)

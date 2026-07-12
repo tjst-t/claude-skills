@@ -75,6 +75,7 @@ Finalize the Sprint and update tracking.
    - If the push fails (e.g., no upstream branch), set upstream and push: `git push -u origin {branch}`
 8. Present a summary to the user:
    - Sprint goal and whether it was achieved
+   - **How to touch it** — the single fastest path to a running, interactive build so the user reviews by using the app, not by reading a diff: a deployed URL, or a 1-command start (`make serve` → `http://localhost:PORT`) plus the dev login if one is needed. Call out any manual setup step explicitly; if the user has to build the environment by hand, that friction is a Definition-of-Done defect (self-audit item 4). Skip only for a Sprint with no runnable surface (pure library/internal refactor) — say so instead of omitting silently.
    - List of completed Stories and key Tasks
    - Any deviations from the original plan
    - Git commit hash and branch pushed to

@@ -40,6 +40,20 @@ Nudges the user to keep ARCHITECTURE.md / `docs/DESIGN/` current after a Sprint 
 - **Trigger heuristic** (no coupling to the skills): HEAD commit modified `docs/ROADMAP.json` and that change added a Sprint `"status": "done"`.
 - **Dedup**: records the HEAD sha in `.claude/.sprint-done-doc-suggester-seen` so it fires at most once per done-commit.
 
+## Testing the net — `tests/test_hooks.py`
+
+A verification net nobody tests rots silently, and a rotted net is invisible exactly when it matters (the fabrication incident, `docs/autopilot-fabrication-report.md`, was a hole in the net that went undetected until it caused damage). `tests/test_hooks.py` is the **seeded-violation** suite: each test plants a known violation — a skipped test, a `pass` written over a real failure, a failing run — and asserts the matching hook catches it, and symmetrically that the hook stays silent when it should (self-gate off, clean content, honestly-recorded failure). It is black-box (each hook is invoked as a subprocess reading the event JSON on stdin, exactly as Claude Code invokes it) and stdlib-only.
+
+```bash
+python3 hooks/tests/test_hooks.py          # or: python3 -m unittest discover -s hooks/tests
+```
+
+This is **item 2 of the self-audit** (`docs/skills-self-audit.md` → "検証網の健全性テスト"). A red test here is not a flaky test to silence — it means the net's enforcement weakened; treat it as a defect in the *verification* skill and feed it through the self-audit loop (item 1). When you add or broaden a detection pattern in a hook, add its seed to `SEEDS` (forbidden guard) or a new case so the net stays honest.
+
+### Seeded-violation drill (periodic)
+
+The automated suite proves the hooks catch the patterns they *know* about. The complementary manual drill checks the **live** enforcement path end-to-end, which the unit suite cannot: during a real autopilot run, deliberately introduce one known violation (e.g. add `it.skip` to a test, or hand-edit a `verification-results.json` to `pass` over a failing `verify-run.json`) and confirm the guard blocks it and the compromise/stop surfaces. Run it at least once per self-audit cycle. If the drill's violation slips through, the hole is the finding — route it through item 1, don't just patch the one instance.
+
 ## Enabling the hooks
 
 **As a plugin (recommended)** — install the plugin and the hooks are wired automatically via `hooks.json` (using `${CLAUDE_PLUGIN_ROOT}`).
@@ -71,4 +85,4 @@ Nudges the user to keep ARCHITECTURE.md / `docs/DESIGN/` current after a Sprint 
 - `python3` on `PATH` (no third-party packages).
 - The Stop hook calls `git`; outside a git repo it simply does nothing.
 
-> These hooks are newer than the skill prose and have not been battle-tested across many projects yet. Validate them in a real project before relying on them in CI-like automation.
+> These hooks are newer than the skill prose. `tests/test_hooks.py` covers their detection contract, but they have not been battle-tested across many projects yet — validate them in a real project (and run the seeded-violation drill above) before relying on them in CI-like automation.

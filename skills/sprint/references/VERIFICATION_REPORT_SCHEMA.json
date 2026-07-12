@@ -7,9 +7,11 @@
       "acceptance_criteria — every ROADMAP AC for the Sprint is matched against real code, not just against a passing test name",
       "forbidden_categories — the §2.4 forbidden-action scan over the whole diff (test_skipped / test_assertion_weakened / error_swallowed / type_safety_relaxed / acceptance_criteria_modified)",
       "adr_conformance — no implementation contradicts an accepted ADR's Decision",
-      "compromises_completeness — every compromise the implementer self-reported is real, AND no additional compromise was missed"
+      "compromises_completeness — every compromise the implementer self-reported is real, AND no additional compromise was missed",
+      "concerns — category 5 SENSOR (not a gate): rules satisfied but something feels off; recorded in concerns[], never in findings[]"
     ],
     "discrepancy_rule": "For each finding, compare against what the implementing session recorded (compromises.json + verification-results.json done_judgment). If the verifier finds an issue the implementer did not record, set overlooked_by_autopilot: true. Those entries are merged back into compromises.json with the same flag.",
+    "concerns_rule": "concerns[] is category 5 (verifier-agent.md) — the 'out-of-spec unease' SENSOR: gates green, rules satisfied, but something feels off. It is NOT a gate — a concern never downgrades a Story or halts autopilot (a real defect is a findings[] fail/warn instead), and it never enters the discrepancy_rule. `concerns` is a REQUIRED key but an EMPTY array is valid and expected much of the time; omitting the key is not allowed (the role must consciously answer 'anything off?'). The signal is the cross-Sprint PATTERN, not any single entry: concerns sharing a `theme` slug across Sprints are candidates for a new AC / invariant / rule, surfaced in autopilot/references/skill-retrospective.md. A persistently empty concerns[] across many Sprints/roles is a signal the eliciting prompt is too weak (self-audit item 3), NOT that nothing is ever off. Do NOT file bugs (→ findings fail), out-of-scope tech debt / feature ideas (→ backlog), or forbidden-category concessions (→ compromises.json) here.",
     "cost_note": "Spawning a second session costs tokens. Default sprint verify stays single-session; the verifier runs only on --with-verifier or via autopilot --auto.",
     "backward_compatibility": "Optional, on-demand (§2.9). Absent file ⇒ 'verifier 未実行' (verifier not run). Never back-generated."
   },
@@ -46,10 +48,25 @@
       "recommended_action": null
     }
   ],
+  "concerns": [
+    {
+      "raised_by": "verifier",
+      "story": "Sa3f9c2-2",
+      "note": "AC-2-1 is met, but after submit the UI shows nothing for ~2s before the success toast — reads as a hang. No AC or rule covers latency feedback, so nothing failed; it just feels off.",
+      "theme": "latency-feedback"
+    },
+    {
+      "raised_by": "implementer",
+      "story": "Sa3f9c2-3",
+      "note": "The magic-link email copy is functional but terse; a real user might not realize the link expires. Not a bug, no rule violated.",
+      "theme": "user-facing-copy"
+    }
+  ],
   "summary": {
     "ac_failures": 1,
     "forbidden_warnings": 1,
     "adr_conflicts": 0,
-    "overlooked_count": 1
+    "overlooked_count": 1,
+    "concerns_count": 2
   }
 }
