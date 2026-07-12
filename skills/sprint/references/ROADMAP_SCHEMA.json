@@ -25,7 +25,8 @@
     "milestone": "Set to true at natural review points. sprint plan and sprint roadmap manage milestone placement.",
     "detail_level": "OPTIONAL per-Sprint field: \"detailed\" | \"coarse\". ABSENT ⇒ \"detailed\" (back-compat — pre-rolling-wave roadmaps have no field and are all detailed). A \"detailed\" Sprint carries full Stories + acceptance_criteria + Tasks and is runnable. A \"coarse\" Sprint is a placeholder past the detail horizon: it holds only {title, description(goal), milestone, status, detail_level:\"coarse\", stories:{}} and MUST NOT be run or marked done until elaborated. Elaboration (sprint plan / sprint auto phase 1 / autopilot batch step) fills stories/AC/tasks from the goal + backlog + code state, then flips detail_level to \"detailed\". See references/sprint-roadmap.md → \"Detail horizon\".",
     "coarse_sprint_constraint": "A Sprint with detail_level:\"coarse\" (or empty stories: {}) is un-runnable by contract: sprint run / sprint auto refuse to execute it, and sprint done / done-judgment refuse to mark it done. This closes the silent-instant-done hole (a story-less Sprint would otherwise iterate zero Stories and complete instantly). The gate lives in sprint-auto.md §1, sprint-run/sprint-done, and sprint-done-judgment.md (Sprint-level precondition).",
-    "backlog_role": "Ordered planning surface AND the input to elaboration (not merely a deferral dump). Items are un-slotted Stories/Epics; when a coarse Sprint is elaborated, its stories are drawn from the goal + the relevant backlog items. sprint idea appends far-term new work here by default."
+    "backlog_role": "Ordered planning surface AND the input to elaboration (not merely a deferral dump). Items are un-slotted Stories/Epics; when a coarse Sprint is elaborated, its stories are drawn from the goal + the relevant backlog items. sprint idea appends far-term new work here by default. Each item carries an optional kind — see backlog_kind.",
+    "backlog_kind": "OPTIONAL per-item classification recorded on each backlog entry: \"bug\" | \"enhancement\" | \"feature\" | \"chore\". ABSENT ⇒ treated as \"enhancement\" (a small, Story-sized addition — the historical default reading of an un-typed item), so pre-classification roadmaps keep working. The kind persists the type/size split that this skill set already makes implicitly (the 'un-slotted Stories/Epics' language above; the Review-Mode ②/③ routing split in autopilot SKILL.md) so that elaboration and prioritization no longer re-derive it from prose each time. Meanings and elaboration behavior: \"bug\" = a defect against already-accepted behavior → becomes a fix-Story (trivial ones route to sprint fix); \"enhancement\" = a small, concrete, Story-sized feature → slotted as one Story into an existing/near sprint; \"feature\" = a large, new feature (Epic-sized) → anchors its own (coarse) Sprint at elaboration and may decompose into several Stories; \"chore\" = non-user-facing refactor/infra/tech-debt → a Story or folded into a sprint. Write kind explicitly for bug/feature/chore; per §2.9.3 you MAY omit it for the enhancement default rather than stamping it on every item."
   },
   "project": "Project Name",
   "description": "One-line project description",
@@ -103,9 +104,17 @@
   "backlog": [
     {
       "title": "Backlog item title",
+      "kind": "feature",
       "description": "Description with enough context for future prioritization",
       "added_in": "Sb1e4d8",
       "reason": "Why this was deferred"
+    },
+    {
+      "title": "Deferred bug: <symptom>",
+      "kind": "bug",
+      "description": "What breaks and the trigger/repro — enough context to turn into a fix-Story later",
+      "added_in": "Sb1e4d8",
+      "reason": "Found during Sb1e4d8 verify; not blocking, so deferred rather than fixed now"
     }
   ]
 }

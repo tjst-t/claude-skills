@@ -11,6 +11,7 @@ To minimize tokens, sprint commands MUST read only the slice they need from `doc
 | Top-level structure (no Sprint bodies) | `jq '{progress, execution_order, dependencies, sprints: (.sprints \| map_values({title, status, milestone, detail_level}))}' docs/ROADMAP.json` | sprint plan (initial scan), sprint idea (placement decision). `detail_level` is `null` for legacy/detailed Sprints — treat `null` as `detailed`. |
 | Next unfinished Sprint's detail level | `jq -r --arg id "<SprintID>" '.sprints[$id].detail_level // "detailed"' docs/ROADMAP.json` | sprint plan / auto: decide whether the next Sprint needs elaboration first (`coarse` ⇒ elaborate before running) |
 | Backlog only | `jq '.backlog' docs/ROADMAP.json` | backlog operations (sprint fix, idea, elaboration input) |
+| Backlog by kind | `jq --arg k "bug" '[.backlog[] \| select((.kind // "enhancement") == $k)]' docs/ROADMAP.json` | filter open bugs / features for review & prioritization. `kind` absent ⇒ `enhancement` (see ROADMAP_SCHEMA → `backlog_kind`) |
 | Single Story | `jq --arg s "<SprintID>" --arg st "<StoryID>" '.sprints[$s].stories[$st]' docs/ROADMAP.json` | single-Story workflows |
 | Acceptance criteria of current Sprint | `jq '.sprints[.progress.current_sprint].stories \| to_entries[] \| {story: .key, ac: .value.acceptance_criteria}' docs/ROADMAP.json` | sprint verify Phase 1.5 traceability |
 | Whole file (legitimate) | Read tool | sprint init / roadmap only — these rewrite the whole file |

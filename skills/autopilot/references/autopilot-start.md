@@ -18,7 +18,7 @@ This step runs **at the start of each batch** — both here at pre-flight and ag
 
 For each sprint in this batch (in execution order, up to the next milestone) whose `detail_level` is `"coarse"` or whose `stories` is empty:
 
-1. Elaborate it autonomously from the sprint `description` (goal) + relevant `backlog` items (`jq '.backlog'`) + current code state + DESIGN/ADR constraints — the same logic as `sprint plan` §1.1 / `sprint idea` §3, run in `--auto` posture.
+1. Elaborate it autonomously from the sprint `description` (goal) + relevant `backlog` items (`jq '.backlog'`) + current code state + DESIGN/ADR constraints — the same logic as `sprint plan` §1.1 / `sprint idea` §3, run in `--auto` posture. Use each item's `kind` to size the pull (see `../../sprint/references/ROADMAP_SCHEMA.json` → `backlog_kind`): a `feature`(Epic) item anchors a sprint's scope, while `enhancement`/`bug`/`chore` items become individual Stories / fix-Stories within the sprint being elaborated.
 2. Write proper user stories with acceptance criteria and Tasks; remove consumed items from `backlog`.
 3. Flip `detail_level` to `"detailed"` ("Promote coarse → detailed" filter) only after Stories exist.
 4. Log the elaboration to that sprint's `docs/sprint-logs/{SprintID}/decisions.json`.

@@ -66,14 +66,20 @@ This is enough to decide placement. If a specific Sprint's body is needed for cl
 - Do any existing unfinished Stories depend on this new work?
 - What's the minimum prerequisite set?
 
+**Classify the item first** — determine its `kind` (`bug` | `enhancement` | `feature` | `chore`; see `references/ROADMAP_SCHEMA.json` → `backlog_kind`). Kind biases both placement and, when backlogged, is recorded so elaboration doesn't re-derive size/type later:
+- **`bug`** (defect vs accepted behavior) — usually a fix-Story; a trivial one is better routed to `sprint fix`.
+- **`enhancement`** (small, concrete addition) — one Story slotted into an existing/near Sprint.
+- **`feature`** (large, new — Epic-sized) — its own Sprint (a coarse one if past the horizon).
+- **`chore`** (refactor/infra) — a Story or folded into a related Sprint.
+
 **Placement options (propose to user):**
 
 | Option | When to use |
 |--------|-------------|
-| **Add to existing unfinished Sprint** | New work is small (1-2 Stories) and related to an existing **detailed** Sprint's scope |
-| **Create a new Sprint** | New work is distinct enough to be its own Sprint (3+ Stories or different concern) |
+| **Add to existing unfinished Sprint** | Small work (1-2 Stories) related to an existing **detailed** Sprint — typical for `enhancement`, `bug`, `chore` |
+| **Create a new Sprint** | Distinct enough to be its own Sprint (3+ Stories or different concern) — typical for `feature` |
 | **Insert before an existing Sprint** | New work is a prerequisite for planned work |
-| **Append to the backlog** (default for far-term work) | No dependencies that force it early, and it lands past the detail horizon — let elaboration pull it into a coarse sprint at the right milestone |
+| **Append to the backlog** (default for far-term work) | No dependencies that force it early, and it lands past the detail horizon — let elaboration pull it into a coarse sprint at the right milestone. **Set `kind` on the appended item** (omit only for the `enhancement` default). |
 
 **Rolling-wave placement bias**: with two-tier roadmaps, prefer the **backlog** for anything that isn't genuinely near-term. Only slot a new idea directly into a Sprint when it's within the current detail horizon (an unfinished *detailed* Sprint, or the next one) or a real prerequisite for planned work. Do NOT write full Stories/Tasks into a **coarse** Sprint here — either append to the backlog (it will be picked up when that sprint is elaborated) or, if it should be its own future sprint, add a coarse Sprint (`detail_level:"coarse"`, `stories:{}`) with just a title + goal. This keeps far-term detail from being written before it's needed.
 

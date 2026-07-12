@@ -125,6 +125,8 @@ Three defense layers enforce this table: **L1** this prompt (autopilot self-rest
 | ③ | **Out-of-AC new scope** — Story-sized or larger new work | `sprint idea` → picked up by the next `sprint plan` |
 | ④ | **Direction change** — ROADMAP-wide / load-bearing | DESIGN/ present: `design refresh` → `design adr` → `sprint roadmap`. DESIGN/ absent: `sprint roadmap` re-run |
 
+When a routed ②/③ item lands in the `backlog` rather than directly in a Sprint, tag it with its `kind` (② → `bug` or `enhancement`, ③ → `enhancement` or `feature`; see `../sprint/references/ROADMAP_SCHEMA.json` → `backlog_kind`) so later elaboration keeps this classification instead of re-deriving it.
+
 ### Decision tree (apply per request)
 
 ```

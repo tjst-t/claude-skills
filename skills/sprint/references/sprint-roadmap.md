@@ -76,6 +76,7 @@ Based on VISION and ARCHITECTURE, design a roadmap following these principles:
 
 **Backlog** (the elaboration input):
 - Anything in-scope but past the horizon that isn't yet obviously slotted into a specific coarse sprint goes to the ordered `backlog` as a Story/Epic-sized item. This is the pool later elaboration draws from — not a deferral dump.
+- Tag each item with its `kind` (`bug` | `enhancement` | `feature` | `chore`; see `references/ROADMAP_SCHEMA.json` → `backlog_kind`). This records the type/size — a `feature` is Epic-sized and anchors its own sprint, an `enhancement`/`bug`/`chore` is a single Story/fix-Story — so elaboration sizes the item without re-deriving it from the prose. Omit `kind` only for the `enhancement` default.
 
 **Scope control**:
 - Only include what is in VISION.json scope

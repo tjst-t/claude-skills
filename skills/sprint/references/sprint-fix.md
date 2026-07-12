@@ -49,14 +49,16 @@ The user describes what to fix. No story format needed, no acceptance criteria �
 
 ### 5. Optional: Log to ROADMAP
 
-If the user wants tracking, append an entry to the `backlog` array in `docs/ROADMAP.json` with an in-place `jq` mutation (see `references/roadmap-jq.md` → Reading patterns — do not Read the whole ROADMAP for this):
+If the user wants tracking, append an entry to the `backlog` array in `docs/ROADMAP.json` with an in-place `jq` mutation (see `references/roadmap-jq.md` → Reading patterns — do not Read the whole ROADMAP for this). Tag it with its `kind` (`bug` for a defect fix, `enhancement` for a small UX/copy tweak, `chore` for infra; see `references/ROADMAP_SCHEMA.json` → `backlog_kind`):
 
 ```bash
-jq --argjson new '{"title":"Fix login button size","description":"Increased padding and font-size per user feedback","added_in":"fix","reason":"User request","status":"done"}' \
+jq --argjson new '{"title":"Fix login button size","kind":"enhancement","description":"Increased padding and font-size per user feedback","added_in":"fix","reason":"User request","status":"done"}' \
   '.backlog += [$new]' docs/ROADMAP.json > /tmp/roadmap.json && mv /tmp/roadmap.json docs/ROADMAP.json
 ```
 
 Only do this if the user asks for it. Most fixes don't need tracking.
+
+**Found a bug but not fixing it now?** That is the other backlog case: append a `kind:"bug"` item *without* `status:"done"` (omit `status`, or set `"status":"pending"`), so it is recorded as open work rather than a completed fix. Elaboration turns open `bug` items into fix-Stories in a later sprint.
 
 ## Time-domain UI fix
 
