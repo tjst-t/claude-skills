@@ -3,15 +3,9 @@
 Sprint 内の Story を `done` に確定する前に、以下 8 ガードを **全て** 通過する必要がある。
 いずれか 1 つでも fail した場合、`status: needs_user_review` に留めるか、`partial` で Story を未完扱いとし、後続 Sprint または fix Sprint で対応する。
 
-由来補足:
-- Guard 7 (ADR conformance) は Sprint 7.11.6 (S7ee8f4) で audit 2026-05-23 RC-5 への一次対応として追加。
-- Guard 8 (destructive multi-version test) は Sprint 7.11.10 (S38c457) で audit 2026-05-23 RC-5 への完全対応として追加。
-- 全 Accepted ADR への `machine_check:` section 分散は Sprint 7.11.10 (S38c457) で 6 件先行 (ADR-0004 / 0014 / 0015 / 0016 / 0027 / 0032)。残 ADR は今後の Sprint で順次拡張。
+本ファイルが done 判定の**唯一の正典**。autopilot 側の `autopilot-done-judgment.md` はここへのポインタ (複製は 2026-07-16 に解消)。各ガードの由来・監査経緯は `done-judgment-rationale.md` — 実行時に読む必要はない。
 
-本ファイルは sprint skill 単独で done 判定を行う際の **正典** となる。
-autopilot skill 側の `autopilot-done-judgment.md` と同内容を維持すること (二重リファレンスは意図的 — skill 間の独立性のため複製)。
-
-由来: 2026-05-17 の Hydra Phase 1 監査 (`docs/audit/2026-05-17-phase1-readiness.md`) で発見された 6 つの「偽 done」パターンに対する執行レイヤ。
+**機械実行との分担**: Guards 2 / 3 / 6 / 7 (と設定済みの 5 / 8) の grep は `hooks/run-guards.py` が実行し `guards-run.json` に事実を記録する (`sprint verify` Phase 1 step 0)。モデルが行うのは各 hit への policy 適用 (処置判断) と、Guards 1 / 4 / 5 / 8 の適用可否判断のみ。grep をモデルが手で再実行するのは欠陥。
 
 ---
 
@@ -50,7 +44,7 @@ if [a-zA-Z_]+\.[A-Z][a-zA-Z]* != nil \{
 - 「Story が宣言する依存性 (例: Vault, DNS, Mon, Ansible)」が **複数同時に** この nil-guard パターンで囲まれている場合、構造的に「実機接続は省略可能」になっている疑い
 - nil-guard 自体は不正ではないが、Story の AC に「実依存への呼出」が含まれる場合は、`tests/acceptance/devvm/` 配下のテストが **実依存ありで pass する** ことを別途確認しなければならない
 
-実装: sprint verify で `grep -E "if [a-zA-Z_]+\.[A-Z][a-zA-Z]* != nil \{$" {story の主要 internal/ ファイル}` を実行し、3 個以上ヒットしたら警告を `verification-results.json` に記録。3 個以上同 Story でヒットした場合、ユーザ承認 (sprint demo) 必須。
+実装: `run-guards.py` の `guard2_nil_injection` が Sprint diff の追加行を機械スキャンする。モデルは `guards-run.json` の hit を Story 単位に振り分け、同一 Story で 3 個以上なら警告を `verification-results.json` に記録し、ユーザ承認 (sprint demo) 必須とする。
 
 ---
 
@@ -66,7 +60,7 @@ priority_rule 9 「dev VM 実機 deploy + smoke test」要件を満たすテス�
 
 これらを含むテストは priority_rule 9 を満たさず、別途「実本番モードでの smoke」が必要。
 
-実装: sprint verify で `tests/acceptance/devvm/` 配下を grep し、`MOCK=true|--fake-|DRY_RUN=1|fake_core: true|InMemoryStore` がヒットしたら warn + 該当 Story の `priority_rule_9_satisfied: false` を記録。
+実装: `run-guards.py` の `guard3_mock_mode_smoke` (smoke dir とマーカーは `.claude/guards.json` の `smoke_dir` / `mock_markers`、既定は `tests/acceptance/devvm/` と上記リスト)。hit があればモデルが warn + 該当 Story の `priority_rule_9_satisfied: false` を記録。
 
 ---
 
@@ -124,7 +118,7 @@ Story の AC または user_story が「複数サービス間の結合」を含�
 
 ROADMAP の backlog に明示的に積まれていて、その backlog item に該当コメントの行番号が記載されているケースのみ、許容。
 
-実装: sprint verify で `git diff {sprint 開始 SHA} HEAD -- 'cmd/' 'internal/' 'ansible/'` の出力に上記正規表現でマッチする「新規追加された」コメントを抽出。ROADMAP backlog に対応 ID 記載がない場合、Story done 不可。
+実装: `run-guards.py` の `guard6_deferred_comments` が diff 追加行を機械スキャンする (対象 path は `.claude/guards.json` の `deferred_comment_paths`、既定 `cmd/` `internal/` `ansible/`)。モデルは各 hit に対応する backlog entry (コメント行番号への参照付き) を照合し、無ければ Story done 不可。
 
 ---
 
@@ -145,9 +139,9 @@ Story が `internal/` または `cmd/` 配下のファイルを変更した場�
 
 ### 7.2 拡張ポリシー
 
-Sprint 7.11.10 (S38c457) で 6 件の Accepted ADR (ADR-0004 / 0014 / 0015 / 0016 / 0027 / 0032) に `machine_check:` セクションを retrofit 済。今後 Guard 7 は **ADR 文書から直接 pattern を読む** 形式に統一していく。本ファイルの 7.1 表は遺留 (legacy / 既存 audit との連続性のため残置)、両方が pass しなければならない。
+Guard 7 は **ADR 文書から直接 pattern を読む** 形式 (`machine_check:` JSON ブロック) に統一していく。7.1 表は legacy — プロジェクトの `.claude/guards.json` `adr_checks` に転記して機械実行する。両方が pass しなければならない。(拡張の経緯は `done-judgment-rationale.md`)
 
-実装: sprint verify で `git diff {sprint 開始 SHA} HEAD --name-only -- 'internal/' 'cmd/'` で変更ファイルを抽出し、(a) 上記 7.1 表の pattern と (b) `decisions.json` の `touched_adrs` に対応する ADR 文書 `machine_check:` の pattern を両方 grep。どちらかが fail なら Story done 不可。
+実装: `run-guards.py` の `guard7_adr_machine_checks` — (a) `.claude/guards.json` `adr_checks` と (b) ADR 文書内の `machine_check:` JSON ブロックの両方を機械実行して `guards-run.json` に記録。hit は、`decisions.json` `guard7_exceptions` に記録された正当な例外を除き、Story done 不可。モデルは `touched_adrs` の各 ADR が (a)(b) のどちらかでカバーされていることを確認する。
 
 ---
 
@@ -161,9 +155,7 @@ Story が data path (`internal/server/`, `internal/proxyfuse/`, `cmd/storage-cor
 | **Demote → Recall byte verify** | `tests/acceptance/devvm/multi_version_destructive_test.go` または同 dir 配下に `Demote.*Recall\|Recall.*Demote` + `bytes\.Equal\|sha256\.Sum256` のペア | ヒット 1 以上 |
 | **Restart 整合** | `tests/acceptance/devvm/` 配下に proxy-fuse / storage-core プロセスの再起動 → state 一致を verify する test (`restart\|kill -9\|systemctl restart`) | ヒット 1 以上 (priority_rule 9 例外条項 trigger 可) |
 
-由来: audit 2026-05-23 RC-5 で「ADR-0014 違反 (write x2 で 同一物理キー上書き) が Sprint 2 から約 7 sprint silent 残置」が摘発された。原因は write x2 → v1/v2 の独立性を verify する自動テストが欠如していたこと。Guard 8 はこの欠如を Sprint 完了ゲートで検知する。
-
-実装: sprint verify で `git diff {sprint 開始 SHA} HEAD --name-only -- 'internal/server/' 'internal/proxyfuse/' 'cmd/storage-core/' 'cmd/proxy-fuse/' 'cmd/workflow-worker/' 'internal/workflow/' 'internal/identity/'` で data path 変更を検出し、検出時は上記 grep を実行。ゼロヒットなら Story done 不可 (test-discipline.md Rule 8 と整合)。
+実装: `run-guards.py` の `guard8_destructive_tests` (`.claude/guards.json` の `data_paths` / `destructive_test_dir` / `destructive_patterns` で宣言)。data path に diff が触れていて destructive test が欠如していれば hit — Story done 不可 (test-discipline.md Rule 8 と整合)。存在に加えて、そのテストが最新の machine verdict (`verify-run.json`) で pass していることはモデルが確認する。(由来: `done-judgment-rationale.md`)
 
 例外: Story の `user_story` が「Sprint プロセス強化」「ドキュメント retrofit」のような meta な性質を持ち、production code path を一切実装しない場合は n/a 扱い (decisions.json の guard8_rationale に明示)。
 

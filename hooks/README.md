@@ -1,6 +1,6 @@
 # Hooks
 
-This directory ships with the `claude-skills` plugin (see `.claude-plugin/plugin.json`). It contains the **hooks** (deterministic backstops the SKILL.md files describe in prose; wiring is in `hooks.json`) plus one **tool** invoked by `sprint verify` (`run-verify.py`).
+This directory ships with the `claude-skills` plugin (see `.claude-plugin/plugin.json`). It contains the **hooks** (deterministic backstops the SKILL.md files describe in prose; wiring is in `hooks.json`) plus two **tools** invoked by `sprint verify` (`run-verify.py`, `run-guards.py`).
 
 All hooks are **fail-safe**: any unexpected condition exits 0 (do nothing), so they can never break a session.
 
@@ -32,6 +32,18 @@ Invoked by `sprint verify` (Step 2.0), not wired in `hooks.json`. Runs the proje
 python3 hooks/run-verify.py --sprint {SprintID}   # exit 0 = all pass, 1 = a run failed, 2 = unconfigured (a gap)
 ```
 
+## `run-guards.py` — tool (machine-run guard scans), not a hook
+
+Invoked by `sprint verify` (Phase 1 step 0) and re-run by `sprint done` (Step 0.5 drift check). Runs every grep-shaped guard ONCE by machine and writes the facts to `docs/sprint-logs/{SprintID}/guards-run.json`: the forbidden-degradation diff scan (test-discipline Rule 6), done-judgment Guards 2/3/6/7 (+ Guard 5/8 greps declared in `.claude/guards.json`), the E2E network-mock / `waitForTimeout` scans, and the prototype `data-testid` drift check.
+
+Same division of labor as `run-verify.py`: the **machine authors the facts** (which pattern hit, where), the **model applies the policy** (triage each hit per `sprint/references/sprint-done-judgment.md`). A `hits` status is not automatically a failure — it is a fact the model must dispose of explicitly. What this removes: the model running the same greps at model prices in three places (implementer, verifier, done gate), and the possibility of a scan being skipped or misread.
+
+```bash
+python3 hooks/run-guards.py --sprint {SprintID} --base {Sprint base SHA}   # exit 0 = scans ran (hits or not), 2 = could not run
+```
+
+Optional project config `.claude/guards.json` declares the project-specific patterns (smoke dir, ADR invariant greps, data paths, call-path greps) — see the header of `run-guards.py` for the full format. ADR docs can also embed a `machine_check:` line followed by a ```json fenced block; those are picked up automatically.
+
 ## `sprint-done-doc-suggester.py` — Stop (self-improving setup)
 
 Nudges the user to keep ARCHITECTURE.md / `docs/DESIGN/` current after a Sprint completes.
@@ -46,6 +58,7 @@ A verification net nobody tests rots silently, and a rotted net is invisible exa
 
 ```bash
 python3 hooks/tests/test_hooks.py          # or: python3 -m unittest discover -s hooks/tests
+python3 hooks/tests/test_run_guards.py     # seeded violations for the machine guard scanner
 ```
 
 This is **item 2 of the self-audit** (`docs/skills-self-audit.md` → "検証網の健全性テスト"). A red test here is not a flaky test to silence — it means the net's enforcement weakened; treat it as a defect in the *verification* skill and feed it through the self-audit loop (item 1). When you add or broaden a detection pattern in a hook, add its seed to `SEEDS` (forbidden guard) or a new case so the net stays honest.

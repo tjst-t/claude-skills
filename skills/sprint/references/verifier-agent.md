@@ -4,6 +4,8 @@ The **independent** checker for `sprint verify --with-verifier` (always on via `
 
 This file is the spec for the sub-agent. When `sprint verify` needs the verifier, it spawns a fresh Agent (a separate Claude session) whose entire job is the prompt below. The verifier's output — `docs/sprint-logs/{SprintID}/verification-report.json` — is the **trust source** for `compromises.json`.
 
+The verifier runs **once per Sprint, at the end of verify**, and is the Sprint's single deep pass: no other layer repeats its work (the implementing session's Phase 1.7 reads machine facts; the done gate and the autopilot loop read recorded results). Spend the depth here — on AC↔code and on what the machine cannot see — not on re-running greps a machine already ran (category 2).
+
 ## Hard constraints
 
 - **Read-only.** The verifier has NO write access to source, tests, or ROADMAP.json. It may read anything and it writes exactly one file: `verification-report.json`. If it believes a change is needed, it *records the finding*; it does not make the change.
@@ -22,7 +24,8 @@ For each Story in the Sprint, produce a finding (or findings) covering the categ
 
 This is the cheapest and most certain check, and the one that catches the fabrication incident (`docs/autopilot-fabrication-report.md`). Before judging any code:
 
-- Read the machine artifact `docs/sprint-logs/{SprintID}/verify-run.json` and the raw run logs `verify-run-*.log` (look for the `__VERIFY_EXIT_CODE__:<name>:<code>` trailers). These are the ground truth.
+- Read the machine artifacts `docs/sprint-logs/{SprintID}/verify-run.json` and `guards-run.json`, plus the raw run logs `verify-run-*.log` (look for the `__VERIFY_EXIT_CODE__:<name>:<code>` trailers). These are the ground truth.
+- Confirm `guards-run.json` is **fresh**: its `head` matches the current HEAD and its `base` is the Sprint base SHA. A stale or missing guards-run.json while the wrapper is available is itself a finding — the mechanical scans did not cover the final tree.
 - Read the model-authored `verification-results.json`.
 - **Reconcile**: every `status: "pass"` in `verification-results.json` must be backed by a run whose `machine_status` is `pass` (exit code 0, no JUnit failures). Any AC/test claimed `pass` while the machine recorded a failure is a **`fail` finding of the most severe kind** — it is the immediate-stop "false status" category. Flag it loudly with `overlooked_by_autopilot: true`.
 - If `verify-run.json` is missing while a verify command is configured, that itself is a finding: machine verification did not run, so no `pass` is trustworthy yet.
@@ -37,14 +40,15 @@ For every AC of every Story in `docs/ROADMAP.json` for this Sprint:
 - Confirm the test tagged `[AC-{StoryID}-{N}]` asserts on the user-observable result of the round-trip, not on a synthetic intermediate. A test that passes while asserting the wrong thing is a `fail`.
 - If the AC describes cross-service coupling (API → workflow trigger, backend → external SDK, persistence), grep for the call path. **Zero hits ⇒ the coupling does not exist ⇒ `fail`**, regardless of a green test.
 
-### 2. Forbidden-category scan (test-discipline Rule 6)
+### 2. Forbidden-category scan (test-discipline Rule 6) — reconcile the machine scan, don't repeat it
 
-Scan the whole Sprint diff (`git diff {base SHA}..HEAD`) for the forbidden-action categories. Classify each hit:
-- `test_skipped` — `it.skip` / `xtest` / `@pytest.mark.skip` / `t.Skip` newly added, or `expect(true).toBe(true)` stubs
-- `test_assertion_weakened` — `toEqual`→`toBeTruthy`, concrete value → loose matcher, removed assertions
-- `error_swallowed` — `catch {}` / `// @ts-ignore` / `# noqa` newly added
-- `type_safety_relaxed` — new `any`, abusive `as` casts
-- `acceptance_criteria_modified` — AC text removed or loosened in ROADMAP.json (this is an IMMEDIATE-STOP category — if found post-hoc, flag it loudly)
+The pattern half of this scan already ran mechanically: `guards-run.json` (from `hooks/run-guards.py`) holds the hits for `test_skipped`, `error_swallowed`, `type_safety_relaxed`, plus Guards 2/3/6/7. Re-grepping the whole diff by hand duplicates a machine's work at model prices. Instead:
+
+- **Reconcile**: every hit in `guards-run.json` must appear in the implementer's disposition (a `compromises.json` entry, a backlog reference for guard6, a `guard7_exceptions` record, …). A machine-recorded hit with no disposition is an `overlooked_by_autopilot` finding.
+- **Spot-check the artifact**: re-run 2–3 of the patterns yourself on a sample of the diff to confirm the scan matches reality (a broken scanner must not be trusted blindly). Any divergence is a severe finding.
+- **Cover what the machine cannot**: these two categories need before/after judgment, so scan them yourself over the diff:
+  - `test_assertion_weakened` — `toEqual`→`toBeTruthy`, concrete value → loose matcher, removed assertions
+  - `acceptance_criteria_modified` — AC text removed or loosened in ROADMAP.json (this is an IMMEDIATE-STOP category — if found post-hoc, flag it loudly)
 
 ### 3. ADR conformance
 
@@ -73,4 +77,4 @@ Every category above checks a *rule*. This one checks what no rule covers: the A
 
 ## Relationship to the done-judgment guards
 
-The 6/8-guard done judgment (`sprint-done-judgment.md`) is run by the *implementing* session as a self-check; the verifier is the *independent* second pass that backstops it. They overlap deliberately: the verifier's category-1 (call-path) and category-2 (forbidden scan) re-derive Guards 2–6 from scratch without trusting the implementer's `done_judgment`. If the verifier disagrees with a recorded `done_judgment.overall: "ok"`, the Story is downgraded to `needs_user_review` and the disagreement is recorded.
+The 8-guard done judgment (`sprint-done-judgment.md`) is applied by the *implementing* session (verify Phase 1.7) as policy on top of the machine facts in `guards-run.json`; the verifier is the *independent* second pass that backstops the **judgment** half. The mechanical half is not re-derived by anyone — it is machine-authored once and both sides read it (with the verifier's freshness check + spot-check keeping it honest). What the verifier independently re-derives is what needs judgment: AC↔code reachability (category 1), assertion weakening / AC modification (category 2), ADR conformance (category 3), and whether the implementer's *disposition* of each machine-recorded hit holds up (category 2/4). If the verifier disagrees with a recorded `done_judgment.overall: "ok"`, the Story is downgraded to `needs_user_review` and the disagreement is recorded.

@@ -6,6 +6,8 @@
       "decisions.json",
       "verify-run.json",
       "verify-run-{name}.log",
+      "guards-run.json",
+      "run-metrics.json",
       "verification-report.json",
       "done-judgment.json",
       "compromises.json",
@@ -57,6 +59,38 @@
       }
     ],
     "overall_machine_status": "pass"
+  },
+  "guards_run": {
+    "$file": "guards-run.json",
+    "$comment": "MACHINE-AUTHORED guard-scan facts, written by hooks/run-guards.py: the forbidden-degradation diff scan (test-discipline Rule 6), done-judgment Guards 2/3/6/7 (+ configured 5/8 greps from .claude/guards.json), the e2e network-mock and waitForTimeout scans, and the prototype testid drift check. Statuses are FACTS (pattern hits), not verdicts — the model triages each hit per sprint-done-judgment.md / sprint-verify.md Phase 1.7. Models MUST NOT edit it.",
+    "$machine_authored": true,
+    "sprint": "Sb1e4d8",
+    "base": "abc1234",
+    "head": "def5678",
+    "config_source": "defaults | declared (.claude/guards.json)",
+    "checks": [
+      {
+        "id": "forbidden_test_disabled | forbidden_error_swallowed | forbidden_type_relaxed | guard2_nil_injection | guard6_deferred_comments | guard3_mock_mode_smoke | guard7_adr_machine_checks | guard8_destructive_tests | call_paths | e2e_network_mock | e2e_wait_for_timeout | prototype_testid_drift",
+        "kind": "diff | tree",
+        "status": "clean | hits | skipped",
+        "hit_count": 1,
+        "hits": [{ "file": "internal/x.go", "line": 12, "text": "matched line, truncated to 200 chars" }],
+        "truncated": false,
+        "note": "policy hint, or the reason the check was skipped"
+      }
+    ],
+    "summary": { "clean": 10, "hits": 1, "skipped": 1 }
+  },
+  "run_metrics": {
+    "$file": "run-metrics.json",
+    "$comment": "Token-budget sensor — counts only, no prose. Created by sprint run (agents spawned, review cycles per Story, caps hit), updated by sprint verify (sprint_review_runs, verifier_ran, guards_machine_run). Aggregated at the milestone summary and read by skill-retrospective.md so 'where did the tokens go' is answered with data instead of impressions.",
+    "sprint": "Sb1e4d8",
+    "agents_spawned": { "plan": 1, "implement": 3, "review": 4, "verifier": 1 },
+    "review_cycles_per_story": { "Sb1e4d8-1": 1, "Sb1e4d8-2": 2 },
+    "review_cap_hit": ["Sb1e4d8-2"],
+    "sprint_review_runs": 2,
+    "verifier_ran": true,
+    "guards_machine_run": true
   },
   "verification_report": {
     "$file": "verification-report.json",

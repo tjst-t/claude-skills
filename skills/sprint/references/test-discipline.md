@@ -44,11 +44,11 @@ The `*.e2e.spec.ts` for every GUI Story must:
 - Include at least one assertion on **user-visible UI state that depends on the backend round-trip** (rendered list item, success toast, updated badge, URL change). Asserting only on a loading spinner or pre-network state does not qualify.
 - Exercise the real login UI at least once per session (a `loginViaUI` helper is fine); pure storage-injection auth is rejected unless a separate test covers login end-to-end.
 
-Verification via grep, run by `sprint verify`:
+Verification is machine-run: `hooks/run-guards.py` scans every `*.e2e.spec.*` for
 ```
 page.route(   MSW   setupServer   fetch.mockImplementation   vi.mock   jest.mock
 ```
-Any hit on the network surface in an `*.e2e.spec.ts` is rejected.
+and records hits under `e2e_network_mock` in `guards-run.json`. Any hit on the network surface in an `*.e2e.spec.ts` is rejected — `sprint verify` reads the JSON, it does not re-run the grep.
 
 ### 5. Status reflects reality
 
@@ -82,7 +82,7 @@ If an addition is untested, the resolution is **one of**: (a) add an AC + scenar
 
 **During `sprint run`**, each implementation sub-agent must report a "user-observable additions" list alongside its results, so `sprint verify` has a head start instead of rediscovering everything from scratch.
 
-**Forbidden-degradation diff scan (companion to coverage scan).** The same `sprint verify` diff pass that enumerates *added* surfaces also scans for *degraded verification* — the forbidden-action categories (`autopilot/SKILL.md` → Constraints and Forbidden Actions) introduced by this Sprint's diff:
+**Forbidden-degradation diff scan (companion to coverage scan).** Alongside the coverage scan, `sprint verify` checks the diff for *degraded verification* — the forbidden-action categories (`autopilot/SKILL.md` → Constraints and Forbidden Actions) introduced by this Sprint's diff. The pattern-detectable rows (test disabled, error swallowed, type relaxed) are machine-run by `hooks/run-guards.py` into `guards-run.json` — the model reads the facts and applies the policy below, never re-runs the greps. The two rows needing before/after judgment (assertion weakened, AC modified) are scanned by the model / independent verifier:
 
 | Pattern grepped in the diff | Category |
 |---|---|
@@ -95,7 +95,7 @@ If an addition is untested, the resolution is **one of**: (a) add an AC + scenar
 **Behavior on a hit** (this is where the autonomous-run policy lands):
 - The first four are **notify-after** concessions — log each to `docs/sprint-logs/{SprintID}/compromises.json` (per `autopilot/references/COMPROMISES_SCHEMA.json`) with `type`, `severity`, `rationale`, `diff_summary`, `recommended_action`. The Sprint may still complete; the compromise surfaces at the milestone.
 - "acceptance criteria modified" is **immediate-stop** — do not record-and-continue; halt and escalate (autopilot stops; an interactive `sprint verify` refuses and tells the user).
-- A manual (non-`--auto`) `sprint verify` reports these inline instead of writing `compromises.json`. The independent verifier (Phase 1.8) re-runs this exact scan and flags anything the implementing session left out as `overlooked_by_autopilot`.
+- A manual (non-`--auto`) `sprint verify` reports these inline instead of writing `compromises.json`. The independent verifier (Phase 1.8) reconciles the machine scan (freshness check + spot-checks, per `verifier-agent.md` category 2) and flags any machine-recorded hit the implementing session left without a disposition as `overlooked_by_autopilot`.
 
 This scan does not replace Rule 3 (no silent skips, which blocks *uncovered AC*); it catches *deliberate weakening of verification that already existed*.
 

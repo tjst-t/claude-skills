@@ -10,12 +10,15 @@ Finalize the Sprint and update tracking.
    - `verification-results.json` contains a `diff_coverage` block (Rule 6) with every entry's `resolution` set to `covered` or `added_test`. Any entry with `resolution: "needs_human"` or absent block `sprint done`.
    - On failure: surface the specific gap, do NOT downgrade or fabricate, stop. User decides between escalating as `needs_human` or fixing the gap.
 
-0.5. **8-Guard done-judgment re-evaluation (mandatory)** — enforces `references/sprint-done-judgment.md`. `sprint verify` already produced a `done_judgment` block per Story in `verification-results.json`; `sprint done` re-reads it as the final gate and additionally re-runs the machine-checkable Guards 4–6 against the post-merge tree to catch anything that drifted between verify and done:
+0.5. **8-Guard done-judgment final gate (mandatory)** — enforces `references/sprint-done-judgment.md`. `sprint verify` already produced a `done_judgment` block per Story in `verification-results.json`; `sprint done` re-reads it as the final gate. The only thing re-executed here is the **machine** scan, once, to catch drift between verify and done (post-merge tree) — never model-run greps:
    - Read `verification-results.json` → `done_judgment[]`. Any Story with `overall: "needs_user_review"` is NOT eligible for `done`.
-   - Re-run Guard 4 against the Story's `review_reason` and any `decisions.json` rationale that invokes the priority_rule 9 exception. The exception requires an explicit障害シナリオ identifier (`kill-9` / `停電` / `Shamir-unseal` / `ネットワーク遮断` / `disk-full` / `OOM` / `プロセスクラッシュ`); unmatched claims are invalid and require a real-mode smoke.
-   - Re-run Guard 5 (call-path grep) against the current HEAD. Zero hits ⇒ the Story does not earn `done`.
-   - Re-run Guard 6 (deferred-comment residue) against `git diff {Sprint base SHA}..HEAD -- 'cmd/' 'internal/' 'ansible/'`. Matches without a backlog reference block `done` for the owning Story.
-   - Stories that fail any guard at this re-evaluation are marked `status: "needs_user_review"` (NOT `done`) in the Step 2 atomic mutation below, and the Sprint's overall status reflects this — see Step 2 note.
+   - Re-run the machine guard scan against the current HEAD and diff its output against the `guards-run.json` that verify used:
+     ```bash
+     python3 ${CLAUDE_PLUGIN_ROOT:-.}/hooks/run-guards.py --sprint {SprintID} --base {Sprint base SHA}
+     ```
+     Any NEW hit (deferred comment, ADR invariant, forbidden category, …) means the tree drifted after verify — triage it per `sprint-verify.md` Phase 1.7 before proceeding. No new hits ⇒ the verify-time judgment stands; do not re-litigate it.
+   - Guard 4 stays a cheap model string-check: if a `review_reason` / decisions rationale invokes the priority_rule 9 exception, confirm the explicit障害シナリオ identifier is present (canonical list: `sprint-done-judgment.md` Guard 4); unmatched claims are invalid and require a real-mode smoke.
+   - Stories that fail at this gate are marked `status: "needs_user_review"` (NOT `done`) in the Step 2 atomic mutation below, and the Sprint's overall status reflects this — see Step 2 note.
 
 1. Read only the current Sprint slice (see `references/roadmap-jq.md` → Reading patterns):
    ```bash
